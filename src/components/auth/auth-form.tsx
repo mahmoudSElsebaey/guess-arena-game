@@ -130,19 +130,27 @@ export function AuthForm({ mode, demoAccounts = [] }: AuthFormProps) {
         <>
           <div className="my-5 flex items-center gap-3"><span className="h-px flex-1 bg-slate-100" /><span className="text-xs font-bold text-slate-400">{locale === "ar" ? "أو" : "OR"}</span><span className="h-px flex-1 bg-slate-100" /></div>
           <Button variant="secondary" size="lg" className="w-full" onClick={handleGuest} disabled={loading}>{t("guestAction")}</Button>
-          {demoAccounts.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
-              <p className="mb-3 text-sm font-extrabold text-slate-800">{t("demoTitle")}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {demoAccounts.map((account) => (
-                  <button key={account.email} type="button" disabled={loading} onClick={() => void handleDemo(account)} className="flex min-h-12 items-center justify-between gap-2 rounded-xl border border-violet-100 bg-white px-3 text-sm font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50">
-                    <span>{account.label}</span><span className="text-xs text-slate-400">Demo</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </>
+      )}
+
+      {demoAccounts.length > 0 && (
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-sm font-extrabold text-slate-800">{t("demoTitle")}</p>
+            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">2 PLAYERS</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {demoAccounts.map((account, index) => (
+              <button key={account.email} type="button" disabled={loading} onClick={() => void handleDemo(account)} className="flex min-h-14 items-center justify-between gap-2 rounded-xl border border-violet-100 bg-violet-50/60 px-3 text-start transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50">
+                <span>
+                  <span className="block text-sm font-bold text-violet-900">{account.label}</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">{locale === "ar" ? "دخول سريع للحساب" : "Quick demo sign in"}</span>
+                </span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white text-xs font-black text-violet-700">{index + 1}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
