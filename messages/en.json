@@ -22,7 +22,11 @@
     "featureTwoDescription": "A diverse board and questions based on character traits.",
     "featureThreeTitle": "Live gameplay",
     "featureThreeDescription": "A synchronized real-time experience for both players.",
-    "phaseLabel": "Foundation setup · Phase 1"
+    "boardLabel": "Character board",
+    "boardHint": "Pick your secret character and start guessing",
+    "liveLabel": "Live duel",
+    "playersLabel": "2 players",
+    "phaseLabel": "Coming next: live challenges with friends"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -43,9 +47,14 @@
     "invalidCredentials": "The email or password is incorrect.",
     "invalidRegistration": "Enter a valid name and email, and a password of at least 8 characters.",
     "emailTaken": "An account with this email already exists.",
-    "registrationFailed": "Unable to create the account right now. Please try again.",
+    "registrationFailed": "Unable to create the account. Check database configuration or try again later.",
     "registered": "Account created. Signing you in...",
     "guestDisabled": "Guest access is currently disabled.",
-    "passwordHint": "At least 8 characters."
+    "passwordHint": "At least 8 characters.",
+    "demoTitle": "Try a demo player account",
+    "demoPlayerOne": "Player 1",
+    "demoPlayerTwo": "Player 2",
+    "demoPassword": "Password",
+    "demoUnavailable": "Demo accounts are not enabled right now."
   }
 }
