@@ -1,11 +1,11 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { AuthForm } from "@/components/auth/auth-form";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
 
 export default async function RegisterPage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
-  const t = useTranslations("auth");
+  const t = await getTranslations({ locale, namespace: "auth" });
   return (
     <main className="min-h-screen">
       <SiteHeader locale={locale} />
