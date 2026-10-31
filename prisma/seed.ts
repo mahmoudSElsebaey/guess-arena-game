@@ -48,8 +48,8 @@ async function main() {
   if (process.env.DEMO_ACCOUNTS_ENABLED !== "true") return;
 
   const accounts: DemoAccount[] = [
-    { name: "Game Owner", email: process.env.DEMO_OWNER_EMAIL, password: process.env.DEMO_OWNER_PASSWORD, role: "OWNER" },
-    { name: "Game Admin", email: process.env.DEMO_ADMIN_EMAIL, password: process.env.DEMO_ADMIN_PASSWORD, role: "ADMIN" },
+    { name: "Game Owner", email: process.env.DEMO_OWNER_EMAIL ?? process.env.NEXT_PUBLIC_DEMO_OWNER_EMAIL, password: process.env.DEMO_OWNER_PASSWORD ?? process.env.NEXT_PUBLIC_DEMO_OWNER_PASSWORD, role: "OWNER" },
+    { name: "Game Admin", email: process.env.DEMO_ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL, password: process.env.DEMO_ADMIN_PASSWORD ?? process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD, role: "ADMIN" },
     { name: "Player 1", email: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_EMAIL, password: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_PASSWORD, role: "PLAYER" },
     { name: "Player 2", email: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_EMAIL, password: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_PASSWORD, role: "PLAYER" }
   ];
