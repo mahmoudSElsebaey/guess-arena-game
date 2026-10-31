@@ -137,7 +137,7 @@ export function AuthForm({ mode, demoAccounts = [] }: AuthFormProps) {
         <div className="mt-6 border-t border-slate-100 pt-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-sm font-extrabold text-slate-800">{t("demoTitle")}</p>
-            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">{demoAccounts.length} DEMO ACCOUNTS</span>
+            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">{t("demoCount", { count: demoAccounts.length })}</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             {demoAccounts.map((account, index) => (
