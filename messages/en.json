@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "title": "Guess Arena",
+    "description": "Challenge your friends in a real-time character guessing game."
+  },
+  "navigation": {
+    "home": "Home",
+    "login": "Log in",
+    "register": "Create account",
+    "switchLanguage": "العربية"
+  },
+  "home": {
+    "eyebrow": "Every great game starts with a challenge",
+    "title": "Can you uncover",
+    "titleAccent": "the secret character?",
+    "description": "Enter Guess Arena, challenge a friend, and ask clever questions to identify the right character before your opponent.",
+    "primaryAction": "Start playing",
+    "secondaryAction": "Create account",
+    "featureOneTitle": "Head to head",
+    "featureOneDescription": "Private rooms bring you and your opponent together.",
+    "featureTwoTitle": "45 characters",
+    "featureTwoDescription": "A diverse board and questions based on character traits.",
+    "featureThreeTitle": "Live gameplay",
+    "featureThreeDescription": "A synchronized real-time experience for both players.",
+    "phaseLabel": "Foundation setup · Phase 1"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "registerTitle": "Create your account",
+    "loginDescription": "Sign in to return to Guess Arena.",
+    "registerDescription": "Create an account and get ready for your next challenge.",
+    "name": "Display name",
+    "email": "Email address",
+    "password": "Password",
+    "loginAction": "Log in",
+    "registerAction": "Create account",
+    "guestAction": "Continue as guest",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Log in",
+    "registerLink": "Create one",
+    "genericError": "Something went wrong. Please try again.",
+    "invalidCredentials": "The email or password is incorrect.",
+    "registered": "Account created. Signing you in...",
+    "guestDisabled": "Guest access is currently disabled.",
+    "passwordHint": "At least 8 characters."
+  }
+}
