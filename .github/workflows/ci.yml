@@ -9,25 +9,35 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Validate Prisma schema
+        run: npm run db:validate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
       - name: Type check
         run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:run
       - name: Lint
         run: npm run lint
-      - name: Build
+      - name: Production build
         run: npm run build
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
           DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
           AUTH_SECRET: ci-only-placeholder-secret-for-build
+          AUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
