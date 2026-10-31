@@ -1,11 +1,11 @@
 import { ArrowUpLeft, Brain, Users, Zap } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
-  const t = useTranslations("home");
+  const t = await getTranslations({ locale, namespace: "home" });
   const features = [
     { icon: Users, title: t("featureOneTitle"), description: t("featureOneDescription") },
     { icon: Brain, title: t("featureTwoTitle"), description: t("featureTwoDescription") },
