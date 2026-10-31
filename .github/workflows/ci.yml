@@ -9,7 +9,27 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: guess_arena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d guess_arena"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
+      AUTH_SECRET: ci-only-placeholder-secret-for-build-and-not-for-production
+      AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,14 +39,12 @@ jobs:
         run: npm install
       - name: Validate Prisma schema
         run: npm run db:validate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
-          DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
       - name: Generate Prisma Client
         run: npm run db:generate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
-          DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
+      - name: Apply initial migration
+        run: npm run db:deploy
+      - name: Seed global settings
+        run: npm run db:seed
       - name: Type check
         run: npm run typecheck
       - name: Unit tests
@@ -35,9 +53,3 @@ jobs:
         run: npm run lint
       - name: Production build
         run: npm run build
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/guess_arena
-          DIRECT_URL: postgresql://ci:ci@localhost:5432/guess_arena
-          AUTH_SECRET: ci-only-placeholder-secret-for-build
-          AUTH_URL: http://localhost:3000
-          NEXT_PUBLIC_APP_URL: http://localhost:3000
