@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Gamepad2, KeyRound, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type DemoAccount = { label: string; email: string; password: string };
+type DemoAccount = { label: string; role: "OWNER" | "ADMIN" | "PLAYER"; email: string; password: string };
 type AuthFormProps = { mode: "login" | "register"; demoAccounts?: DemoAccount[] };
 
 export function AuthForm({ mode, demoAccounts = [] }: AuthFormProps) {
@@ -137,14 +137,14 @@ export function AuthForm({ mode, demoAccounts = [] }: AuthFormProps) {
         <div className="mt-6 border-t border-slate-100 pt-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-sm font-extrabold text-slate-800">{t("demoTitle")}</p>
-            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">2 PLAYERS</span>
+            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">{demoAccounts.length} DEMO ACCOUNTS</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             {demoAccounts.map((account, index) => (
               <button key={account.email} type="button" disabled={loading} onClick={() => void handleDemo(account)} className="flex min-h-14 items-center justify-between gap-2 rounded-xl border border-violet-100 bg-violet-50/60 px-3 text-start transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50">
                 <span>
-                  <span className="block text-sm font-bold text-violet-900">{account.label}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{locale === "ar" ? "دخول سريع للحساب" : "Quick demo sign in"}</span>
+                  <span className="flex items-center gap-2"><span className="block text-sm font-bold text-violet-900">{account.label}</span><span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-violet-700">{account.role}</span></span>
+                  <span className="mt-0.5 block truncate text-xs text-slate-500">{account.email}</span>
                 </span>
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white text-xs font-black text-violet-700">{index + 1}</span>
               </button>
