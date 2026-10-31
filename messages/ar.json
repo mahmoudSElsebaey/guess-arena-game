@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "title": "Guess Arena | ساحة التخمين",
+    "description": "تحدَّ أصدقاءك في لعبة تخمين الشخصيات أونلاين."
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "switchLanguage": "English"
+  },
+  "home": {
+    "eyebrow": "اللعب أحلى لما يكون فيه تحدي",
+    "title": "هل تستطيع اكتشاف",
+    "titleAccent": "الشخصية السرية؟",
+    "description": "ادخل ساحة التخمين، واجه صديقك، واسأل الأسئلة الذكية حتى تصل إلى الشخصية الصحيحة قبل منافسك.",
+    "primaryAction": "ابدأ التحدي",
+    "secondaryAction": "إنشاء حساب",
+    "featureOneTitle": "وجهاً لوجه",
+    "featureOneDescription": "غرف خاصة تجمعك بمنافسك في مواجهة مباشرة.",
+    "featureTwoTitle": "45 شخصية",
+    "featureTwoDescription": "لوحة متنوعة، وأسئلة تعتمد على صفات الشخصيات.",
+    "featureThreeTitle": "لحظة بلحظة",
+    "featureThreeDescription": "تجربة لعب مباشرة ومتزامنة بين الطرفين.",
+    "phaseLabel": "تجهيز الأساس · المرحلة الأولى"
+  },
+  "auth": {
+    "loginTitle": "مرحباً بعودتك",
+    "registerTitle": "أنشئ حسابك",
+    "loginDescription": "سجّل الدخول للعودة إلى ساحة التخمين.",
+    "registerDescription": "أنشئ حساباً وابدأ تحدياتك القادمة.",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "loginAction": "تسجيل الدخول",
+    "registerAction": "إنشاء الحساب",
+    "guestAction": "المتابعة كضيف",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "loginLink": "سجّل الدخول",
+    "registerLink": "أنشئ حساباً",
+    "genericError": "تعذر إكمال العملية. حاول مرة أخرى.",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "registered": "تم إنشاء الحساب. جارٍ تسجيل الدخول...",
+    "guestDisabled": "الدخول كضيف غير متاح حالياً.",
+    "passwordHint": "8 أحرف على الأقل."
+  }
+}
