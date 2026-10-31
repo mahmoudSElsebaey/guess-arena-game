@@ -58,6 +58,7 @@
     "guestDisabled": "الدخول كضيف غير متاح حالياً.",
     "passwordHint": "8 أحرف على الأقل.",
     "demoTitle": "جرّب اللعبة بحساب تجريبي",
+    "demoCount": "{count} حسابات تجريبية",
     "demoPlayerOne": "اللاعب الأول",
     "demoPlayerTwo": "اللاعب الثاني",
     "demoPassword": "كلمة المرور",
