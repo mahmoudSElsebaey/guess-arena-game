@@ -41,6 +41,9 @@
     "registerLink": "Create one",
     "genericError": "Something went wrong. Please try again.",
     "invalidCredentials": "The email or password is incorrect.",
+    "invalidRegistration": "Enter a valid name and email, and a password of at least 8 characters.",
+    "emailTaken": "An account with this email already exists.",
+    "registrationFailed": "Unable to create the account right now. Please try again.",
     "registered": "Account created. Signing you in...",
     "guestDisabled": "Guest access is currently disabled.",
     "passwordHint": "At least 8 characters."
