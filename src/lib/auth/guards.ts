@@ -10,7 +10,15 @@ export async function requireUser(locale: "ar" | "en" = "ar") {
 
 export async function requireAdmin() {
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
+  if (!session?.user?.id || !["ADMIN", "OWNER"].includes(session.user.role)) {
+    throw new Error("FORBIDDEN");
+  }
+  return session.user;
+}
+
+export async function requireOwner() {
+  const session = await auth();
+  if (!session?.user?.id || session.user.role !== "OWNER") {
     throw new Error("FORBIDDEN");
   }
   return session.user;
