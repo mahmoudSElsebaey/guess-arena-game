@@ -1,50 +1,74 @@
 # Guess Arena
 
-A bilingual, real-time multiplayer character-guessing game built with Next.js, TypeScript, PostgreSQL, Prisma, and Ably.
+A bilingual, real-time multiplayer character-guessing game built with Next.js, TypeScript, PostgreSQL, Prisma, Auth.js, and Ably.
 
-## Project status
+## Current status
 
-Phase 1 — Foundation is in progress. The initial repository scaffold is being established; game features are not implemented yet.
+Phase 1 — Project Foundation and Design System. This phase establishes localization, the shared visual foundation, PostgreSQL/Prisma setup, and authentication foundations. Multiplayer gameplay and the admin dashboard are intentionally scheduled for later phases.
 
 ## Requirements
 
 - Node.js 20.9+
 - npm
-- PostgreSQL database
-- Ably account and API key
-- Auth.js secret
+- PostgreSQL 14+
+- Ably account and API key (required when realtime features are introduced)
 
 ## Getting started
 
 1. Install dependencies: `npm install`
-2. Copy `.env.example` to `.env.local` and fill in the required values.
-3. Generate the Prisma client: `npx prisma generate`
-4. Apply migrations locally: `npx prisma migrate dev`
-5. Start the development server: `npm run dev`
+2. Copy `.env.example` to `.env.local` and configure PostgreSQL and Auth.js.
+3. Validate Prisma: `npm run db:validate`
+4. Generate Prisma Client: `npm run db:generate`
+5. Apply migrations locally: `npm run db:migrate`
+6. Seed global settings: `npm run db:seed`
+7. Start the app: `npm run dev`
 
-Open http://localhost:3000.
+Open http://localhost:3000. The root route redirects to Arabic; English is available at `/en`.
 
-## Environment variables
+## Environment
 
 See `.env.example`. Never commit real credentials.
 
+- `DATABASE_URL`: pooled PostgreSQL connection used by the app.
+- `DIRECT_URL`: direct PostgreSQL connection used by Prisma migrations.
+- `AUTH_SECRET`: long random secret for Auth.js.
+- `AUTH_URL`: canonical application URL.
+- `ABLY_API_KEY`: server-only Ably key; never expose it through a `NEXT_PUBLIC_` variable.
+- `CLOUDINARY_*`: reserved for later character media work.
+
+## Database
+
+The initial migration creates Auth.js-compatible identity tables and the singleton `SiteSettings` record. The seed is idempotent. Never use destructive reset commands against production.
+
+## Authentication foundation
+
+- Email/password registration stores bcrypt hashes, never plaintext passwords.
+- Auth.js issues JWT-backed sessions for the Credentials provider.
+- Guest sign-in is checked server-side against `SiteSettings.allowGuestAccess`.
+- Banned accounts cannot authenticate.
+- Admin role is never accepted from public registration.
+- Email verification, password reset, OAuth, and account management are outside Phase 1.
+
+## Localization
+
+Arabic is the default locale and uses RTL. English uses LTR. Message dictionaries live in `messages/ar.json` and `messages/en.json`.
+
+## Quality commands
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run test:run`
+- `npm run build`
+
 ## Architecture principles
 
-- PostgreSQL is the source of truth for users, rooms, rounds, turns, and results.
-- Prisma owns the database schema and migrations.
-- Ably transports authorized real-time events; it is not the game-state database.
-- All game commands and secret-character access must be validated server-side.
-- Secret characters and per-player elimination boards must never be included in public room payloads.
-- Arabic is the default locale (RTL); English uses LTR.
-- Work is restricted to the `main` branch as requested.
+PostgreSQL is the source of truth. Prisma owns schema and migrations. Ably transports authorized realtime events but is not the game-state database. Secret character data and private elimination boards must never be exposed in public room payloads. All game commands and privileged actions are validated server-side.
 
-## Scripts
+## Phases
 
-- `npm run dev` — start the development server
-- `npm run build` — production build
-- `npm run lint` — run ESLint
-- `npm run typecheck` — TypeScript check
-- `npm run db:generate` — generate Prisma Client
-- `npm run db:migrate` — create/apply a development migration
-- `npm run db:deploy` — apply committed migrations
-- `npm run db:studio` — open Prisma Studio
+1. Foundation and design system.
+2. Public pages and game UI.
+3. Authentication hardening and multiplayer game engine.
+4. Admin dashboard.
+5. Polish and advanced features.
+6. QA and deployment.
