@@ -7,7 +7,13 @@
     "home": "الرئيسية",
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
-    "switchLanguage": "English"
+    "switchLanguage": "English",
+    "logout": "تسجيل الخروج",
+    "account": "حسابي",
+    "owner": "المالك",
+    "admin": "المشرف",
+    "player": "لاعب",
+    "guest": "ضيف"
   },
   "home": {
     "eyebrow": "اللعب أحلى لما يكون فيه تحدي",
