@@ -7,7 +7,13 @@
     "home": "Home",
     "login": "Log in",
     "register": "Create account",
-    "switchLanguage": "العربية"
+    "switchLanguage": "العربية",
+    "logout": "Log out",
+    "account": "My account",
+    "owner": "Owner",
+    "admin": "Admin",
+    "player": "Player",
+    "guest": "Guest"
   },
   "home": {
     "eyebrow": "Every great game starts with a challenge",
