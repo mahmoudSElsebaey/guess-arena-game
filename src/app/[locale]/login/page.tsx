@@ -8,16 +8,30 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations({ locale, namespace: "auth" });
   const demoAccounts = [
     {
+      label: locale === "ar" ? "المالك" : "Owner",
+      role: "OWNER" as const,
+      email: process.env.NEXT_PUBLIC_DEMO_OWNER_EMAIL,
+      password: process.env.NEXT_PUBLIC_DEMO_OWNER_PASSWORD
+    },
+    {
+      label: locale === "ar" ? "المشرف" : "Admin",
+      role: "ADMIN" as const,
+      email: process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL,
+      password: process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD
+    },
+    {
       label: locale === "ar" ? "اللاعب الأول" : "Player 1",
+      role: "PLAYER" as const,
       email: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_EMAIL,
       password: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_PASSWORD
     },
     {
       label: locale === "ar" ? "اللاعب الثاني" : "Player 2",
+      role: "PLAYER" as const,
       email: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_EMAIL,
       password: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_PASSWORD
     }
-  ].filter((account): account is { label: string; email: string; password: string } =>
+  ].filter((account): account is { label: string; role: "OWNER" | "ADMIN" | "PLAYER"; email: string; password: string } =>
     Boolean(account.email && account.password)
   );
 
