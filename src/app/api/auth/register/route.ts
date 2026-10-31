@@ -14,11 +14,11 @@ export async function POST(request: Request) {
 
   const { name, email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase();
-  const passwordHash = await hash(password, 12);
 
   try {
+    const passwordHash = await hash(password, 12);
     const user = await prisma.user.create({
-      data: { name, email: normalizedEmail, passwordHash }
+      data: { name, email: normalizedEmail, passwordHash, role: "PLAYER" }
     });
     return NextResponse.json(
       { user: { id: user.id, name: user.name, email: user.email } },
@@ -28,6 +28,11 @@ export async function POST(request: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "EMAIL_TAKEN" }, { status: 409 });
     }
+
+    const diagnostic = error instanceof Prisma.PrismaClientKnownRequestError
+      ? { name: error.name, code: error.code }
+      : { name: error instanceof Error ? error.name : "UnknownError" };
+    console.error("[auth.register] Registration failed", diagnostic);
     return NextResponse.json({ error: "REGISTRATION_FAILED" }, { status: 500 });
   }
 }
