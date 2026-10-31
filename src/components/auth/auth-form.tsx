@@ -22,6 +22,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     event.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       if (mode === "register") {
         const response = await fetch("/api/auth/register", {
@@ -29,9 +30,16 @@ export function AuthForm({ mode }: AuthFormProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password })
         });
+
         if (!response.ok) {
           const result = (await response.json()) as { error?: string };
-          throw new Error(result.error ?? t("genericError"));
+          const message =
+            result.error === "EMAIL_TAKEN"
+              ? t("emailTaken")
+              : result.error === "INVALID_INPUT"
+                ? t("invalidRegistration")
+                : t("registrationFailed");
+          throw new Error(message);
         }
       }
 
@@ -80,9 +88,15 @@ export function AuthForm({ mode }: AuthFormProps) {
           {mode === "register" && <span className="block text-xs text-slate-400">{t("passwordHint")}</span>}
         </label>
         {error && <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p>}
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>{loading ? "..." : mode === "login" ? t("loginAction") : t("registerAction")}</Button>
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading ? "..." : mode === "login" ? t("loginAction") : t("registerAction")}
+        </Button>
       </form>
-      {mode === "login" && <div className="mt-3"><Button variant="secondary" size="lg" className="w-full" onClick={handleGuest} disabled={loading}>{t("guestAction")}</Button></div>}
+      {mode === "login" && (
+        <div className="mt-3">
+          <Button variant="secondary" size="lg" className="w-full" onClick={handleGuest} disabled={loading}>{t("guestAction")}</Button>
+        </div>
+      )}
     </div>
   );
 }
