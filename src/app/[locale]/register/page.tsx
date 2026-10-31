@@ -6,6 +6,21 @@ import { Link } from "@/i18n/navigation";
 export default async function RegisterPage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "auth" });
+  const demoAccounts = [
+    {
+      label: locale === "ar" ? "اللاعب الأول" : "Player 1",
+      email: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_EMAIL,
+      password: process.env.NEXT_PUBLIC_DEMO_PLAYER_ONE_PASSWORD
+    },
+    {
+      label: locale === "ar" ? "اللاعب الثاني" : "Player 2",
+      email: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_EMAIL,
+      password: process.env.NEXT_PUBLIC_DEMO_PLAYER_TWO_PASSWORD
+    }
+  ].filter((account): account is { label: string; email: string; password: string } =>
+    Boolean(account.email && account.password)
+  );
+
   return (
     <main className="min-h-screen">
       <SiteHeader locale={locale} />
@@ -29,7 +44,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
               <h1 className="text-3xl font-black text-slate-950 lg:hidden">{t("registerTitle")}</h1>
               <p className="mt-3 text-slate-500">{t("registerDescription")}</p>
             </div>
-            <AuthForm mode="register" />
+            <AuthForm mode="register" demoAccounts={demoAccounts} />
             <p className="mt-6 text-center text-sm text-slate-500">{t("hasAccount")} <Link href="/login" className="font-bold text-violet-700">{t("loginLink")}</Link></p>
           </div>
         </div>
