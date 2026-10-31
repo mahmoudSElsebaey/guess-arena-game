@@ -17,7 +17,7 @@ type AuthUser = {
   name: string | null;
   email: string | null;
   image: string | null;
-  role: "PLAYER" | "ADMIN";
+  role: "PLAYER" | "ADMIN" | "OWNER";
   isGuest: boolean;
 };
 
@@ -89,7 +89,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.role = token.role === "ADMIN" ? "ADMIN" : "PLAYER";
+        session.user.role =
+          token.role === "OWNER" ? "OWNER" : token.role === "ADMIN" ? "ADMIN" : "PLAYER";
         session.user.isGuest = token.isGuest === true;
       }
       return session;
