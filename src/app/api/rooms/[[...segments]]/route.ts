@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { characters } from "@/data/characters";
-import { questionTests } from "@/lib/game/game-logic";
+import { evaluateQuestion, getActiveCharacterById, getActiveCharacters, getActiveQuestionById } from "@/lib/game/content";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { appendRoomAction,getRoomSnapshot,isValidCharacterId,makeRoomCode,publishRoomEvent } from "@/lib/rooms";
+import { appendRoomAction,getRoomSnapshot,makeRoomCode,publishRoomEvent } from "@/lib/rooms";
 import { getAblyRestClient } from "@/lib/ably";
 type Ctx={params:Promise<{segments?:string[]}>};
 const readySchema=z.object({isReady:z.boolean(),secretCharacterId:z.string().optional()});
@@ -47,7 +46,7 @@ export async function POST(request:Request,{params}:Ctx){
  const roomId=segments[0],action=segments[1];if(!roomId||segments.length!==2)return NextResponse.json({error:"NOT_FOUND"},{status:404});
  try{
   if(action==="ready"){
-   const parsed=readySchema.safeParse(body);if(!parsed.success||(parsed.data.isReady&&!isValidCharacterId(parsed.data.secretCharacterId)))return NextResponse.json({error:"INVALID_READY_STATE"},{status:400});
+   const parsed=readySchema.safeParse(body);if(!parsed.success||(parsed.data.isReady&&!(await getActiveCharacterById(parsed.data.secretCharacterId??""))))return NextResponse.json({error:"INVALID_READY_STATE"},{status:400});
    const room=await prisma.$transaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt||member.room.status!=="WAITING")throw new Error("ROOM_NOT_AVAILABLE");await tx.roomMember.update({where:{id:member.id},data:{isReady:parsed.data.isReady,secretCharacterId:parsed.data.isReady?parsed.data.secretCharacterId:null,lastSeenAt:new Date()}});const updated=await tx.room.update({where:{id:roomId},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_READY",payload:{isReady:parsed.data.isReady}});return updated;});await publishRoomEvent(roomId,"room.updated",{roomId,version:room.version,status:room.status});return NextResponse.json({ok:true});
   }
   if(action==="start"){
@@ -55,8 +54,8 @@ export async function POST(request:Request,{params}:Ctx){
   }
   if(action==="ask"){
    const parsed=z.object({questionId:z.string().min(1).max(40)}).safeParse(body);
-   const questionTest=parsed.success?questionTests[parsed.data.questionId]:undefined;
-   if(!parsed.success||!questionTest)return NextResponse.json({error:"INVALID_QUESTION"},{status:400});
+   const [question,characters]=parsed.success?await Promise.all([getActiveQuestionById(parsed.data.questionId),getActiveCharacters()]):[null,[]];
+   if(!parsed.success||!question||characters.length===0)return NextResponse.json({error:"INVALID_QUESTION"},{status:400});
    const result=await prisma.$transaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
@@ -66,8 +65,8 @@ export async function POST(request:Request,{params}:Ctx){
     const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
     if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
     const secret=characters.find(c=>c.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
-    const answer=questionTest(secret);
-    const removed=characters.filter(c=>!me.eliminatedCharacterIds.includes(c.id)&&questionTest(c)!==answer).map(c=>c.id);
+    const answer=evaluateQuestion(secret,question);
+    const removed=characters.filter(c=>!me.eliminatedCharacterIds.includes(c.id)&&evaluateQuestion(c,question)!==answer).map(c=>c.id);
     const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},version:{increment:1}}});
     if(changed.count!==1)throw new Error("STATE_CONFLICT");
@@ -80,7 +79,7 @@ export async function POST(request:Request,{params}:Ctx){
   }
   if(action==="guess"){
    const parsed=z.object({characterId:z.string().min(1).max(40)}).safeParse(body);
-   if(!parsed.success||!isValidCharacterId(parsed.data.characterId))return NextResponse.json({error:"INVALID_GUESS"},{status:400});
+   if(!parsed.success||!(await getActiveCharacterById(parsed.data.characterId)))return NextResponse.json({error:"INVALID_GUESS"},{status:400});
    const result=await prisma.$transaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
