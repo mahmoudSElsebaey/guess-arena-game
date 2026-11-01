@@ -55,7 +55,8 @@ export async function POST(request:Request,{params}:Ctx){
   }
   if(action==="ask"){
    const parsed=z.object({questionId:z.string().min(1).max(40)}).safeParse(body);
-   if(!parsed.success||!questionTests[parsed.data.questionId])return NextResponse.json({error:"INVALID_QUESTION"},{status:400});
+   const questionTest=parsed.success?questionTests[parsed.data.questionId]:undefined;
+   if(!parsed.success||!questionTest)return NextResponse.json({error:"INVALID_QUESTION"},{status:400});
    const result=await prisma.$transaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
@@ -63,10 +64,10 @@ export async function POST(request:Request,{params}:Ctx){
     const me=current.members.find(m=>m.userId===userId),opponent=current.members.find(m=>m.userId!==userId);
     if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
     const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
-    if(previous.some(a=>(a.payload as {questionId?:string}).questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
+    if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
     const secret=characters.find(c=>c.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
-    const answer=questionTests[parsed.data.questionId](secret);
-    const removed=characters.filter(c=>!me.eliminatedCharacterIds.includes(c.id)&&questionTests[parsed.data.questionId](c)!==answer).map(c=>c.id);
+    const answer=questionTest(secret);
+    const removed=characters.filter(c=>!me.eliminatedCharacterIds.includes(c.id)&&questionTest(c)!==answer).map(c=>c.id);
     const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},version:{increment:1}}});
     if(changed.count!==1)throw new Error("STATE_CONFLICT");
