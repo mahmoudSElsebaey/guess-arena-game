@@ -19,6 +19,7 @@ export async function GET(request:Request,{params}:Ctx){
   try{const token=await getAblyRestClient().auth.createTokenRequest({clientId:userId,ttl:900000,capability:JSON.stringify({[`room:${roomId}`]:["subscribe"]})});return NextResponse.json(token,{headers:{"Cache-Control":"no-store"}});}catch{return NextResponse.json({error:"REALTIME_NOT_CONFIGURED"},{status:503});}
  }
  const roomId=segments[0];if(!roomId||segments.length!==1)return NextResponse.json({error:"NOT_FOUND"},{status:404});
+ await prisma.roomMember.updateMany({where:{roomId,leftAt:null,isConnected:true,lastSeenAt:{lt:new Date(Date.now()-15000)}},data:{isConnected:false}});
  await prisma.roomMember.updateMany({where:{roomId,userId,leftAt:null},data:{isConnected:true,lastSeenAt:new Date()}});
  const snapshot=await getRoomSnapshot(roomId,userId);if(!snapshot)return NextResponse.json({error:"ROOM_NOT_FOUND"},{status:404});
  const [room,actions,me]=await Promise.all([
