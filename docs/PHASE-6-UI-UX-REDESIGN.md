@@ -54,3 +54,19 @@ The first implementation adds reusable CSS variables and utilities for:
 - responsive backdrop-filter fallback.
 
 No game rules, APIs, database schema, migrations, permissions, or realtime/polling contracts are changed by this foundation.
+
+
+### 6.2 Game lobby redesign — IMPLEMENTED
+- Reworked the room entry screen into clear create-room and join-room actions.
+- Added six-digit invite-code input, copy feedback, and explicit room privacy messaging.
+- Reorganized room members into player cards with readiness, character-selection, and connection indicators.
+- Added a dedicated secret-character selection and ready/start action area.
+- Added a room guide and clearer waiting-for-player state.
+- Preserved the existing room API, role checks, ready requirements, and server-side start validation.
+
+### 6.3 Online match redesign — IMPLEMENTED
+- Reorganized the match into a live status header, player/turn indicators, question panel, character board, and match timeline.
+- Added clearer remaining/eliminated counters and a progress indicator.
+- Improved the responsive layout, including a sticky match overview on wide screens.
+- Added explicit disabled/used question states, accessible character labels, and live status/error feedback.
+- Preserved all existing server-authoritative ask/guess calls, sound effects, polling, and private character handling.
