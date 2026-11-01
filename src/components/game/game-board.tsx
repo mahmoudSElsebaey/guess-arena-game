@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
+import { useGameSounds } from "@/hooks/use-game-sounds";
 import {
   Check, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Trophy,
   UserRound, X, Crown, HatGlasses, CircleHelp
@@ -170,6 +172,7 @@ function CharacterPortrait({ character }: { character: Character }) {
 export function GameBoard({ locale }: { locale: Locale }) {
   const t = copy[locale];
   const [status, setStatus] = useState<GameStatus>("ready");
+  const { soundEnabled, toggleSound, playSound } = useGameSounds();
   const [secretId, setSecretId] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<Set<string>>(new Set());
   const [asked, setAsked] = useState<Set<string>>(new Set());
@@ -209,6 +212,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
     setHistory([]);
     setNotice("");
     setStatus("playing");
+    playSound("click");
   }
 
   function askQuestion(id: string, label: string) {
@@ -224,6 +228,8 @@ export function GameBoard({ locale }: { locale: Locale }) {
     setAsked(previous => new Set([...previous, id]));
     setHistory(previous => [{ id, label, answer, removed: removedIds.length }, ...previous].slice(0, 8));
     setNotice(`${t.answer}: ${answer ? t.yes : t.no} · ${t.removed} ${removedIds.length}`);
+    playSound(answer ? "yes" : "no");
+    if (removedIds.length) playSound("eliminate");
   }
 
   function guess(character: Character) {
@@ -231,9 +237,11 @@ export function GameBoard({ locale }: { locale: Locale }) {
     if (character.id === secret.id) {
       setStatus("won");
       setNotice(t.win);
+      playSound("win");
     } else {
       setEliminated(previous => new Set([...previous, character.id]));
       setNotice(t.wrong);
+      playSound("lose");
     }
   }
 
@@ -309,7 +317,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
               {characters.map(character => {
                 const isOut = eliminated.has(character.id);
                 return (
-                  <article key={character.id} className={`group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition sm:p-2 ${isOut ? "border-slate-100 bg-slate-100 opacity-35 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg"}`}>
+                  <article key={character.id} className={`animate-card-enter group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition-all duration-300 sm:p-2 ${isOut ? "border-slate-100 bg-slate-100 opacity-35 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg"}`}>
                     <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full text-center disabled:cursor-not-allowed" aria-label={`${t.guess}: ${character.name}`}>
                       <div className="aspect-square overflow-hidden rounded-xl bg-violet-50"><CharacterPortrait character={character}/></div>
                       <span className="mt-1.5 block truncate text-[11px] font-extrabold text-slate-800 sm:text-xs">{character.name}</span>
