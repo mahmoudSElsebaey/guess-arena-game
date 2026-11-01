@@ -156,3 +156,56 @@ model GameAction {
   @@unique([roomId,actorId,idempotencyKey])
   @@index([roomId,createdAt])
 }
+
+
+enum ContentCategoryType {
+  CHARACTER
+  QUESTION
+}
+
+model GameContentCategory {
+  id        String              @id @default(cuid())
+  slug      String              @unique
+  nameAr    String
+  nameEn    String
+  type      ContentCategoryType
+  sortOrder Int                 @default(0)
+  isActive  Boolean             @default(true)
+  characters GameCharacter[]
+  questions  GameQuestion[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([type, isActive, sortOrder])
+}
+
+model GameCharacter {
+  id          String             @id
+  categoryId  String
+  name        String
+  avatar      String
+  attributes  Json
+  sortOrder   Int                @default(0)
+  isActive    Boolean            @default(true)
+  category    GameContentCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([categoryId, isActive, sortOrder])
+}
+
+model GameQuestion {
+  id             String             @id
+  categoryId     String
+  labelAr        String
+  labelEn        String
+  attributeKey   String
+  expectedValue  Json
+  sortOrder      Int                @default(0)
+  isActive       Boolean            @default(true)
+  category       GameContentCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([categoryId, isActive, sortOrder])
+}
