@@ -34,7 +34,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
         </Link>
 
         <nav className="flex min-w-0 items-center gap-1.5 sm:gap-3" aria-label="Main navigation">
-          <Link href="/" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 sm:inline-flex">{t("home")}</Link>
+          <Link href="/" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 sm:inline-flex">{t("home")}</Link><Link href="/play" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-50 md:inline-flex">{locale === "ar" ? "اللعب" : "Play"}</Link>
 
           {status === "authenticated" && user ? (
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
