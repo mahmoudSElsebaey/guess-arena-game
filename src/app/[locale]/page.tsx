@@ -13,7 +13,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   ];
 
   return (
-    <main className="min-h-screen overflow-hidden">
+    <main id="main-content" tabIndex={-1} className="min-h-screen overflow-hidden">
       <SiteHeader locale={locale} />
       <section className="relative isolate">
         <div className="pointer-events-none absolute -top-40 start-1/3 -z-10 size-[36rem] rounded-full bg-violet-200/50 blur-3xl" />
