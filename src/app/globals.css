@@ -33,8 +33,8 @@ button, a { touch-action: manipulation; }
 ::selection { color: var(--primary-foreground); background: var(--primary); }
 
 @keyframes guess-arena-card-enter {
-  from { opacity: 0; transform: translateY(8px) scale(.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { transform: translateY(8px) scale(.985); }
+  to { transform: translateY(0) scale(1); }
 }
 @keyframes guess-arena-feedback {
   0% { opacity: 0; transform: translateY(6px); }
