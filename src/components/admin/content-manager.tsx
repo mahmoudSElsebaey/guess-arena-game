@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Category = {
@@ -151,7 +152,7 @@ export function ContentManager({ locale }: { locale: "ar" | "en" }) {
     });
   }
 
-  async function saveCategory(event: React.FormEvent<HTMLFormElement>) {
+  async function saveCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await run(async () => {
       await request("/api/admin/content", editingId ? "PATCH" : "POST", editingId
@@ -264,7 +265,7 @@ export function ContentManager({ locale }: { locale: "ar" | "en" }) {
             <label className={labelClass}>{ar ? "التصنيف" : "Category"}<select required value={characterForm.categoryId} onChange={e => setCharacterForm(v => ({ ...v, categoryId: e.target.value }))} className={fieldClass}><option value="">{ar ? "اختر تصنيفًا" : "Select category"}</option>{characterCategories.map(c => <option key={c.id} value={c.id}>{ar ? c.nameAr : c.nameEn}</option>)}</select></label>
             <div className="grid grid-cols-[1fr_90px] gap-3"><label className={labelClass}>{ar ? "اسم الشخصية" : "Character name"}<input required maxLength={50} value={characterForm.name} onChange={e => setCharacterForm(v => ({ ...v, name: e.target.value }))} className={fieldClass} /></label><label className={labelClass}>{ar ? "الصورة / الرمز" : "Avatar"}<input required maxLength={16} value={characterForm.avatar} onChange={e => setCharacterForm(v => ({ ...v, avatar: e.target.value }))} className={fieldClass} /></label></div>
             <div className="grid grid-cols-2 gap-3">
-              {(["skin","hairColor","hairLength","gender","eyeColor"] as const).map(key => <label key={key} className={labelClass}>{ar ? labels[key].ar : labels[key].en}<select value={characterForm.attributes[key]} onChange={e => setCharacterForm(v => ({ ...v, attributes: { ...v.attributes, [key]: e.target.value } }))} className={fieldClass}>{attributeOptions.find(o => o.key === key)?.values.map(value => <option key={String(value)} value={String(value)}>{String(value)}</option>)}</select></label>)}
+              {(["skin","hairColor","hairLength","gender","eyeColor"] as const).map(key => <label key={key} className={labelClass}>{ar ? labels[key].ar : labels[key].en}<select value={characterForm.attributes[key]} onChange={e => setCharacterForm(v => ({ ...v, attributes: { ...v.attributes, [key]: e.target.value } as Attributes }))} className={fieldClass}>{attributeOptions.find(o => o.key === key)?.values.map(value => <option key={String(value)} value={String(value)}>{String(value)}</option>)}</select></label>)}
             </div>
             <div className="grid grid-cols-3 gap-2">{(["hasHat","hasGlasses","hasBeard"] as const).map(key => <label key={key} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-[11px] font-bold text-slate-600"><input type="checkbox" checked={characterForm.attributes[key]} onChange={e => setCharacterForm(v => ({ ...v, attributes: { ...v.attributes, [key]: e.target.checked } }))} />{ar ? labels[key].ar : labels[key].en}</label>)}</div>
             <label className={labelClass}>{ar ? "ترتيب العرض" : "Sort order"}<input type="number" min="0" value={characterForm.sortOrder} onChange={e => setCharacterForm(v => ({ ...v, sortOrder: Number(e.target.value) }))} className={fieldClass} /></label>
