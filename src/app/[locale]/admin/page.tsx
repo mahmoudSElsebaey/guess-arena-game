@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -176,16 +177,16 @@ export default async function AdminPage({ params }: AdminPageProps) {
 
         <section className="mt-8 grid gap-4 md:grid-cols-2">
           <article className="rounded-2xl border border-violet-100 bg-violet-50/70 p-5">
-            <p className="text-xs font-black tracking-wider text-violet-700">{isArabic ? "الخطوة التالية" : "UP NEXT"}</p>
+            <p className="text-xs font-black tracking-wider text-violet-700">CONTENT STUDIO</p>
             <h2 className="mt-2 text-lg font-extrabold text-slate-900">{isArabic ? "إدارة محتوى اللعبة" : "Game content management"}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {isArabic
-                ? "سننقل الشخصيات والصفات والأسئلة من البيانات الثابتة إلى قاعدة البيانات، ثم نوفر أدوات إدارتها من هنا."
-                : "Characters, attributes, and questions will move from static files into the database, then become manageable here."}
+                ? "إدارة الشخصيات والأسئلة والتصنيفات، مع دعم الإضافة والتعديل والأرشفة."
+                : "Create, edit, activate, and archive characters, questions, and categories."}
             </p>
-            <span className="mt-4 inline-flex rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-violet-700">
-              {isArabic ? "قيد التنفيذ في المرحلة الرابعة" : "In progress · Phase 4"}
-            </span>
+            <Link href={`/${locale}/admin/content`} className="mt-4 inline-flex min-h-10 items-center rounded-lg bg-violet-700 px-4 py-2 text-xs font-bold text-white hover:bg-violet-800">
+              {isArabic ? "فتح إدارة المحتوى" : "Open content studio"}
+            </Link>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5">
             <p className="text-xs font-black tracking-wider text-slate-400">{isArabic ? "صلاحيات الوصول" : "ACCESS CONTROL"}</p>
