@@ -181,9 +181,12 @@ export function GameBoard({ locale }: { locale: Locale }) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [contentLoading, setContentLoading] = useState(true);
+  const [contentError, setContentError] = useState("");
   useEffect(() => {
     let active = true;
-    void fetch("/api/game/content", { cache: "no-store" }).then(async response => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    void fetch("/api/game/content", { cache: "no-store", signal: controller.signal }).then(async response => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       if (active) {
@@ -191,12 +194,16 @@ export function GameBoard({ locale }: { locale: Locale }) {
         setQuestions(data.questions ?? []);
       }
     }).catch(() => {
-      if (active) setNotice(locale === "ar" ? "تعذر تحميل محتوى اللعبة." : "Could not load game content.");
-    }).finally(() => { if (active) setContentLoading(false); });
-    return () => { active = false; };
+      if (active) {
+        const message = locale === "ar" ? "تعذر تحميل محتوى اللعبة." : "Could not load game content.";
+        setContentError(message);
+        setNotice(message);
+      }
+    }).finally(() => { window.clearTimeout(timeout); if (active) setContentLoading(false); });
+    return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, [locale]);
   const secret = useMemo(() => characters.find(c => c.id === secretId) ?? null, [characters, secretId]);
-  const remaining = characters.length - eliminated.size;
+  const remaining = Math.max(0, characters.length - eliminated.size);
   const questionItems = questions.map(question => ({
     id: question.id,
     label: locale === "ar" ? question.labelAr : question.labelEn,
