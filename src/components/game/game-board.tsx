@@ -1,12 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Check, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Trophy,
   UserRound, X, Crown, HatGlasses, CircleHelp
 } from "lucide-react";
-import { characters, type Character } from "@/data/characters";
-import { getEliminatedCharacterIds, questionTests } from "@/lib/game/game-logic";
+type Character = {
+  id: string; name: string; avatar: string;
+  skin: "light" | "medium" | "dark";
+  hairColor: "black" | "brown" | "blonde" | "red" | "gray";
+  hairLength: "short" | "long" | "none";
+  hasHat: boolean; hasGlasses: boolean; hasBeard: boolean;
+  gender: "male" | "female"; eyeColor: "brown" | "blue" | "green";
+};
+type Question = { id: string; labelAr: string; labelEn: string; attributeKey: string; expectedValue: string | boolean; category: { slug: string } };
+
 
 type Locale = "ar" | "en";
 type GameStatus = "ready" | "playing" | "won";
@@ -167,11 +175,33 @@ export function GameBoard({ locale }: { locale: Locale }) {
   const [asked, setAsked] = useState<Set<string>>(new Set());
   const [history, setHistory] = useState<Array<{ id: string; label: string; answer: boolean; removed: number }>>([]);
   const [notice, setNotice] = useState("");
-  const secret = useMemo(() => characters.find(c => c.id === secretId) ?? null, [secretId]);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [contentLoading, setContentLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/game/content", { cache: "no-store" }).then(async response => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      if (active) {
+        setCharacters((data.characters ?? []).map((character: { id: string; name: string; avatar: string; attributes: Record<string, unknown> }) => ({ id: character.id, name: character.name, avatar: character.avatar, ...character.attributes })) as Character[]);
+        setQuestions(data.questions ?? []);
+      }
+    }).catch(() => {
+      if (active) setNotice(locale === "ar" ? "تعذر تحميل محتوى اللعبة." : "Could not load game content.");
+    }).finally(() => { if (active) setContentLoading(false); });
+    return () => { active = false; };
+  }, [locale]);
+  const secret = useMemo(() => characters.find(c => c.id === secretId) ?? null, [characters, secretId]);
   const remaining = characters.length - eliminated.size;
-  const questionItems = t.questionsList as readonly (readonly [string, string, string])[];
+  const questionItems = questions.map(question => ({
+    id: question.id,
+    label: locale === "ar" ? question.labelAr : question.labelEn,
+    group: question.category.slug === "appearance" ? "look" : question.category.slug
+  }));
 
   function startRound() {
+    if (!characters.length) return;
     const choice = characters[Math.floor(Math.random() * characters.length)];
     setSecretId(choice.id);
     setEliminated(new Set());
@@ -183,10 +213,13 @@ export function GameBoard({ locale }: { locale: Locale }) {
 
   function askQuestion(id: string, label: string) {
     if (!secret || status !== "playing" || asked.has(id)) return;
-    const test = questionTests[id];
-    if (!test) return;
-    const answer = test(secret);
-    const removedIds = getEliminatedCharacterIds(characters, eliminated, test, answer);
+    const question = questions.find(item => item.id === id);
+    if (!question) return;
+    const answer = secret[question.attributeKey as keyof Character] === question.expectedValue;
+    const removedIds = characters.filter(character =>
+      !eliminated.has(character.id) &&
+      (character[question.attributeKey as keyof Character] === question.expectedValue) !== answer
+    ).map(character => character.id);
     setEliminated(previous => new Set([...previous, ...removedIds]));
     setAsked(previous => new Set([...previous, id]));
     setHistory(previous => [{ id, label, answer, removed: removedIds.length }, ...previous].slice(0, 8));
@@ -232,7 +265,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
           <div className="flex flex-wrap items-center gap-2">
             <div className="min-w-28 rounded-2xl bg-slate-950 px-4 py-3 text-white"><span className="block text-[10px] font-bold text-slate-400">{t.remaining}</span><strong className="text-2xl font-black tabular-nums">{remaining}</strong></div>
             <div className="min-w-28 rounded-2xl bg-rose-50 px-4 py-3 text-rose-700"><span className="block text-[10px] font-bold text-rose-400">{t.eliminated}</span><strong className="text-2xl font-black tabular-nums">{eliminated.size}</strong></div>
-            <button type="button" onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"><RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}</button>
+            <button type="button" disabled={contentLoading || characters.length === 0} onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"><RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}</button>
           </div>
         </div>
 
@@ -255,7 +288,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
                   <div key={group.id}>
                     <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">{group.label}</p>
                     <div className="grid gap-1.5">
-                      {questionItems.filter(item => item[2] === group.id).map(([id, label]) => (
+                      {questionItems.filter(item => item.group === group.id).map(({ id, label }) => (
                         <button key={id} type="button" disabled={status !== "playing" || asked.has(id)} onClick={() => askQuestion(id, label)} className="flex min-h-10 items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-start text-xs font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40">
                           <span>{label}</span>{asked.has(id) ? <Check size={14} className="shrink-0 text-emerald-600"/> : <span className="text-violet-500">?</span>}
                         </button>
