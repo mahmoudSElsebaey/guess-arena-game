@@ -229,7 +229,6 @@ export function GameBoard({ locale }: { locale: Locale }) {
     setHistory(previous => [{ id, label, answer, removed: removedIds.length }, ...previous].slice(0, 8));
     setNotice(`${t.answer}: ${answer ? t.yes : t.no} · ${t.removed} ${removedIds.length}`);
     playSound(answer ? "yes" : "no");
-    if (removedIds.length) playSound("eliminate");
   }
 
   function guess(character: Character) {
@@ -331,8 +330,8 @@ export function GameBoard({ locale }: { locale: Locale }) {
               })}
             </div>
             {status === "ready" && <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-violet-50 p-4 text-center text-sm font-bold text-violet-800">{t.ready}</div>}
-            {status === "won" && <div className="mt-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-extrabold text-emerald-800"><Trophy size={20}/>{t.win}</div>}
-            {notice && status !== "won" && <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{notice}</div>}
+            {status === "won" && <div className="animate-feedback mt-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-extrabold text-emerald-800"><Trophy size={20}/>{t.win}</div>}
+            {notice && status !== "won" && <div className="animate-feedback mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{notice}</div>}
           </section>
 
           <aside className="order-3 space-y-4">
