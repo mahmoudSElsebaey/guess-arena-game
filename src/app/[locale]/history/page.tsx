@@ -86,7 +86,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
   return (
     <>
       <SiteHeader locale={locale} />
-      <main dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <header>
             <p className="text-xs font-black tracking-[0.2em] text-violet-600">GUESS ARENA · PLAYER RECORD</p>
