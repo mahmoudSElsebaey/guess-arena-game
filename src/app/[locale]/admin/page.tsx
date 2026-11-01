@@ -87,7 +87,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
   };
 
   return (
-    <main dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+    <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
