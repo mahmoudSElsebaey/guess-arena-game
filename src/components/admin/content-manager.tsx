@@ -85,6 +85,14 @@ export function ContentManager({ locale }: { locale: "ar" | "en" }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setCategories(data.categories);
+      setCharacterForm(current => ({
+        ...current,
+        categoryId: current.categoryId || data.categories.find((item: Category) => item.type === "CHARACTER" && item.isActive)?.id || ""
+      }));
+      setQuestionForm(current => ({
+        ...current,
+        categoryId: current.categoryId || data.categories.find((item: Category) => item.type === "QUESTION" && item.isActive)?.id || ""
+      }));
       setCharacters(data.characters);
       setQuestions(data.questions);
       setActiveGames(data.activeGames);
