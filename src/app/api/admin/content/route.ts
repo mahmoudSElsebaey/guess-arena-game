@@ -50,7 +50,12 @@ function failure(message: string, status = 400) {
 async function requireAdmin() {
   const session = await auth();
   if (!session?.user?.id) return { response: failure("UNAUTHORIZED", 401) } as const;
-  if (session.user.role !== "OWNER" && session.user.role !== "ADMIN") {
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, status: true }
+  });
+  if (!user || user.status !== "ACTIVE") return { response: failure("UNAUTHORIZED", 401) } as const;
+  if (user.role !== "OWNER" && user.role !== "ADMIN") {
     return { response: failure("FORBIDDEN", 403) } as const;
   }
   return { userId: session.user.id } as const;
