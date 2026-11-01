@@ -3,7 +3,7 @@
 import { Gamepad2, Languages, LogOut, ShieldCheck, UserRound, History } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -11,6 +11,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
   const t = useTranslations("navigation");
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const nextLocale = locale === "ar" ? "en" : "ar";
   const [menuOpen, setMenuOpen] = useState(false);
   const user = session?.user;
@@ -75,7 +76,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
             <span className="h-9 w-20 animate-pulse rounded-lg bg-slate-100" aria-hidden="true" />
           )}
 
-          <Link href="/" locale={nextLocale} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--border)] px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:px-3 sm:text-sm" aria-label={t("switchLanguage")}>
+          <Link href={pathname} locale={nextLocale} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--border)] px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:px-3 sm:text-sm" aria-label={t("switchLanguage")}>
             <Languages size={16} aria-hidden="true" /><span>{t("switchLanguage")}</span>
           </Link>
         </nav>
