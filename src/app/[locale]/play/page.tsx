@@ -12,7 +12,7 @@ const GameBoard = dynamic(
 export default async function PlayPage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
   return (
-    <main>
+    <main id="main-content" tabIndex={-1}>
       <SiteHeader locale={locale} />
       <RoomLobby locale={locale} />
       <GameBoard locale={locale} />
