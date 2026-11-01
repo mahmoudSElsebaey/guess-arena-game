@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { characters } from "@/data/characters";
-import { getEliminatedCharacterIds, questionTests } from "@/lib/game/game-logic";
+import { characters } from "../../data/characters";
+import { getEliminatedCharacterIds, questionTests } from "./game-logic";
 
 describe("Guess Arena game logic", () => {
   it("provides exactly 45 characters with unique ids", () => {
