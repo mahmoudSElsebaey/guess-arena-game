@@ -9,7 +9,6 @@ import { characters, type Character } from "@/data/characters";
 
 type Locale = "ar" | "en";
 type GameStatus = "ready" | "playing" | "won";
-type Question = { id: string; label: string; test: (character: Character) => boolean; group: string };
 
 const copy = {
   ar: {
