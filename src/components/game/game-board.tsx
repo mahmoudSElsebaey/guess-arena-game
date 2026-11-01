@@ -1,97 +1,240 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Eye, EyeOff, Flag, HelpCircle, RotateCcw, Sparkles, Trophy, X } from "lucide-react";
+import {
+  Check, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Trophy,
+  UserRound, X, Crown, Glasses, HatGlasses, CircleHelp
+} from "lucide-react";
 import { characters, type Character } from "@/data/characters";
 
 type Locale = "ar" | "en";
+type GameStatus = "ready" | "playing" | "won";
+type Question = { id: string; label: string; test: (character: Character) => boolean; group: string };
 
-const labels = {
+const copy = {
   ar: {
-    title: "ساحة اللعب",
-    subtitle: "اختر شخصيتك السرية ثم ابدأ في استبعاد الشخصيات حتى تصل للإجابة الصحيحة.",
-    target: "شخصيتك السرية",
-    chooseTarget: "اختيار شخصية سرية",
-    targetHint: "هذه النسخة التدريبية تحاكي منطق اللعبة قبل اللعب المباشر.",
-    questions: "أسئلة سريعة",
+    eyebrow: "وضع التدريب · خصم افتراضي",
+    title: "ساحة التخمين",
+    subtitle: "اسأل خصمك أسئلة بنعم أو لا، واستبعد الشخصيات غير المطابقة حتى تكتشف الشخصية السرية.",
+    start: "ابدأ جولة جديدة",
+    restart: "إعادة الجولة",
     board: "لوحة الشخصيات",
-    remaining: "المتبقي",
-    eliminated: "المستبعد",
-    ask: "اسأل",
+    remaining: "شخصيات متبقية",
+    eliminated: "شخصيات مستبعدة",
+    secret: "الشخصية السرية",
+    secretHint: "خصمك اختار شخصية سرية. حاول اكتشافها!",
+    hidden: "مخفية عنك",
+    questions: "اسأل خصمك",
+    questionsHint: "اختر سؤالًا واحدًا في كل مرة. سيجيب الخصم وتُستبعد الشخصيات تلقائيًا.",
+    history: "سجل الجولة",
+    noHistory: "لم تسأل أي سؤال بعد.",
     yes: "نعم",
     no: "لا",
-    guess: "تخمين الشخصية",
-    reset: "إعادة الجولة",
-    correct: "إجابة صحيحة! 🎉",
-    wrong: "ليست الشخصية الصحيحة",
-    won: "أحسنت! لقد وجدت الشخصية.",
-    chooseFirst: "اختر شخصية سرية أولاً",
-    hide: "استبعاد",
-    restore: "استرجاع",
-    hat: "هل ترتدي الشخصية قبعة؟",
-    glasses: "هل ترتدي الشخصية نظارات؟",
-    beard: "هل لدى الشخصية لحية؟",
-    male: "هل الشخصية رجل؟",
-    female: "هل الشخصية امرأة؟",
-    shortHair: "هل شعرها قصير؟",
-    log: "سجل الجولة",
-    noLog: "لم تسأل أي سؤال بعد",
-    turn: "دورك الآن"
+    answer: "إجابة الخصم",
+    removed: "تم استبعاد",
+    candidates: "شخصية",
+    guess: "اختر الشخصية لتخمينها",
+    wrong: "تخمين غير صحيح. تم استبعاد الشخصية.",
+    win: "مبروك! اكتشفت الشخصية السرية وفزت بالجولة!",
+    ready: "ابدأ الجولة ليختار الخصم شخصية سرية.",
+    playing: "الجولة جارية",
+    won: "فزت بالجولة",
+    manualHide: "اقلب البطاقة واستبعدها",
+    restore: "إعادة البطاقة",
+    guessed: "تخمين",
+    askAgain: "يمكنك متابعة الأسئلة أو التخمين من البطاقات المتبقية.",
+    allAsked: "استخدمت كل الأسئلة المتاحة.",
+    questionGroups: { look: "المظهر", accessories: "الإكسسوارات", identity: "الصفات" },
+    questionsList: [
+      ["hat", "هل يرتدي قبعة؟", "accessories"],
+      ["glasses", "هل يرتدي نظارة؟", "accessories"],
+      ["beard", "هل لديه لحية؟", "look"],
+      ["male", "هل الشخصية رجل؟", "identity"],
+      ["female", "هل الشخصية امرأة؟", "identity"],
+      ["shortHair", "هل شعره قصير؟", "look"],
+      ["longHair", "هل شعره طويل؟", "look"],
+      ["bald", "هل الشخصية صلعاء؟", "look"],
+      ["blackHair", "هل شعره أسود؟", "look"],
+      ["brownHair", "هل شعره بني؟", "look"],
+      ["blondeHair", "هل شعره أشقر؟", "look"],
+      ["redHair", "هل شعره أحمر؟", "look"],
+      ["grayHair", "هل شعره رمادي؟", "look"],
+      ["lightSkin", "هل بشرته فاتحة؟", "look"],
+      ["mediumSkin", "هل بشرته متوسطة؟", "look"],
+      ["darkSkin", "هل بشرته داكنة؟", "look"],
+      ["blueEyes", "هل عيناه زرقاوان؟", "look"],
+      ["greenEyes", "هل عيناه خضراوان؟", "look"],
+      ["brownEyes", "هل عيناه بنيتان؟", "look"]
+    ] as const
   },
   en: {
-    title: "Play Arena",
-    subtitle: "Choose your secret character, eliminate cards, and narrow the board until you make your final guess.",
-    target: "Your secret character",
-    chooseTarget: "Choose secret character",
-    targetHint: "This training build simulates the game logic before live multiplayer.",
-    questions: "Quick questions",
+    eyebrow: "PRACTICE MODE · AI OPPONENT",
+    title: "Guess Arena",
+    subtitle: "Ask yes-or-no questions, eliminate characters that do not match, and uncover the secret character.",
+    start: "Start new round",
+    restart: "Restart round",
     board: "Character board",
-    remaining: "Remaining",
+    remaining: "Characters left",
     eliminated: "Eliminated",
-    ask: "Ask",
+    secret: "Secret character",
+    secretHint: "Your opponent picked a secret character. Can you find them?",
+    hidden: "Hidden from you",
+    questions: "Ask your opponent",
+    questionsHint: "Choose one question at a time. The opponent answers and the board filters automatically.",
+    history: "Round history",
+    noHistory: "No questions asked yet.",
     yes: "Yes",
     no: "No",
-    guess: "Guess character",
-    reset: "Reset round",
-    correct: "Correct answer! 🎉",
-    wrong: "Not the correct character",
-    won: "Nice! You found the character.",
-    chooseFirst: "Choose a secret character first",
-    hide: "Eliminate",
-    restore: "Restore",
-    hat: "Does the character wear a hat?",
-    glasses: "Does the character wear glasses?",
-    beard: "Does the character have a beard?",
-    male: "Is the character male?",
-    female: "Is the character female?",
-    shortHair: "Does the character have short hair?",
-    log: "Round activity",
-    noLog: "No questions asked yet",
-    turn: "Your turn"
+    answer: "Opponent answered",
+    removed: "Eliminated",
+    candidates: "characters",
+    guess: "Select a character to make your guess",
+    wrong: "Incorrect guess. That character was eliminated.",
+    win: "You found the secret character. You win the round!",
+    ready: "Start a round and your opponent will choose a secret character.",
+    playing: "Round in progress",
+    won: "Round won",
+    manualHide: "Flip and eliminate card",
+    restore: "Restore card",
+    guessed: "Guess",
+    askAgain: "Keep asking questions or guess from the remaining cards.",
+    allAsked: "You have used all available questions.",
+    questionGroups: { look: "Appearance", accessories: "Accessories", identity: "Identity" },
+    questionsList: [
+      ["hat", "Is the character wearing a hat?", "accessories"],
+      ["glasses", "Does the character wear glasses?", "accessories"],
+      ["beard", "Does the character have a beard?", "look"],
+      ["male", "Is the character male?", "identity"],
+      ["female", "Is the character female?", "identity"],
+      ["shortHair", "Does the character have short hair?", "look"],
+      ["longHair", "Does the character have long hair?", "look"],
+      ["bald", "Is the character bald?", "look"],
+      ["blackHair", "Does the character have black hair?", "look"],
+      ["brownHair", "Does the character have brown hair?", "look"],
+      ["blondeHair", "Does the character have blonde hair?", "look"],
+      ["redHair", "Does the character have red hair?", "look"],
+      ["grayHair", "Does the character have gray hair?", "look"],
+      ["lightSkin", "Does the character have light skin?", "look"],
+      ["mediumSkin", "Does the character have medium skin?", "look"],
+      ["darkSkin", "Does the character have dark skin?", "look"],
+      ["blueEyes", "Does the character have blue eyes?", "look"],
+      ["greenEyes", "Does the character have green eyes?", "look"],
+      ["brownEyes", "Does the character have brown eyes?", "look"]
+    ] as const
   }
 } as const;
 
-const questionKeys = [
-  ["hat", (c: Character) => c.hasHat],
-  ["glasses", (c: Character) => c.hasGlasses],
-  ["beard", (c: Character) => c.hasBeard],
-  ["male", (c: Character) => c.gender === "male"],
-  ["female", (c: Character) => c.gender === "female"],
-  ["shortHair", (c: Character) => c.hairLength === "short"]
-] as const;
+const tests: Record<string, (c: Character) => boolean> = {
+  hat: c => c.hasHat,
+  glasses: c => c.hasGlasses,
+  beard: c => c.hasBeard,
+  male: c => c.gender === "male",
+  female: c => c.gender === "female",
+  shortHair: c => c.hairLength === "short",
+  longHair: c => c.hairLength === "long",
+  bald: c => c.hairLength === "none",
+  blackHair: c => c.hairColor === "black",
+  brownHair: c => c.hairColor === "brown",
+  blondeHair: c => c.hairColor === "blonde",
+  redHair: c => c.hairColor === "red",
+  grayHair: c => c.hairColor === "gray",
+  lightSkin: c => c.skin === "light",
+  mediumSkin: c => c.skin === "medium",
+  darkSkin: c => c.skin === "dark",
+  blueEyes: c => c.eyeColor === "blue",
+  greenEyes: c => c.eyeColor === "green",
+  brownEyes: c => c.eyeColor === "brown"
+};
+
+const skinColors: Record<Character["skin"], string> = { light: "#f3c9a5", medium: "#c98961", dark: "#754832" };
+const hairColors: Record<Character["hairColor"], string> = { black: "#29232b", brown: "#68402f", blonde: "#e6c36d", red: "#a94f36", gray: "#a7a8b0" };
+const eyeColors: Record<Character["eyeColor"], string> = { brown: "#70452f", blue: "#4b91c7", green: "#4c9a72" };
+
+function CharacterPortrait({ character }: { character: Character }) {
+  const skin = skinColors[character.skin];
+  const hair = hairColors[character.hairColor];
+  const eyes = eyeColors[character.eyeColor];
+  return (
+    <svg viewBox="0 0 120 120" className="h-full w-full" role="img" aria-label={character.name}>
+      <defs>
+        <linearGradient id={`bg-${character.id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#f0eaff" />
+          <stop offset="100%" stopColor="#d9f5ef" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="18" fill={`url(#bg-${character.id})`} />
+      <path d="M17 120c3-25 17-36 43-36s40 11 43 36" fill={character.gender === "male" ? "#46506f" : "#8a5c9e"} />
+      <path d="M48 78h24v19H48z" fill={skin} />
+      <ellipse cx="60" cy="52" rx="29" ry="35" fill={skin} />
+      <path d={character.hairLength === "none" ? "M31 47c-3-20 9-34 29-34 19 0 31 13 29 34-6-10-13-14-21-15-14 8-24 9-37 7z" : "M31 53c-7-26 7-43 29-43 24 0 36 18 29 43-5-17-14-24-29-25-12 9-19 10-29 9z"} fill={hair} />
+      {character.hairLength === "long" && <path d="M33 46c-7 20-6 43 2 52l11-4-3-40zm54 0c7 20 6 43-2 52l-11-4 3-40z" fill={hair} />}
+      <ellipse cx="49" cy="53" rx="3" ry="4" fill={eyes} />
+      <ellipse cx="71" cy="53" rx="3" ry="4" fill={eyes} />
+      <path d="M58 59l-3 9h7" fill="none" stroke="#a86f58" strokeWidth="2" strokeLinecap="round" />
+      <path d="M51 73q9 7 18 0" fill="none" stroke="#8c4c4b" strokeWidth="2.5" strokeLinecap="round" />
+      {character.hasBeard && <path d="M39 68q2 23 21 25 19-2 21-25-9 8-21 6-12 2-21-6z" fill={hair} opacity=".92" />}
+      {character.hasGlasses && <g fill="none" stroke="#303344" strokeWidth="3"><rect x="38" y="46" width="19" height="15" rx="5"/><rect x="63" y="46" width="19" height="15" rx="5"/><path d="M57 52h6" /></g>}
+      {character.hasHat && <g><path d="M28 34q2-23 32-23t32 23z" fill="#7257e8"/><path d="M22 34h76v7H22z" rx="3" fill="#4934a8"/></g>}
+      <path d="M43 88q17 9 34 0" fill="none" stroke="#fff" strokeOpacity=".65" strokeWidth="3" />
+    </svg>
+  );
+}
+
+const questions: Question[] = Object.keys(tests).map((id, index) => ({
+  id,
+  label: "",
+  test: tests[id],
+  group: index < 2 ? "accessories" : index < 5 ? "identity" : "look"
+}));
 
 export function GameBoard({ locale }: { locale: Locale }) {
-  const t = labels[locale];
-  const [targetId, setTargetId] = useState<string | null>(null);
+  const t = copy[locale];
+  const [status, setStatus] = useState<GameStatus>("ready");
+  const [secretId, setSecretId] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<Set<string>>(new Set());
-  const [log, setLog] = useState<string[]>([]);
-  const [message, setMessage] = useState<string>("");
-  const target = useMemo(() => characters.find((c) => c.id === targetId) ?? null, [targetId]);
-
+  const [asked, setAsked] = useState<Set<string>>(new Set());
+  const [history, setHistory] = useState<Array<{ id: string; label: string; answer: boolean; removed: number }>>([]);
+  const [notice, setNotice] = useState("");
+  const secret = useMemo(() => characters.find(c => c.id === secretId) ?? null, [secretId]);
   const remaining = characters.length - eliminated.size;
+  const questionItems = t.questionsList as readonly (readonly [string, string, string])[];
 
-  function toggleCard(id: string) {
-    setEliminated((previous) => {
+  function startRound() {
+    const choice = characters[Math.floor(Math.random() * characters.length)];
+    setSecretId(choice.id);
+    setEliminated(new Set());
+    setAsked(new Set());
+    setHistory([]);
+    setNotice("");
+    setStatus("playing");
+  }
+
+  function askQuestion(id: string, label: string) {
+    if (!secret || status !== "playing" || asked.has(id)) return;
+    const test = tests[id];
+    if (!test) return;
+    const answer = test(secret);
+    const removedIds = characters.filter(c => !eliminated.has(c.id) && test(c) !== answer).map(c => c.id);
+    setEliminated(previous => new Set([...previous, ...removedIds]));
+    setAsked(previous => new Set([...previous, id]));
+    setHistory(previous => [{ id, label, answer, removed: removedIds.length }, ...previous].slice(0, 8));
+    setNotice(`${t.answer}: ${answer ? t.yes : t.no} · ${t.removed} ${removedIds.length}`);
+  }
+
+  function guess(character: Character) {
+    if (!secret || status !== "playing" || eliminated.has(character.id)) return;
+    if (character.id === secret.id) {
+      setStatus("won");
+      setNotice(t.win);
+    } else {
+      setEliminated(previous => new Set([...previous, character.id]));
+      setNotice(t.wrong);
+    }
+  }
+
+  function toggleEliminated(id: string) {
+    if (status !== "playing") return;
+    setEliminated(previous => {
       const next = new Set(previous);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -99,118 +242,108 @@ export function GameBoard({ locale }: { locale: Locale }) {
     });
   }
 
-  function askQuestion(label: string, predicate: (character: Character) => boolean) {
-    if (!target) {
-      setMessage(t.chooseFirst);
-      return;
-    }
-    const answer = predicate(target);
-    setLog((previous) => [`${label} — ${answer ? t.yes : t.no}`, ...previous].slice(0, 6));
-    setMessage(`${t.ask}: ${answer ? t.yes : t.no}`);
-  }
-
-  function guess(character: Character) {
-    if (!target) {
-      setMessage(t.chooseFirst);
-      return;
-    }
-    if (character.id === target.id) {
-      setMessage(`${t.correct} ${t.won}`);
-    } else {
-      setMessage(`${t.wrong}: ${character.name}`);
-      setEliminated((previous) => new Set([...previous, character.id]));
-    }
-  }
-
-  function reset() {
-    setTargetId(null);
-    setEliminated(new Set());
-    setLog([]);
-    setMessage("");
-  }
+  const groupedQuestions = [
+    { id: "look", label: t.questionGroups.look },
+    { id: "accessories", label: t.questionGroups.accessories },
+    { id: "identity", label: t.questionGroups.identity }
+  ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.16),transparent_35%),linear-gradient(to_bottom,#f8fafc,#eef2ff)]">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">
-        <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-black text-violet-700"><Sparkles size={14} /> PHASE 2 · CORE GAME</div>
-            <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">{t.title}</h1>
-            <p className="mt-3 max-w-2xl text-slate-600">{t.subtitle}</p>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(114,87,232,.13),transparent_32%),linear-gradient(180deg,#f8f9ff_0%,#f0f3fa_100%)]">
+      <div className="mx-auto max-w-[1500px] px-3 py-6 sm:px-6 sm:py-9">
+        <div className="mb-6 flex flex-col gap-4 rounded-[2rem] border border-white bg-white/85 p-5 shadow-xl shadow-slate-200/50 backdrop-blur sm:p-7 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[11px] font-black tracking-wide text-violet-700"><Sparkles size={14} />{t.eyebrow}</span>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">{t.title}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">{t.subtitle}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <div className="rounded-xl border border-white bg-white px-4 py-3 shadow-sm"><span className="block text-[11px] font-bold text-slate-400">{t.remaining}</span><span className="text-xl font-black text-slate-900">{remaining}</span></div>
-            <div className="rounded-xl border border-white bg-white px-4 py-3 shadow-sm"><span className="block text-[11px] font-bold text-slate-400">{t.eliminated}</span><span className="text-xl font-black text-rose-600">{eliminated.size}</span></div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-28 rounded-2xl bg-slate-950 px-4 py-3 text-white"><span className="block text-[10px] font-bold text-slate-400">{t.remaining}</span><strong className="text-2xl font-black tabular-nums">{remaining}</strong></div>
+            <div className="min-w-28 rounded-2xl bg-rose-50 px-4 py-3 text-rose-700"><span className="block text-[10px] font-bold text-rose-400">{t.eliminated}</span><strong className="text-2xl font-black tabular-nums">{eliminated.size}</strong></div>
+            <button type="button" onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"><RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}</button>
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[280px_1fr_280px]">
-          <aside className="space-y-5">
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-xl shadow-slate-200/60">
-              <div className="flex items-center gap-2 text-slate-900"><Trophy size={18} className="text-amber-500" /><h2 className="font-black">{t.target}</h2></div>
-              {target ? (
-                <div className="mt-5 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-100 p-5 text-center">
-                  <div className="mx-auto grid size-24 place-items-center rounded-3xl bg-white text-6xl shadow-sm">{target.avatar}</div>
-                  <p className="mt-3 font-black text-slate-900">{target.name}</p>
-                  <p className="mt-1 text-xs text-violet-700">{t.targetHint}</p>
-                </div>
-              ) : (
-                <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-sm text-slate-500">{t.chooseTarget}</div>
-              )}
+        <div className="grid items-start gap-5 xl:grid-cols-[270px_minmax(0,1fr)_280px]">
+          <aside className="order-2 space-y-4 xl:order-1">
+            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+              <div className="flex items-center gap-2"><Crown size={18} className="text-amber-500"/><h2 className="font-black text-slate-900">{t.secret}</h2></div>
+              <div className="mt-4 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 p-4">
+                <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-white text-violet-600 shadow-sm"><CircleHelp size={28}/></div>
+                <div><p className="text-sm font-extrabold text-slate-800">{t.hidden}</p><p className="mt-1 text-xs leading-5 text-slate-500">{t.secretHint}</p></div>
+              </div>
+              <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-500"><span className={`size-2 rounded-full ${status === "playing" ? "animate-pulse bg-emerald-500" : status === "won" ? "bg-amber-500" : "bg-slate-300"}`}/>{status === "playing" ? t.playing : status === "won" ? t.won : t.ready}</div>
             </section>
 
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-xl shadow-slate-200/60">
-              <div className="flex items-center gap-2"><HelpCircle size={18} className="text-violet-600" /><h2 className="font-black text-slate-900">{t.questions}</h2></div>
-              <div className="mt-4 grid gap-2">
-                {questionKeys.map(([key, predicate]) => (
-                  <button key={key} type="button" onClick={() => askQuestion(t[key], predicate)} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-start text-sm font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50">{t[key]}</button>
+            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+              <div className="flex items-center gap-2"><HelpCircle size={18} className="text-violet-600"/><h2 className="font-black text-slate-900">{t.questions}</h2></div>
+              <p className="mt-2 text-xs leading-5 text-slate-500">{t.questionsHint}</p>
+              <div className="mt-4 space-y-4">
+                {groupedQuestions.map(group => (
+                  <div key={group.id}>
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">{group.label}</p>
+                    <div className="grid gap-1.5">
+                      {questionItems.filter(item => item[2] === group.id).map(([id, label]) => (
+                        <button key={id} type="button" disabled={status !== "playing" || asked.has(id)} onClick={() => askQuestion(id, label)} className="flex min-h-10 items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-start text-xs font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40">
+                          <span>{label}</span>{asked.has(id) ? <Check size={14} className="shrink-0 text-emerald-600"/> : <span className="text-violet-500">?</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
           </aside>
 
-          <section className="rounded-[2rem] border border-white bg-white p-4 shadow-2xl shadow-slate-200/70 sm:p-6">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div><p className="text-xs font-black tracking-[0.16em] text-violet-600">{t.turn}</p><h2 className="mt-1 text-xl font-black text-slate-950">{t.board}</h2></div>
-              <button type="button" onClick={reset} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50"><RotateCcw size={16} />{t.reset}</button>
+          <section className="order-1 min-w-0 rounded-[2rem] border border-white bg-white p-3 shadow-2xl shadow-slate-200/70 sm:p-5 xl:order-2">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+              <div><p className="text-[10px] font-black tracking-[.2em] text-violet-600">GUESS ARENA</p><h2 className="mt-1 text-lg font-black text-slate-950 sm:text-xl">{t.board}</h2></div>
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{t.guess}</span>
             </div>
-
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-9">
-              {characters.map((character) => {
-                const isEliminated = eliminated.has(character.id);
-                const isTarget = targetId === character.id;
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-9">
+              {characters.map(character => {
+                const isOut = eliminated.has(character.id);
                 return (
-                  <article key={character.id} className={`group relative overflow-hidden rounded-2xl border p-2 transition duration-200 sm:p-3 ${isEliminated ? "border-slate-200 bg-slate-100 opacity-40 grayscale" : isTarget ? "border-violet-400 bg-violet-50 ring-2 ring-violet-200" : "border-slate-100 bg-white hover:-translate-y-1 hover:border-violet-200 hover:shadow-lg"}`}>
-                    <button type="button" onClick={() => setTargetId(character.id)} className="w-full text-center" aria-label={`${t.chooseTarget}: ${character.name}`}>
-                      <span className="mx-auto grid aspect-square w-full place-items-center rounded-xl bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 text-4xl sm:text-5xl">{character.avatar}</span>
-                      <span className="mt-2 block truncate text-xs font-black text-slate-800">{character.name}</span>
+                  <article key={character.id} className={`group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition sm:p-2 ${isOut ? "border-slate-100 bg-slate-100 opacity-35 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg"}`}>
+                    <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full text-center disabled:cursor-not-allowed" aria-label={`${t.guess}: ${character.name}`}>
+                      <div className="aspect-square overflow-hidden rounded-xl bg-violet-50"><CharacterPortrait character={character}/></div>
+                      <span className="mt-1.5 block truncate text-[11px] font-extrabold text-slate-800 sm:text-xs">{character.name}</span>
                     </button>
-                    <div className="mt-2 flex gap-1">
-                      <button type="button" onClick={() => toggleCard(character.id)} className="grid min-h-7 flex-1 place-items-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200" aria-label={isEliminated ? t.restore : t.hide}>{isEliminated ? <Eye size={14} /> : <EyeOff size={14} />}</button>
-                      <button type="button" onClick={() => guess(character)} className="grid min-h-7 flex-1 place-items-center rounded-lg bg-violet-100 text-violet-700 hover:bg-violet-200" aria-label={t.guess}><Flag size={14} /></button>
-                    </div>
-                    {isTarget && <span className="absolute end-2 top-2 grid size-6 place-items-center rounded-full bg-violet-600 text-white"><Check size={14} /></span>}
+                    <button type="button" disabled={status !== "playing"} onClick={() => toggleEliminated(character.id)} className="absolute end-2 top-2 grid size-6 place-items-center rounded-lg border border-white/80 bg-white/90 text-slate-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-0" aria-label={isOut ? t.restore : t.manualHide} title={isOut ? t.restore : t.manualHide}>{isOut ? <Eye size={13}/> : <EyeOff size={13}/>}</button>
+                    {isOut && <span className="pointer-events-none absolute inset-0 grid place-items-center"><span className="grid size-8 place-items-center rounded-full bg-slate-900/75 text-white"><X size={18}/></span></span>}
                   </article>
                 );
               })}
             </div>
+            {status === "ready" && <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-violet-50 p-4 text-center text-sm font-bold text-violet-800">{t.ready}</div>}
+            {status === "won" && <div className="mt-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-extrabold text-emerald-800"><Trophy size={20}/>{t.win}</div>}
+            {notice && status !== "won" && <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{notice}</div>}
           </section>
 
-          <aside className="space-y-5">
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-xl shadow-slate-200/60">
-              <h2 className="font-black text-slate-900">{t.log}</h2>
+          <aside className="order-3 space-y-4">
+            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+              <div className="flex items-center gap-2"><UserRound size={18} className="text-teal-600"/><h2 className="font-black text-slate-900">{t.history}</h2></div>
               <div className="mt-4 space-y-2">
-                {log.length === 0 ? <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{t.noLog}</p> : log.map((item, index) => <p key={index} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700">{item}</p>)}
+                {history.length === 0 ? <p className="rounded-xl bg-slate-50 p-4 text-xs leading-6 text-slate-400">{t.noHistory}</p> : history.map((item, index) => (
+                  <div key={`${item.id}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <p className="text-xs font-bold text-slate-700">{item.label}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2"><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${item.answer ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{item.answer ? t.yes : t.no}</span><span className="text-[10px] font-bold text-slate-400">−{item.removed}</span></div>
+                  </div>
+                ))}
               </div>
             </section>
-            {message && <div className="rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{message}</div>}
-            <div className="rounded-2xl bg-slate-950 p-5 text-white">
-              <p className="text-xs font-black tracking-[0.16em] text-teal-300">HOW TO PLAY</p>
-              <p className="mt-3 text-sm leading-6 text-slate-300">{t.targetHint}</p>
+            <div className="rounded-3xl bg-slate-950 p-5 text-white">
+              <div className="flex items-center gap-2 text-teal-300"><HatGlasses size={18}/><span className="text-xs font-black tracking-wider">HOW TO PLAY</span></div>
+              <ol className="mt-3 space-y-2 text-xs leading-6 text-slate-300">
+                <li>1. {locale === "ar" ? "ابدأ الجولة والخصم سيختار شخصية سرية." : "Start a round; your opponent picks a secret character."}</li>
+                <li>2. {locale === "ar" ? "اسأل أسئلة بنعم أو لا لتقليل الاحتمالات." : "Ask yes/no questions to narrow the candidates."}</li>
+                <li>3. {locale === "ar" ? "اضغط على بطاقة لتخمين الشخصية." : "Click a card to make your final guess."}</li>
+              </ol>
             </div>
+            {status === "playing" && <p className="rounded-2xl border border-slate-200 bg-white p-4 text-xs font-semibold leading-6 text-slate-500">{t.askAgain}</p>}
           </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
