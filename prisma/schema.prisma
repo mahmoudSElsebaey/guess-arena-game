@@ -6,10 +6,29 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-enum UserRole { PLAYER ADMIN OWNER }
-enum UserStatus { ACTIVE BANNED }
-enum RoomStatus { WAITING IN_PROGRESS COMPLETED CANCELLED }
-enum GameActionType { PLAYER_READY GAME_STARTED QUESTION_ASKED GUESS_MADE PLAYER_LEFT GAME_FINISHED }
+enum UserRole {
+  PLAYER
+  ADMIN
+  OWNER
+}
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+enum RoomStatus {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+enum GameActionType {
+  PLAYER_READY
+  GAME_STARTED
+  QUESTION_ASKED
+  GUESS_MADE
+  PLAYER_LEFT
+  GAME_FINISHED
+}
 model User {
   id              String      @id @default(cuid())
   name            String?
@@ -32,7 +51,7 @@ model User {
   @@index([createdAt])
 }
 model Account {
-  id                String  @id
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -49,7 +68,7 @@ model Account {
   @@index([userId])
 }
 model Session {
-  id           String   @id
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
