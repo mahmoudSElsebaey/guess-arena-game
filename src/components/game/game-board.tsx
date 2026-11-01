@@ -6,6 +6,7 @@ import {
   UserRound, X, Crown, HatGlasses, CircleHelp
 } from "lucide-react";
 import { characters, type Character } from "@/data/characters";
+import { getEliminatedCharacterIds, questionTests } from "@/lib/game/game-logic";
 
 type Locale = "ar" | "en";
 type GameStatus = "ready" | "playing" | "won";
@@ -123,28 +124,6 @@ const copy = {
   }
 } as const;
 
-const tests: Record<string, (c: Character) => boolean> = {
-  hat: c => c.hasHat,
-  glasses: c => c.hasGlasses,
-  beard: c => c.hasBeard,
-  male: c => c.gender === "male",
-  female: c => c.gender === "female",
-  shortHair: c => c.hairLength === "short",
-  longHair: c => c.hairLength === "long",
-  bald: c => c.hairLength === "none",
-  blackHair: c => c.hairColor === "black",
-  brownHair: c => c.hairColor === "brown",
-  blondeHair: c => c.hairColor === "blonde",
-  redHair: c => c.hairColor === "red",
-  grayHair: c => c.hairColor === "gray",
-  lightSkin: c => c.skin === "light",
-  mediumSkin: c => c.skin === "medium",
-  darkSkin: c => c.skin === "dark",
-  blueEyes: c => c.eyeColor === "blue",
-  greenEyes: c => c.eyeColor === "green",
-  brownEyes: c => c.eyeColor === "brown"
-};
-
 const skinColors: Record<Character["skin"], string> = { light: "#f3c9a5", medium: "#c98961", dark: "#754832" };
 const hairColors: Record<Character["hairColor"], string> = { black: "#29232b", brown: "#68402f", blonde: "#e6c36d", red: "#a94f36", gray: "#a7a8b0" };
 const eyeColors: Record<Character["eyeColor"], string> = { brown: "#70452f", blue: "#4b91c7", green: "#4c9a72" };
@@ -204,10 +183,10 @@ export function GameBoard({ locale }: { locale: Locale }) {
 
   function askQuestion(id: string, label: string) {
     if (!secret || status !== "playing" || asked.has(id)) return;
-    const test = tests[id];
+    const test = questionTests[id];
     if (!test) return;
     const answer = test(secret);
-    const removedIds = characters.filter(c => !eliminated.has(c.id) && test(c) !== answer).map(c => c.id);
+    const removedIds = getEliminatedCharacterIds(characters, eliminated, test, answer);
     setEliminated(previous => new Set([...previous, ...removedIds]));
     setAsked(previous => new Set([...previous, id]));
     setHistory(previous => [{ id, label, answer, removed: removedIds.length }, ...previous].slice(0, 8));
