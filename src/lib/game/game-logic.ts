@@ -1,4 +1,4 @@
-import type { Character } from "@/data/characters";
+import type { Character } from "../../data/characters";
 
 export const questionTests: Record<string, (character: Character) => boolean> = {
   hat: character => character.hasHat,
