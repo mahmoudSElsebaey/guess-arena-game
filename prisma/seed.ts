@@ -1,5 +1,7 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { characters } from "../src/data/characters";
+import { gameQuestionSeeds } from "../src/data/questions";
 
 const prisma = new PrismaClient();
 
@@ -38,12 +40,97 @@ async function seedDemoAccount(account: DemoAccount) {
   });
 }
 
+
+async function seedGameContent() {
+  const categories = [
+    { id: "content-category-classic-characters", slug: "classic-characters", nameAr: "الشخصيات الكلاسيكية", nameEn: "Classic characters", type: "CHARACTER" as const, sortOrder: 1 },
+    { id: "content-category-appearance", slug: "appearance", nameAr: "المظهر", nameEn: "Appearance", type: "QUESTION" as const, sortOrder: 1 },
+    { id: "content-category-accessories", slug: "accessories", nameAr: "الإكسسوارات", nameEn: "Accessories", type: "QUESTION" as const, sortOrder: 2 },
+    { id: "content-category-identity", slug: "identity", nameAr: "الصفات الشخصية", nameEn: "Identity", type: "QUESTION" as const, sortOrder: 3 }
+  ];
+
+  for (const category of categories) {
+    await prisma.gameContentCategory.upsert({
+      where: { slug: category.slug },
+      create: category,
+      update: {
+        nameAr: category.nameAr,
+        nameEn: category.nameEn,
+        type: category.type,
+        sortOrder: category.sortOrder
+      }
+    });
+  }
+
+  const characterCategory = await prisma.gameContentCategory.findUniqueOrThrow({
+    where: { slug: "classic-characters" }
+  });
+
+  for (const [index, character] of characters.entries()) {
+    const { id, name, avatar, ...attributes } = character;
+    await prisma.gameCharacter.upsert({
+      where: { id },
+      create: {
+        id,
+        categoryId: characterCategory.id,
+        name,
+        avatar,
+        attributes,
+        sortOrder: index + 1,
+        isActive: true
+      },
+      update: {
+        categoryId: characterCategory.id,
+        name,
+        avatar,
+        attributes,
+        sortOrder: index + 1
+      }
+    });
+  }
+
+  const questionCategories = await prisma.gameContentCategory.findMany({
+    where: { slug: { in: ["appearance", "accessories", "identity"] } },
+    select: { id: true, slug: true }
+  });
+  const categoryIds = new Map(questionCategories.map(category => [category.slug, category.id]));
+
+  for (const question of gameQuestionSeeds) {
+    const categoryId = categoryIds.get(question.categorySlug);
+    if (!categoryId) throw new Error(`Missing question category: ${question.categorySlug}`);
+
+    await prisma.gameQuestion.upsert({
+      where: { id: question.id },
+      create: {
+        id: question.id,
+        categoryId,
+        labelAr: question.labelAr,
+        labelEn: question.labelEn,
+        attributeKey: question.attributeKey,
+        expectedValue: question.expectedValue,
+        sortOrder: question.sortOrder,
+        isActive: true
+      },
+      update: {
+        categoryId,
+        labelAr: question.labelAr,
+        labelEn: question.labelEn,
+        attributeKey: question.attributeKey,
+        expectedValue: question.expectedValue,
+        sortOrder: question.sortOrder
+      }
+    });
+  }
+}
+
 async function main() {
   await prisma.siteSettings.upsert({
     where: { id: "global" },
     create: { id: "global" },
     update: {}
   });
+
+  await seedGameContent();
 
   if (process.env.DEMO_ACCOUNTS_ENABLED !== "true") return;
 
