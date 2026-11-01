@@ -26,6 +26,14 @@ export function useGameSounds() {
   }, []);
 
   const toggle = useCallback(() => {
+    try {
+      const AudioContextConstructor = window.AudioContext;
+      if (AudioContextConstructor) {
+        const context = contextRef.current ?? new AudioContextConstructor();
+        contextRef.current = context;
+        if (context.state === "suspended") void context.resume();
+      }
+    } catch { /* Sound remains optional when browser audio is unavailable. */ }
     setEnabled(current => {
       const next = !current;
       try { window.localStorage.setItem("guess-arena:sound", next ? "on" : "off"); } catch { /* Ignore storage restrictions. */ }
