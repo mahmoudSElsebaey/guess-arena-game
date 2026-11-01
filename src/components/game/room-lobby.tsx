@@ -1,22 +1,212 @@
 "use client";
-import {useCallback,useEffect,useState} from "react";
+
+import { useCallback, useEffect, useState } from "react";
+import { Copy, Crown, DoorOpen, Gamepad2, LoaderCircle, ShieldCheck, Sparkles, Users, WandSparkles } from "lucide-react";
 import { MultiplayerGame } from "@/components/game/multiplayer-game";
+
 type CharacterOption = { id: string; name: string; avatar: string; attributes: Record<string, string | boolean> };
 type QuestionOption = { id: string; labelAr: string; labelEn: string; attributeKey: string; expectedValue: string | boolean; category: { slug: string; nameAr: string; nameEn: string }; sortOrder: number };
-type Snapshot={id:string;code:string;status:"WAITING"|"IN_PROGRESS"|"COMPLETED"|"CANCELLED";isHost:boolean;version:number;members:{userId:string;name:string;seat:number;isReady:boolean;isConnected:boolean;isMe:boolean;hasSecretCharacter:boolean}[];mySecretCharacterId:string|null};
-export function RoomLobby({locale}:{locale:"ar"|"en"}){
- const ar=locale==="ar";const[code,setCode]=useState("");const[room,setRoom]=useState<Snapshot|null>(null);const[character,setCharacter]=useState("");const[characters,setCharacters]=useState<CharacterOption[]>([]);const[questions,setQuestions]=useState<QuestionOption[]>([]);const[contentLoading,setContentLoading]=useState(true);const[busy,setBusy]=useState(false);const[error,setError]=useState("");const[notice,setNotice]=useState("");
- useEffect(()=>{let active=true;void fetch("/api/game/content",{cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.error);if(active){setCharacters(data.characters??[]);setQuestions(data.questions??[]);}}).catch(()=>{if(active)setError(ar?"تعذر تحميل محتوى اللعبة. حدّث الصفحة وحاول مجددًا.":"Could not load game content. Refresh and try again.");}).finally(()=>{if(active)setContentLoading(false);});return()=>{active=false;};},[ar]);
- const refresh=useCallback(async(id:string)=>{const r=await fetch(`/api/rooms/${id}`,{cache:"no-store"});const d=await r.json();if(!r.ok)throw new Error(d.error);setRoom(d);setCharacter((current)=>d.mySecretCharacterId??current);},[]);
- useEffect(()=>{if(!room?.id)return;const roomId=room.id;let active=true;const sync=()=>{if(active&&document.visibilityState==="visible")void refresh(roomId).catch(()=>undefined);};const timer=window.setInterval(sync,2000);return()=>{active=false;window.clearInterval(timer);};},[room?.id,refresh]);
- const post=async(url:string,body?:unknown)=>{const r=await fetch(url,{method:"POST",headers:body?{"Content-Type":"application/json"}:undefined,body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok)throw new Error(d.error);return d;};
- const run=async(fn:()=>Promise<void>)=>{setBusy(true);setError("");try{await fn();}catch(e){const key=e instanceof Error?e.message:"";const map:Record<string,string>={UNAUTHORIZED:ar?"سجّل الدخول أولًا.":"Please sign in first.",INVALID_ROOM_CODE:ar?"كود الغرفة 6 أرقام.":"Room code must contain 6 digits.",ROOM_NOT_AVAILABLE:ar?"الغرفة غير متاحة أو انتهت.":"Room unavailable or expired.",ROOM_FULL:ar?"الغرفة مكتملة.":"Room is full.",NOT_READY:ar?"يجب جاهزية اللاعبين واختيار الشخصيات.":"Both players must be ready and choose characters.",FORBIDDEN:ar?"البدء متاح للمضيف فقط.":"Only the host can start."};setError(map[key]??(ar?"حدث خطأ. حاول مجددًا.":"Something went wrong. Try again."));}finally{setBusy(false);}};
- const create=()=>run(async()=>{const d=await post("/api/rooms");await refresh(d.roomId);});const join=()=>run(async()=>{const d=await post("/api/rooms/join",{code});await refresh(d.roomId);});const ready=()=>run(async()=>{if(!room)return;await post(`/api/rooms/${room.id}/ready`,{isReady:!room.members.find(m=>m.isMe)?.isReady,secretCharacterId:character});await refresh(room.id);});const start=()=>run(async()=>{if(!room)return;await post(`/api/rooms/${room.id}/start`);await refresh(room.id);});const leave=()=>run(async()=>{if(!room)return;await post(`/api/rooms/${room.id}/leave`);setRoom(null);});
- return <section dir={ar?"rtl":"ltr"} className="mx-auto my-8 w-full max-w-5xl rounded-3xl border border-violet-100 bg-white p-5 shadow-sm sm:p-7"><p className="text-xs font-black tracking-widest text-violet-600">GUESS ARENA · ONLINE</p><h2 className="mt-1 text-2xl font-black text-slate-900">{ar?"العب مع صديق":"Play with a friend"}</h2><p className="mt-1 text-sm text-slate-500">{ar?"أنشئ غرفة وشارك الكود مع لاعب آخر.":"Create a room and share the invite code."}</p>
- {!room?<div className="mt-6 grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-end"><button disabled={busy} onClick={create} className="min-h-12 rounded-xl bg-violet-700 px-5 font-bold text-white disabled:opacity-50">{ar?"إنشاء غرفة":"Create room"}</button><span className="text-center text-xs font-bold text-slate-400">{ar?"أو":"OR"}</span><div className="flex gap-2"><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} maxLength={6} inputMode="numeric" placeholder={ar?"كود الغرفة":"Room code"} className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 text-center font-bold tracking-widest"/><button disabled={busy||code.length!==6} onClick={join} className="rounded-xl bg-slate-900 px-5 font-bold text-white disabled:opacity-50">{ar?"انضمام":"Join"}</button></div></div>:
- <div className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-950 p-4 text-white"><div><p className="text-xs text-slate-300">{ar?"كود دعوة صديقك":"Invite code"}</p><p className="mt-1 text-3xl font-black tracking-[.25em]">{room.code}</p></div><button onClick={()=>void navigator.clipboard?.writeText(room.code)} className="rounded-lg bg-white/10 px-4 py-2 text-sm font-bold">{ar?"نسخ":"Copy"}</button></div>
- <div className="mt-5 grid gap-3 sm:grid-cols-2">{room.members.map(m=><div key={m.userId} className="rounded-2xl border border-slate-200 p-4"><p className="font-extrabold text-slate-900">{m.name} {m.isMe?(ar?"(أنت)":"(You)"):""}</p><p className="text-xs text-slate-500">{ar?`اللاعب ${m.seat}`:`Player ${m.seat}`}</p><p className="mt-2 text-xs font-bold">{m.isReady?(ar?"جاهز":"Ready"):(ar?"غير جاهز":"Not ready")} · {m.hasSecretCharacter?(ar?"اختار شخصية":"Character selected"):(ar?"لم يختر شخصية":"No character yet")}</p></div>)}{room.members.length<2&&<div className="grid min-h-24 place-items-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-400">{ar?"في انتظار اللاعب الثاني...":"Waiting for player two..."}</div>}</div>
- {room.status==="WAITING"&&<div className="mt-5 flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-sm font-bold text-slate-700">{ar?"اختر شخصيتك السرية":"Choose your secret character"}<select value={character} onChange={e=>setCharacter(e.target.value)} className="mt-2 block w-full rounded-xl border border-slate-200 bg-white px-3 py-3"><option value="">{ar?"اختر شخصية...":"Select a character..."}</option>{characters.map(c=><option key={c.id} value={c.id}>{c.avatar} {c.name}</option>)}</select></label><button disabled={busy||contentLoading||!character||!characters.some(c=>c.id===character)} onClick={ready} className="min-h-12 rounded-xl bg-teal-600 px-5 font-bold text-white disabled:opacity-50">{room.members.find(m=>m.isMe)?.isReady?(ar?"إلغاء الجاهزية":"Not ready"):(ar?"أنا جاهز":"I'm ready")}</button>{room.isHost&&<button disabled={busy||room.members.length!==2||room.members.some(m=>!m.isReady||!m.hasSecretCharacter)} onClick={start} className="min-h-12 rounded-xl bg-violet-700 px-5 font-bold text-white disabled:opacity-40">{ar?"ابدأ المباراة":"Start match"}</button>}</div>}
- {(room.status==="IN_PROGRESS"||room.status==="COMPLETED")&&<MultiplayerGame roomId={room.id} locale={locale} characters={characters} questions={questions}/>}<button onClick={leave} disabled={busy} className="mt-4 text-sm font-bold text-rose-600">{ar?"مغادرة الغرفة":"Leave room"}</button></div>}
- {error&&<p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p>}{notice&&<p className="mt-3 text-xs text-amber-700">{notice}</p>}<p className="mt-4 text-xs text-slate-400">{ar?"شخصيتك السرية لا تظهر للطرف الآخر.":"Your secret character is private to you."}</p></section>;
+type Snapshot = {
+  id: string; code: string; status: "WAITING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  isHost: boolean; version: number;
+  members: { userId: string; name: string; seat: number; isReady: boolean; isConnected: boolean; isMe: boolean; hasSecretCharacter: boolean }[];
+  mySecretCharacterId: string | null;
+};
+
+export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
+  const ar = locale === "ar";
+  const [code, setCode] = useState("");
+  const [room, setRoom] = useState<Snapshot | null>(null);
+  const [character, setCharacter] = useState("");
+  const [characters, setCharacters] = useState<CharacterOption[]>([]);
+  const [questions, setQuestions] = useState<QuestionOption[]>([]);
+  const [contentLoading, setContentLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    void fetch("/api/game/content", { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        if (active) { setCharacters(data.characters ?? []); setQuestions(data.questions ?? []); }
+      })
+      .catch(() => { if (active) setError(ar ? "تعذر تحميل محتوى اللعبة. حدّث الصفحة وحاول مجددًا." : "Could not load game content. Refresh and try again."); })
+      .finally(() => { window.clearTimeout(timeout); if (active) setContentLoading(false); });
+    return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
+  }, [ar]);
+
+  const refresh = useCallback(async (id: string) => {
+    const response = await fetch(`/api/rooms/${id}`, { cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    setRoom(data);
+    setCharacter((current) => data.mySecretCharacterId ?? current);
+  }, []);
+
+  useEffect(() => {
+    if (!room?.id) return;
+    const roomId = room.id;
+    let active = true;
+    const sync = () => { if (active && document.visibilityState === "visible") void refresh(roomId).catch(() => undefined); };
+    const timer = window.setInterval(sync, 2000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [room?.id, refresh]);
+
+  const post = async (url: string, body?: unknown) => {
+    const response = await fetch(url, { method: "POST", headers: body ? { "Content-Type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    return data;
+  };
+
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true); setError(""); setNotice("");
+    try { await fn(); }
+    catch (e) {
+      const key = e instanceof Error ? e.message : "";
+      const map: Record<string, string> = {
+        UNAUTHORIZED: ar ? "سجّل الدخول أولًا." : "Please sign in first.",
+        INVALID_ROOM_CODE: ar ? "كود الغرفة 6 أرقام." : "Room code must contain 6 digits.",
+        ROOM_NOT_AVAILABLE: ar ? "الغرفة غير متاحة أو انتهت." : "Room unavailable or expired.",
+        ROOM_FULL: ar ? "الغرفة مكتملة." : "Room is full.",
+        NOT_READY: ar ? "يجب جاهزية اللاعبين واختيار الشخصيات." : "Both players must be ready and choose characters.",
+        FORBIDDEN: ar ? "البدء متاح للمضيف فقط." : "Only the host can start."
+      };
+      setError(map[key] ?? (ar ? "حدث خطأ. حاول مجددًا." : "Something went wrong. Try again."));
+    } finally { setBusy(false); }
+  };
+
+  const create = () => run(async () => { const data = await post("/api/rooms"); await refresh(data.roomId); });
+  const join = () => run(async () => { const data = await post("/api/rooms/join", { code }); await refresh(data.roomId); });
+  const ready = () => run(async () => {
+    if (!room) return;
+    await post(`/api/rooms/${room.id}/ready`, { isReady: !room.members.find(member => member.isMe)?.isReady, secretCharacterId: character });
+    await refresh(room.id);
+  });
+  const start = () => run(async () => { if (!room) return; await post(`/api/rooms/${room.id}/start`); await refresh(room.id); });
+  const leave = () => run(async () => { if (!room) return; await post(`/api/rooms/${room.id}/leave`); setRoom(null); setCharacter(""); });
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(room?.code ?? "");
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch { setError(ar ? "تعذر نسخ الكود. انسخه يدويًا." : "Could not copy the code. Please copy it manually."); }
+  };
+
+  return (
+    <section dir={ar ? "rtl" : "ltr"} aria-label={ar ? "غرف اللعب أونلاين" : "Online game rooms"} className="arena-shell relative isolate mx-auto my-7 w-full max-w-7xl overflow-hidden rounded-[2rem] px-4 py-6 sm:my-10 sm:px-7 sm:py-9">
+      <div className="pointer-events-none absolute inset-0 -z-10 arena-grid-bg opacity-60" />
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-3 py-1.5 text-[11px] font-black tracking-wider text-violet-700"><Sparkles size={14} /> GUESS ARENA · LIVE</div>
+          <h2 className="arena-section-title mt-3 text-3xl font-black tracking-tight sm:text-4xl">{ar ? "ساحة التحدي" : "The challenge arena"}</h2>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-slate-600">{ar ? "أنشئ غرفة خاصة أو انضم إلى صديق، واختبروا مهارات التخمين وجهًا لوجه." : "Create a private room or join a friend and put your guessing skills to the test."}</p>
+        </div>
+        <div className="hidden items-center gap-2 rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-xs font-bold text-slate-600 shadow-sm sm:flex"><ShieldCheck size={17} className="text-teal-600" />{ar ? "اختيارك السري يظل خاصًا" : "Your secret pick stays private"}</div>
+      </div>
+
+      {!room ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <article className="arena-panel-strong arena-interactive relative overflow-hidden rounded-3xl p-5 sm:p-7">
+            <div className="absolute -end-10 -top-12 size-40 rounded-full bg-violet-100/80 blur-2xl" />
+            <div className="relative">
+              <div className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Gamepad2 size={24} /></div>
+              <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "أنشئ غرفة جديدة" : "Create a new room"}</h3>
+              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "ابدأ التحدي وادعُ صديقك بكود خاص. أنت ستكون مضيف الغرفة." : "Start a challenge and invite a friend with a private code. You will host the room."}</p>
+              <button type="button" disabled={busy} onClick={create} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-800 disabled:cursor-wait disabled:opacity-50">
+                {busy ? <LoaderCircle size={18} className="animate-spin" /> : <WandSparkles size={18} />}{ar ? "إنشاء غرفة ودعوة صديق" : "Create room & invite a friend"}
+              </button>
+            </div>
+          </article>
+          <article className="arena-panel arena-interactive rounded-3xl p-5 sm:p-7">
+            <div className="grid size-12 place-items-center rounded-2xl bg-teal-50 text-teal-700"><DoorOpen size={24} /></div>
+            <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "انضم إلى غرفة" : "Join a room"}</h3>
+            <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "هل وصلك كود الدعوة؟ أدخله هنا للانضمام إلى المباراة." : "Have an invite code? Enter it here to join the match."}</p>
+            <form className="mt-5 flex flex-col gap-2 sm:flex-row" onSubmit={event => { event.preventDefault(); if (code.length === 6) void join(); }}>
+              <label className="min-w-0 flex-1">
+                <span className="sr-only">{ar ? "كود الغرفة" : "Room code"}</span>
+                <input value={code} onChange={event => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} maxLength={6} inputMode="numeric" autoComplete="one-time-code" placeholder={ar ? "أدخل الكود المكون من 6 أرقام" : "Enter 6-digit room code"} className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-center text-lg font-black tracking-[.35em] text-slate-900 outline-none transition placeholder:text-xs placeholder:font-medium placeholder:tracking-normal focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
+              </label>
+              <button type="submit" disabled={busy || code.length !== 6} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{ar ? "انضمام" : "Join"} <Users size={17} /></button>
+            </form>
+            <p className="mt-3 text-xs text-slate-400">{ar ? "تأكد من إدخال الأرقام الستة بشكل صحيح." : "Make sure all six digits are entered correctly."}</p>
+          </article>
+        </div>
+      ) : (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-5">
+            <div className="arena-panel-strong relative overflow-hidden rounded-3xl bg-slate-950 p-5 text-white sm:p-7">
+              <div className="absolute -end-10 -top-20 size-64 rounded-full bg-violet-600/30 blur-3xl" />
+              <div className="relative flex flex-wrap items-center justify-between gap-5">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-bold text-violet-200"><span className="size-2 animate-pulse rounded-full bg-teal-400" />{ar ? "غرفة خاصة · في انتظار التحدي" : "PRIVATE ROOM · READY TO PLAY"}</div>
+                  <p className="mt-3 text-sm text-slate-300">{ar ? "شارك كود الدعوة مع اللاعب الثاني" : "Share this invite code with player two"}</p>
+                  <p dir="ltr" className="mt-1 text-4xl font-black tracking-[.28em] sm:text-5xl">{room.code}</p>
+                </div>
+                <button type="button" onClick={() => void copyCode()} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 font-bold text-white transition hover:bg-white/20"><Copy size={17} />{copied ? (ar ? "تم النسخ" : "Copied") : (ar ? "نسخ الكود" : "Copy code")}</button>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {room.members.map(member => (
+                <article key={member.userId} className="arena-panel rounded-2xl p-4 sm:p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Crown size={19} /></div>
+                      <div className="min-w-0"><p className="truncate font-extrabold text-slate-900">{member.name} {member.isMe ? (ar ? "(أنت)" : "(You)") : ""}</p><p className="mt-0.5 text-xs text-slate-500">{ar ? `اللاعب ${member.seat}` : `Player ${member.seat}`}</p></div>
+                    </div>
+                    <span className={`size-2.5 shrink-0 rounded-full ${member.isConnected ? "bg-emerald-500" : "bg-slate-300"}`} title={member.isConnected ? (ar ? "متصل" : "Connected") : (ar ? "غير متصل" : "Offline")} />
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold">
+                    <span className={`rounded-full px-2.5 py-1 ${member.isReady ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{member.isReady ? (ar ? "جاهز" : "Ready") : (ar ? "غير جاهز" : "Not ready")}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{member.hasSecretCharacter ? (ar ? "اختار شخصية" : "Character selected") : (ar ? "لم يختر شخصية" : "No character yet")}</span>
+                  </div>
+                </article>
+              ))}
+              {room.members.length < 2 && <div className="grid min-h-32 place-items-center rounded-2xl border border-dashed border-violet-300 bg-violet-50/60 p-5 text-center"><div><Users size={25} className="mx-auto text-violet-500" /><p className="mt-2 font-bold text-violet-800">{ar ? "في انتظار اللاعب الثاني..." : "Waiting for player two..."}</p><p className="mt-1 text-xs text-violet-600">{ar ? "أرسل كود الغرفة ليتمكن من الانضمام" : "Send the room code so they can join"}</p></div></div>}
+            </div>
+
+            {room.status === "WAITING" && (
+              <div className="arena-panel rounded-3xl p-5 sm:p-6">
+                <div className="flex items-center gap-2"><Sparkles size={18} className="text-violet-600" /><h3 className="text-lg font-black text-slate-950">{ar ? "اختر شخصيتك السرية" : "Choose your secret character"}</h3></div>
+                <p className="mt-1 text-sm text-slate-500">{ar ? "لن تظهر الشخصية التي تختارها لخصمك." : "Your selected character will never be shown to your opponent."}</p>
+                <label className="mt-4 block text-sm font-bold text-slate-700"><span className="sr-only">{ar ? "الشخصية السرية" : "Secret character"}</span>
+                  <select value={character} onChange={event => setCharacter(event.target.value)} disabled={contentLoading || busy} className="mt-1 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:opacity-60">
+                    <option value="">{contentLoading ? (ar ? "جارٍ تحميل الشخصيات..." : "Loading characters...") : (ar ? "اختر شخصية من القائمة" : "Select a character")}</option>
+                    {characters.map(item => <option key={item.id} value={item.id}>{item.avatar} {item.name}</option>)}
+                  </select>
+                </label>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <button type="button" disabled={busy || contentLoading || !character || !characters.some(item => item.id === character)} onClick={ready} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-teal-600 px-5 font-extrabold text-white transition hover:bg-teal-700 disabled:opacity-40">{busy && <LoaderCircle size={17} className="animate-spin" />}{room.members.find(member => member.isMe)?.isReady ? (ar ? "إلغاء الجاهزية" : "Mark not ready") : (ar ? "أنا جاهز" : "I'm ready")}</button>
+                  {room.isHost && <button type="button" disabled={busy || room.members.length !== 2 || room.members.some(member => !member.isReady || !member.hasSecretCharacter)} onClick={start} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 font-extrabold text-white transition hover:bg-violet-800 disabled:opacity-40"><Gamepad2 size={17} />{ar ? "ابدأ المباراة" : "Start match"}</button>}
+                </div>
+                {room.isHost && room.members.length === 2 && room.members.every(member => member.isReady && member.hasSecretCharacter) && <p className="mt-3 text-xs font-semibold text-emerald-700">{ar ? "اللاعبان جاهزان! يمكنك بدء المباراة." : "Both players are ready. You can start the match."}</p>}
+              </div>
+            )}
+          </div>
+          <aside className="arena-panel h-fit rounded-3xl p-5">
+            <div className="flex items-center gap-2"><ShieldCheck size={19} className="text-teal-600" /><h3 className="font-black text-slate-900">{ar ? "قواعد الغرفة" : "Room guide"}</h3></div>
+            <ol className="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+              <li className="flex gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-xs font-black text-violet-700">1</span>{ar ? "شارك كود الدعوة مع صديقك." : "Share the invite code with your friend."}</li>
+              <li className="flex gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-xs font-black text-violet-700">2</span>{ar ? "اختاروا شخصية سرية واضغطوا جاهز." : "Choose a secret character and mark ready."}</li>
+              <li className="flex gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-xs font-black text-violet-700">3</span>{ar ? "المضيف يبدأ المباراة بعد جاهزية الطرفين." : "The host starts once both players are ready."}</li>
+            </ol>
+            <button type="button" onClick={leave} disabled={busy} className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"><DoorOpen size={16} />{ar ? "مغادرة الغرفة" : "Leave room"}</button>
+          </aside>
+        </div>
+      )}
+
+      {(room?.status === "IN_PROGRESS" || room?.status === "COMPLETED") && <MultiplayerGame roomId={room.id} locale={locale} characters={characters} questions={questions} />}
+      {error && <p role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p>}
+      {notice && <p role="status" className="mt-3 text-xs text-amber-700">{notice}</p>}
+      <p className="mt-5 text-center text-xs text-slate-400">{ar ? "اختيارك السري لا يظهر للطرف الآخر." : "Your secret character is private to you."}</p>
+    </section>
+  );
 }
