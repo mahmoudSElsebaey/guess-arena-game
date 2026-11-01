@@ -32,6 +32,22 @@ button, a { touch-action: manipulation; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 ::selection { color: var(--primary-foreground); background: var(--primary); }
 
+@keyframes guess-arena-card-enter {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes guess-arena-feedback {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes guess-arena-turn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(114 87 232 / 0%); }
+  50% { box-shadow: 0 0 0 5px rgb(114 87 232 / 12%); }
+}
+.animate-card-enter { animation: guess-arena-card-enter 260ms ease-out both; }
+.animate-feedback { animation: guess-arena-feedback 220ms ease-out both; }
+.animate-turn-pulse { animation: guess-arena-turn-pulse 900ms ease-in-out 1; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
