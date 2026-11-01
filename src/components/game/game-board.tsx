@@ -247,10 +247,11 @@ export function GameBoard({ locale }: { locale: Locale }) {
 
   function toggleEliminated(id: string) {
     if (status !== "playing") return;
+    playSound(eliminated.has(id) ? "click" : "eliminate");
     setEliminated(previous => {
       const next = new Set(previous);
-      if (next.has(id)) { next.delete(id); playSound("click"); }
-      else { next.add(id); playSound("eliminate"); }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
