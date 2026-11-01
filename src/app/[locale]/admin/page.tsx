@@ -175,7 +175,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
           )}
         </section>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-2">
+        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <article className="rounded-2xl border border-violet-100 bg-violet-50/70 p-5">
             <p className="text-xs font-black tracking-wider text-violet-700">CONTENT STUDIO</p>
             <h2 className="mt-2 text-lg font-extrabold text-slate-900">{isArabic ? "إدارة محتوى اللعبة" : "Game content management"}</h2>
@@ -186,6 +186,18 @@ export default async function AdminPage({ params }: AdminPageProps) {
             </p>
             <Link href={`/${locale}/admin/content`} className="mt-4 inline-flex min-h-10 items-center rounded-lg bg-violet-700 px-4 py-2 text-xs font-bold text-white hover:bg-violet-800">
               {isArabic ? "فتح إدارة المحتوى" : "Open content studio"}
+            </Link>
+          </article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-xs font-black tracking-wider text-emerald-700">{isArabic ? "ROOM OPERATIONS" : "ROOM OPERATIONS"}</p>
+            <h2 className="mt-2 text-lg font-extrabold text-slate-900">{isArabic ? "إدارة الغرف والمباريات" : "Rooms & matches"}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {isArabic
+                ? "متابعة الغرف واللاعبين، وإنهاء المباريات العالقة أو إلغاء الغرف غير النشطة."
+                : "Monitor rooms and players, terminate stuck matches, and cancel inactive rooms."}
+            </p>
+            <Link href={`/${locale}/admin/rooms`} className="mt-4 inline-flex min-h-10 items-center rounded-lg bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800">
+              {isArabic ? "فتح إدارة الغرف" : "Open room management"}
             </Link>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5">
