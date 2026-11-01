@@ -45,6 +45,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const myTurn=Boolean(myId&&state?.currentTurnUserId===myId);
  const asked=new Set((state?.actions??[]).filter(a=>a.type==="QUESTION_ASKED"&&a.actorId===myId).map(a=>a.questionId));
  const send=async(action:"ask"|"guess",payload:Record<string,string>)=>{
+  playSound("click");
   setBusy(true);setError("");setNotice("");
   try{
    const response=await fetch(`/api/rooms/${roomId}/${action}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
