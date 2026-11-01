@@ -15,6 +15,17 @@
   --success: #16865f;
   --danger: #c74655;
   --focus: #2563eb;
+
+  /* Phase 6 design-system foundation */
+  --arena-ink: #111827;
+  --arena-panel: rgb(255 255 255 / 92%);
+  --arena-panel-strong: #ffffff;
+  --arena-grid: rgb(114 87 232 / 8%);
+  --arena-ring: rgb(114 87 232 / 18%);
+  --arena-shadow-sm: 0 8px 24px rgb(15 23 42 / 7%);
+  --arena-shadow-lg: 0 24px 70px rgb(15 23 42 / 13%);
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
 }
 
 * { box-sizing: border-box; }
@@ -55,4 +66,46 @@ button, a { touch-action: manipulation; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* Phase 6: reusable game surfaces */
+.arena-shell {
+  background:
+    radial-gradient(circle at 12% 8%, rgb(114 87 232 / 11%), transparent 24rem),
+    radial-gradient(circle at 88% 18%, rgb(55 205 176 / 10%), transparent 26rem),
+    linear-gradient(180deg, #f8f9fd 0%, var(--background) 58%, #eef0f8 100%);
+}
+.arena-panel {
+  border: 1px solid rgb(226 229 238 / 88%);
+  background: var(--arena-panel);
+  box-shadow: var(--arena-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+.arena-panel-strong {
+  border: 1px solid rgb(226 229 238 / 92%);
+  background: var(--arena-panel-strong);
+  box-shadow: var(--arena-shadow-lg);
+}
+.arena-grid-bg {
+  background-image:
+    linear-gradient(var(--arena-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--arena-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.arena-section-title {
+  color: var(--arena-ink);
+  letter-spacing: -0.025em;
+}
+.arena-interactive {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+@media (hover: hover) {
+  .arena-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgb(15 23 42 / 10%);
+  }
+}
+@media (max-width: 640px) {
+  .arena-panel, .arena-panel-strong { backdrop-filter: none; }
 }
