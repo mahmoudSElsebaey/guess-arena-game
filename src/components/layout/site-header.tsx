@@ -35,6 +35,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
 
         <nav className="flex min-w-0 items-center gap-1.5 sm:gap-3" aria-label="Main navigation">
           <Link href="/" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 sm:inline-flex">{t("home")}</Link><Link href="/play" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-50 md:inline-flex">{locale === "ar" ? "اللعب" : "Play"}</Link>
+          {(role === "OWNER" || role === "ADMIN") && <Link href="/admin" className="hidden rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-100 md:inline-flex">{locale === "ar" ? "الإدارة" : "Admin"}</Link>}
 
           {status === "authenticated" && user ? (
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
