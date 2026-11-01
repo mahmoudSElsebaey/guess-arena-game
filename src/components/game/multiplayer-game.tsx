@@ -17,15 +17,18 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const {soundEnabled,toggleSound,playSound}=useGameSounds();
  const previousVersion=useRef<number|null>(null);
  const previousTurn=useRef<string|null>(null);
+ const requestRef=useRef<AbortController|null>(null);
  const refresh=useCallback(async()=>{
+  requestRef.current?.abort();
   const controller=new AbortController();
+  requestRef.current=controller;
   const timeout=window.setTimeout(()=>controller.abort(),8000);
   try{
    const response=await fetch(`/api/rooms/${roomId}`,{cache:"no-store",signal:controller.signal});
    const data=await response.json();
    if(!response.ok)throw new Error(data.error);
    setState(data);
-  }finally{window.clearTimeout(timeout);}
+  }finally{window.clearTimeout(timeout);if(requestRef.current===controller)requestRef.current=null;}
  },[roomId]);
  useEffect(()=>{
   if(!state)return;
@@ -50,7 +53,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   };
   void load();
   const timer=window.setInterval(()=>{if(document.visibilityState==="visible"&&!busy)void load();},3000);
-  return()=>{mounted=false;window.clearInterval(timer);};
+  return()=>{mounted=false;window.clearInterval(timer);requestRef.current?.abort();};
  },[refresh,ar,busy]);
  const eliminated=useMemo(()=>new Set(state?.myEliminatedCharacterIds??[]),[state?.myEliminatedCharacterIds]);
  const myId=state?.members.find(m=>m.isMe)?.userId;
