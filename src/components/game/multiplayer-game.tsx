@@ -26,7 +26,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   if(!state)return;
   if(previousVersion.current===null){previousVersion.current=state.version;previousTurn.current=state.currentTurnUserId;return;}
   if(state.version>previousVersion.current){
-   const latest=state.actions[state.actions.length-1];
+   const latest=state.actions.filter(action=>action.type==="QUESTION_ASKED"||action.type==="GUESS_MADE").at(-1);
    const ownId=state.members.find(member=>member.isMe)?.userId;
    if(latest?.type==="QUESTION_ASKED")playSound(latest.answer?"yes":"no");
    else if(latest?.type==="GUESS_MADE")playSound(latest.correct?(latest.actorId===ownId?"win":"lose"):"eliminate");
