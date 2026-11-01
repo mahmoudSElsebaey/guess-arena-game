@@ -249,8 +249,8 @@ export function GameBoard({ locale }: { locale: Locale }) {
     if (status !== "playing") return;
     setEliminated(previous => {
       const next = new Set(previous);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) { next.delete(id); playSound("click"); }
+      else { next.add(id); playSound("eliminate"); }
       return next;
     });
   }
@@ -271,6 +271,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
             <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">{t.subtitle}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled ? (locale === "ar" ? "إيقاف الصوت" : "Mute sounds") : (locale === "ar" ? "تشغيل الصوت" : "Enable sounds")} className="grid min-h-12 min-w-12 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-violet-300 hover:text-violet-700">{soundEnabled ? <Volume2 size={19}/> : <VolumeX size={19}/>}</button>
             <div className="min-w-28 rounded-2xl bg-slate-950 px-4 py-3 text-white"><span className="block text-[10px] font-bold text-slate-400">{t.remaining}</span><strong className="text-2xl font-black tabular-nums">{remaining}</strong></div>
             <div className="min-w-28 rounded-2xl bg-rose-50 px-4 py-3 text-rose-700"><span className="block text-[10px] font-bold text-rose-400">{t.eliminated}</span><strong className="text-2xl font-black tabular-nums">{eliminated.size}</strong></div>
             <button type="button" disabled={contentLoading || characters.length === 0} onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"><RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}</button>
