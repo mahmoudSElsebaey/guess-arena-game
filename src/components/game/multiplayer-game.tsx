@@ -87,5 +87,5 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   </>}
   <div className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-black">{ar?"سجل المباراة":"Match history"}</h3><div className="mt-3 space-y-2">{state.actions.slice(-8).reverse().map(a=>{const player=state.members.find(m=>m.userId===a.actorId);const q=questions.find(x=>x.id===a.questionId);return <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3 text-sm"><span className="font-semibold text-slate-700">{player?.name}: {a.type==="QUESTION_ASKED"?(ar?q?.labelAr:q?.labelEn):a.type==="GUESS_MADE"?(ar?"تخمين شخصية":"Character guess"):""}</span>{a.type==="QUESTION_ASKED"&&<b className={a.answer?"text-emerald-700":"text-rose-700"}>{a.answer?(ar?"نعم":"Yes"):(ar?"لا":"No")}</b>}{a.type==="GUESS_MADE"&&<b>{a.correct?(ar?"صحيح":"Correct"):(ar?"خطأ":"Wrong")}</b>}</div>;})}{!state.actions.length&&<p className="text-sm text-slate-400">{ar?"لا توجد حركات بعد.":"No moves yet."}</p>}</div></div>
   {notice&&<p className="animate-feedback rounded-xl bg-teal-50 p-3 text-sm font-bold text-teal-800">{notice}</p>}{error&&<p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-700">{error}</p>}
- </div>;
+ </section>;
 }
