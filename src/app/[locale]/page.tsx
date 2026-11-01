@@ -28,7 +28,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-9 text-slate-600">{t("description")}</p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/login" className="inline-flex min-h-13 items-center gap-3 rounded-xl bg-[var(--foreground)] px-6 py-3 font-bold text-white shadow-xl shadow-slate-300 transition hover:-translate-y-0.5 hover:bg-violet-800">
+              <Link href="/play" className="inline-flex min-h-13 items-center gap-3 rounded-xl bg-[var(--foreground)] px-6 py-3 font-bold text-white shadow-xl shadow-slate-300 transition hover:-translate-y-0.5 hover:bg-violet-800">
                 <Swords size={18} aria-hidden="true" />{t("primaryAction")}<ArrowUpLeft size={18} aria-hidden="true" />
               </Link>
               <Link href="/register" className="inline-flex min-h-13 items-center rounded-xl border border-[var(--border)] bg-white px-6 py-3 font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50">{t("secondaryAction")}</Link>
