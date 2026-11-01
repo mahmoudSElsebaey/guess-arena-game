@@ -173,17 +173,24 @@ export async function PATCH(request: Request) {
     if (!body.id || body.id.length > 80) return failure("INVALID_ID");
 
     if (body.resource === "category") {
-      const parsed = categorySchema.partial().safeParse(body.data);
+      const parsed = categorySchema.partial().extend({ isActive: z.boolean().optional() }).safeParse(body.data);
       if (!parsed.success || Object.keys(parsed.data ?? {}).length === 0) return failure("INVALID_CATEGORY");
       const current = await prisma.gameContentCategory.findUnique({ where: { id: body.id } });
       if (!current) return failure("NOT_FOUND", 404);
       if (parsed.data.type && parsed.data.type !== current.type) return failure("CATEGORY_TYPE_LOCKED");
+      if (parsed.data.isActive === false) {
+        const activeChildren = await prisma.gameContentCategory.findUnique({
+          where: { id: body.id },
+          select: { characters: { where: { isActive: true }, select: { id: true }, take: 1 }, questions: { where: { isActive: true }, select: { id: true }, take: 1 } }
+        });
+        if (activeChildren?.characters.length || activeChildren?.questions.length) return failure("CATEGORY_HAS_ACTIVE_CONTENT", 409);
+      }
       const category = await prisma.gameContentCategory.update({ where: { id: body.id }, data: parsed.data });
       return NextResponse.json({ category });
     }
 
     if (body.resource === "character") {
-      const parsed = characterSchema.partial().safeParse(body.data);
+      const parsed = characterSchema.partial().extend({ isActive: z.boolean().optional() }).safeParse(body.data);
       if (!parsed.success || Object.keys(parsed.data ?? {}).length === 0) return failure("INVALID_CHARACTER");
       const current = await prisma.gameCharacter.findUnique({ where: { id: body.id } });
       if (!current) return failure("NOT_FOUND", 404);
@@ -205,7 +212,7 @@ export async function PATCH(request: Request) {
     }
 
     if (body.resource === "question") {
-      const parsed = questionSchema.partial().safeParse(body.data);
+      const parsed = questionSchema.partial().extend({ isActive: z.boolean().optional() }).safeParse(body.data);
       if (!parsed.success || Object.keys(parsed.data ?? {}).length === 0) return failure("INVALID_QUESTION");
       const current = await prisma.gameQuestion.findUnique({ where: { id: body.id } });
       if (!current) return failure("NOT_FOUND", 404);
