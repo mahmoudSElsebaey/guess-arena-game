@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { appendRoomAction,getActiveMembership as unused,getRoomSnapshot,isValidCharacterId,makeRoomCode,publishRoomEvent } from "@/lib/rooms";
+import { appendRoomAction,getRoomSnapshot,isValidCharacterId,makeRoomCode,publishRoomEvent } from "@/lib/rooms";
 import { getAblyRestClient } from "@/lib/ably";
 type Ctx={params:Promise<{segments?:string[]}>};
 const readySchema=z.object({isReady:z.boolean(),secretCharacterId:z.string().optional()});
