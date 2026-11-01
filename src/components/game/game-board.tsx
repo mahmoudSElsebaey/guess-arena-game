@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   Check, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Trophy,
-  UserRound, X, Crown, Glasses, HatGlasses, CircleHelp
+  UserRound, X, Crown, HatGlasses, CircleHelp
 } from "lucide-react";
 import { characters, type Character } from "@/data/characters";
 
@@ -174,18 +174,12 @@ function CharacterPortrait({ character }: { character: Character }) {
       <path d="M51 73q9 7 18 0" fill="none" stroke="#8c4c4b" strokeWidth="2.5" strokeLinecap="round" />
       {character.hasBeard && <path d="M39 68q2 23 21 25 19-2 21-25-9 8-21 6-12 2-21-6z" fill={hair} opacity=".92" />}
       {character.hasGlasses && <g fill="none" stroke="#303344" strokeWidth="3"><rect x="38" y="46" width="19" height="15" rx="5"/><rect x="63" y="46" width="19" height="15" rx="5"/><path d="M57 52h6" /></g>}
-      {character.hasHat && <g><path d="M28 34q2-23 32-23t32 23z" fill="#7257e8"/><path d="M22 34h76v7H22z" rx="3" fill="#4934a8"/></g>}
+      {character.hasHat && <g><path d="M28 34q2-23 32-23t32 23z" fill="#7257e8"/><rect x="22" y="34" width="76" height="7" rx="3" fill="#4934a8"/></g>}
       <path d="M43 88q17 9 34 0" fill="none" stroke="#fff" strokeOpacity=".65" strokeWidth="3" />
     </svg>
   );
 }
 
-const questions: Question[] = Object.keys(tests).map((id, index) => ({
-  id,
-  label: "",
-  test: tests[id],
-  group: index < 2 ? "accessories" : index < 5 ? "identity" : "look"
-}));
 
 export function GameBoard({ locale }: { locale: Locale }) {
   const t = copy[locale];
