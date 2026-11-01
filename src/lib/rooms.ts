@@ -5,7 +5,7 @@ import { getAblyRestClient } from "@/lib/ably";
 import { prisma } from "@/lib/prisma";
 type Db=PrismaClient|Prisma.TransactionClient;
 export const makeRoomCode=()=>randomInt(0,1_000_000).toString().padStart(6,"0");
-export async function appendRoomAction(tx:Prisma.TransactionClient,input:{roomId:string;actorId:string;type:"ROOM_CREATED"|"ROOM_JOINED"|"PLAYER_READY"|"GAME_STARTED"|"PLAYER_LEFT";payload?:Prisma.InputJsonValue}){
+export async function appendRoomAction(tx:Prisma.TransactionClient,input:{roomId:string;actorId:string;type:"ROOM_CREATED"|"ROOM_JOINED"|"PLAYER_READY"|"GAME_STARTED"|"QUESTION_ASKED"|"GUESS_MADE"|"PLAYER_LEFT"|"GAME_FINISHED";payload?:Prisma.InputJsonValue}){
  const last=await tx.gameAction.findFirst({where:{roomId:input.roomId},orderBy:{sequence:"desc"},select:{sequence:true}});
  return tx.gameAction.create({data:{roomId:input.roomId,actorId:input.actorId,sequence:(last?.sequence??0)+1,type:input.type,idempotencyKey:`${input.type.toLowerCase()}-${input.actorId}-${Date.now()}-${randomInt(1_000_000)}`,payload:input.payload??{}}});
 }
