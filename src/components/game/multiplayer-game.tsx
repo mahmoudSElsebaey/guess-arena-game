@@ -13,14 +13,19 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
+ const [loading,setLoading]=useState(true);
  const {soundEnabled,toggleSound,playSound}=useGameSounds();
  const previousVersion=useRef<number|null>(null);
  const previousTurn=useRef<string|null>(null);
  const refresh=useCallback(async()=>{
-  const response=await fetch(`/api/rooms/${roomId}`,{cache:"no-store"});
-  const data=await response.json();
-  if(!response.ok)throw new Error(data.error);
-  setState(data);
+  const controller=new AbortController();
+  const timeout=window.setTimeout(()=>controller.abort(),8000);
+  try{
+   const response=await fetch(`/api/rooms/${roomId}`,{cache:"no-store",signal:controller.signal});
+   const data=await response.json();
+   if(!response.ok)throw new Error(data.error);
+   setState(data);
+  }finally{window.clearTimeout(timeout);}
  },[roomId]);
  useEffect(()=>{
   if(!state)return;
@@ -37,10 +42,16 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   previousTurn.current=state.currentTurnUserId;
  },[state,playSound]);
  useEffect(()=>{
-  void refresh().catch(()=>setError(ar?"تعذر تحميل المباراة.":"Could not load match."));
-  const timer=window.setInterval(()=>{if(document.visibilityState==="visible")void refresh().catch(()=>undefined);},2000);
-  return()=>window.clearInterval(timer);
- },[refresh,ar]);
+  let mounted=true;
+  const load=async()=>{
+   try{await refresh();if(mounted)setError("");}
+   catch{if(mounted)setError(ar?"تعذر تحميل المباراة.":"Could not load match.");}
+   finally{if(mounted)setLoading(false);}
+  };
+  void load();
+  const timer=window.setInterval(()=>{if(document.visibilityState==="visible"&&!busy)void load();},3000);
+  return()=>{mounted=false;window.clearInterval(timer);};
+ },[refresh,ar,busy]);
  const eliminated=useMemo(()=>new Set(state?.myEliminatedCharacterIds??[]),[state?.myEliminatedCharacterIds]);
  const myId=state?.members.find(m=>m.isMe)?.userId;
  const myTurn=Boolean(myId&&state?.currentTurnUserId===myId);
@@ -61,9 +72,10 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    setError(messages[key]??(ar?"تعذر تنفيذ الحركة.":"Could not submit move."));
   }finally{setBusy(false);}
  };
- if(!state)return <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">{ar?"جارٍ تحميل المباراة...":"Loading match..."}</p>;
+ if(loading&&!state)return <div className="mt-5 space-y-3" role="status" aria-live="polite"><div className="h-24 animate-pulse rounded-2xl bg-slate-100"/><div className="h-48 animate-pulse rounded-2xl bg-slate-100"/><span className="sr-only">{ar?"جارٍ تحميل المباراة...":"Loading match..."}</span></div>;
+ if(!state)return <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-4 text-sm font-semibold text-rose-700">{error|| (ar?"تعذر تحميل المباراة.":"Could not load match.")}</p>;
  const winner=state.members.find(m=>m.userId===state.winnerId);
- return <div dir={ar?"rtl":"ltr"} className="mt-6 space-y-5">
+ return <section dir={ar?"rtl":"ltr"} aria-label={ar?"منطقة اللعب الأونلاين":"Online game area"} className="mt-6 space-y-5">
   <div className={`flex items-center justify-between gap-3 rounded-2xl bg-slate-950 p-4 text-white ${myTurn?"animate-turn-pulse":""}`}><div><p className="text-xs text-slate-400">{ar?"الحالة":"Match status"}</p><p className="mt-1 font-black">{state.status==="COMPLETED"?(ar?"انتهت المباراة": "Match completed"):myTurn?(ar?"دورك الآن":"Your turn"):(ar?"دور الخصم":"Opponent's turn")}</p></div><div className="flex items-center gap-3"><div className="text-end"><p className="text-xs text-slate-400">{ar?"الدور":"Turn"}</p><p className="text-2xl font-black">{state.turnNumber}</p></div><button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled?(ar?"إيقاف الصوت":"Mute sounds"):(ar?"تشغيل الصوت":"Enable sounds")} className="grid size-10 place-items-center rounded-xl bg-white/10 text-white transition hover:bg-white/20">{soundEnabled?<Volume2 size={18}/>:<VolumeX size={18}/>}</button></div></div>
   {state.status==="COMPLETED"&&<div className="animate-feedback rounded-2xl bg-emerald-50 p-4 font-black text-emerald-800">{winner?.isMe?(ar?"مبروك! أنت الفائز.":"Congratulations, you won!"):(ar?`الفائز: ${winner?.name??"لا يوجد"}`:`Winner: ${winner?.name??"None"}`)}</div>}
   {state.status==="IN_PROGRESS"&&<>
