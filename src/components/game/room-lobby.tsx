@@ -48,7 +48,10 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
     const response = await fetch(`/api/rooms/${id}`, { cache: "no-store" });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
-    setRoom(data);
+    setRoom(previous => {
+      if (previous?.status === "COMPLETED" && data.status === "WAITING") setCharacter("");
+      return data;
+    });
     setSyncStatus("connected");
     setCharacter((current) => data.mySecretCharacterId ?? current);
   }, []);
