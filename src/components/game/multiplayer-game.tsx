@@ -27,6 +27,8 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const lastFeedbackAction=useRef("");
  const lastGuessSoundAction=useRef("");
  const countdownStarted=useRef(false);
+ const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);
+ const soundRef=useRef(playSound);
  const feedbackTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const arenaRef=useRef<HTMLElement|null>(null);
 
@@ -42,7 +44,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   const load=async()=>{try{await refresh();if(mounted)setError("");}catch{if(mounted)setError(ar?"تعذر تحميل المباراة. تحقق من الاتصال ثم أعد المحاولة.":"Could not load the match. Check your connection and retry.");}finally{if(mounted)setLoading(false);}};
   void load();
   const timer=window.setInterval(()=>{if(document.visibilityState==="visible")void load();},2500);
-  return()=>{mounted=false;window.clearInterval(timer);if(feedbackTimer.current)clearTimeout(feedbackTimer.current);};
+  return()=>{mounted=false;window.clearInterval(timer);if(feedbackTimer.current)clearTimeout(feedbackTimer.current);if(countdownTimer.current)window.clearInterval(countdownTimer.current);};
  },[refresh,ar]);
 
  useEffect(()=>{
@@ -71,19 +73,44 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   previousVersion.current=state.version;
  },[state,playSound]);
 
+ useEffect(()=>{soundRef.current=playSound;},[playSound]);
+
  useEffect(()=>{
-  if(!state||state.status!=="IN_PROGRESS"||countdownStarted.current)return;
+  const status=state?.status;
+  if(status!=="IN_PROGRESS"){
+   countdownStarted.current=false;
+   if(countdownTimer.current){window.clearInterval(countdownTimer.current);countdownTimer.current=null;}
+   setCountdown(null);
+   return;
+  }
+  if(countdownStarted.current)return;
+
   countdownStarted.current=true;
   setCountdown(5);
   let current=5;
-  const timer=window.setInterval(()=>{
+
+  countdownTimer.current=window.setInterval(()=>{
    current-=1;
-   if(current>0){setCountdown(current);playSound("click");}
-   else if(current===0){setCountdown(ar?"ابدأ!":"START");playSound("question");}
-   else{setCountdown(null);window.clearInterval(timer);}
+   if(current>0){
+    setCountdown(current);
+    soundRef.current("click");
+   }else if(current===0){
+    setCountdown(ar?"ابدأ!":"START");
+    soundRef.current("question");
+   }else{
+    setCountdown(null);
+    if(countdownTimer.current){
+     window.clearInterval(countdownTimer.current);
+     countdownTimer.current=null;
+    }
+   }
   },1000);
-  return()=>window.clearInterval(timer);
- },[state,ar,playSound]);
+
+  return()=>{
+   // Do not clear the countdown when the room snapshot refreshes.
+   // The status-driven effect only owns cleanup when the match actually leaves IN_PROGRESS.
+  };
+ },[state?.status,ar]);
 
  useEffect(()=>{
   const update=()=>setIsFullscreen(Boolean(document.fullscreenElement));
