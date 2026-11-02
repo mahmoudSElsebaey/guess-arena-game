@@ -43,7 +43,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
   return (
     <header className="arena-header sticky top-0 z-50">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[70] focus:rounded-xl focus:bg-white focus:px-4 focus:py-3 focus:font-bold focus:text-violet-700">Skip to content</a>
-      <div className="relative bg-[#11102b] text-white shadow-[0_12px_35px_rgba(17,16,43,.2)]">
+      <div className="relative border-0 bg-[#11102b] text-white shadow-none">
         <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-7">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Guess Arena">
             <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-lime-300 via-emerald-400 to-teal-500 text-[#10152d] shadow-[0_0_24px_rgba(163,230,53,.28)] transition group-hover:rotate-[-8deg]"><Gamepad2 size={24}/></span>
