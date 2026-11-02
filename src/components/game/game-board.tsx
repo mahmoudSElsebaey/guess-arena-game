@@ -269,102 +269,136 @@ export function GameBoard({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(114,87,232,.13),transparent_32%),linear-gradient(180deg,#f8f9ff_0%,#f0f3fa_100%)]">
-      <div className="mx-auto max-w-[1500px] px-3 py-6 sm:px-6 sm:py-9">
-        <div className="mb-6 flex flex-col gap-4 rounded-[2rem] border border-white bg-white/85 p-5 shadow-xl shadow-slate-200/50 backdrop-blur sm:p-7 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[11px] font-black tracking-wide text-violet-700"><Sparkles size={14} />{t.eyebrow}</span>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">{t.title}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">{t.subtitle}</p>
+    <main className="arena-shell min-h-screen">
+      <div className="mx-auto max-w-[1600px] px-3 py-5 sm:px-6 sm:py-8">
+        <header className="arena-panel-strong relative mb-5 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+          <div className="pointer-events-none absolute -end-12 -top-20 size-64 rounded-full bg-violet-200/50 blur-3xl" />
+          <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[11px] font-black tracking-wide text-violet-800">
+                <Sparkles size={14} aria-hidden="true" />{t.eyebrow}
+              </span>
+              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">{t.title}</h1>
+              <p className="mt-2 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">{t.subtitle}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled ? (locale === "ar" ? "إيقاف الصوت" : "Mute sounds") : (locale === "ar" ? "تشغيل الصوت" : "Enable sounds")} className="arena-interactive grid min-h-12 min-w-12 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700">
+                {soundEnabled ? <Volume2 size={19}/> : <VolumeX size={19}/>}
+              </button>
+              <div className="min-w-24 rounded-2xl bg-slate-950 px-4 py-3 text-white">
+                <span className="block text-[10px] font-bold text-slate-400">{t.remaining}</span>
+                <strong className="text-2xl font-black tabular-nums">{remaining}</strong>
+              </div>
+              <div className="min-w-24 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-rose-800">
+                <span className="block text-[10px] font-bold text-rose-500">{t.eliminated}</span>
+                <strong className="text-2xl font-black tabular-nums">{eliminated.size}</strong>
+              </div>
+              <button type="button" disabled={contentLoading || characters.length === 0} onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-700 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-800 disabled:cursor-not-allowed disabled:opacity-50">
+                <RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}
+              </button>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled ? (locale === "ar" ? "إيقاف الصوت" : "Mute sounds") : (locale === "ar" ? "تشغيل الصوت" : "Enable sounds")} className="grid min-h-12 min-w-12 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-violet-300 hover:text-violet-700">{soundEnabled ? <Volume2 size={19}/> : <VolumeX size={19}/>}</button>
-            <div className="min-w-28 rounded-2xl bg-slate-950 px-4 py-3 text-white"><span className="block text-[10px] font-bold text-slate-400">{t.remaining}</span><strong className="text-2xl font-black tabular-nums">{remaining}</strong></div>
-            <div className="min-w-28 rounded-2xl bg-rose-50 px-4 py-3 text-rose-700"><span className="block text-[10px] font-bold text-rose-400">{t.eliminated}</span><strong className="text-2xl font-black tabular-nums">{eliminated.size}</strong></div>
-            <button type="button" disabled={contentLoading || characters.length === 0} onClick={startRound} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-violet-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"><RotateCcw size={17}/>{status === "ready" ? t.start : t.restart}</button>
+          <div className="relative mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+              <span className={\`size-2.5 rounded-full \${status === "playing" ? "animate-pulse bg-emerald-500" : status === "won" ? "bg-amber-500" : "bg-slate-300"}\`} />
+              {status === "playing" ? t.playing : status === "won" ? t.won : t.ready}
+            </div>
+            <span className="text-xs font-semibold text-slate-400">{characters.length} {locale === "ar" ? "شخصية في اللوحة" : "characters on the board"}</span>
           </div>
-        </div>
+        </header>
 
-        <div className="grid items-start gap-5 xl:grid-cols-[270px_minmax(0,1fr)_280px]">
-          <aside className="order-2 space-y-4 xl:order-1">
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+        <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_330px]">
+          <section className="arena-panel-strong min-w-0 rounded-[2rem] p-3 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+              <div>
+                <p className="text-[10px] font-black tracking-[.2em] text-violet-600">GUESS ARENA · PRACTICE</p>
+                <h2 className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">{t.board}</h2>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{t.guess}</span>
+            </div>
+
+            {contentLoading ? (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-7 2xl:grid-cols-9" role="status" aria-label={locale === "ar" ? "جار تحميل الشخصيات" : "Loading characters"}>
+                {Array.from({ length: 45 }, (_, index) => <div key={index} className="aspect-[4/5] animate-pulse rounded-2xl bg-slate-100" />)}
+              </div>
+            ) : contentError ? (
+              <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-sm font-bold text-rose-800">{contentError}</div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-9">
+                {characters.map(character => {
+                  const isOut = eliminated.has(character.id);
+                  return (
+                    <article key={character.id} className={\`animate-card-enter group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition-all duration-300 sm:p-2 \${isOut ? "border-slate-200 bg-slate-100 opacity-40 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg"}\`}>
+                      <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full rounded-xl text-center outline-none focus-visible:ring-2 focus-visible:ring-violet-600 disabled:cursor-not-allowed" aria-label={\`\${t.guess}: \${character.name}\`}>
+                        <div className="aspect-square overflow-hidden rounded-xl bg-violet-50"><CharacterPortrait character={character}/></div>
+                        <span className="mt-1.5 block truncate text-[11px] font-extrabold text-slate-800 sm:text-xs">{character.name}</span>
+                      </button>
+                      <button type="button" disabled={status !== "playing"} onClick={() => toggleEliminated(character.id)} className="absolute end-2 top-2 grid size-8 place-items-center rounded-xl border border-white/80 bg-white/95 text-slate-600 shadow-sm transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-0" aria-label={isOut ? t.restore : t.manualHide} title={isOut ? t.restore : t.manualHide}>{isOut ? <Eye size={14}/> : <EyeOff size={14}/>}</button>
+                      {isOut && <span className="pointer-events-none absolute inset-0 grid place-items-center"><span className="grid size-9 place-items-center rounded-full bg-slate-900/80 text-white"><X size={19}/></span></span>}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {status === "ready" && <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-violet-200 bg-violet-50 p-5 text-center"><Sparkles size={22} className="text-violet-600"/><p className="text-sm font-bold text-violet-900">{t.ready}</p></div>}
+            {status === "won" && <div role="status" aria-live="polite" className="animate-feedback mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-extrabold text-emerald-800"><Trophy size={22}/><span>{t.win}</span><button type="button" onClick={startRound} className="ms-auto rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-black text-white hover:bg-emerald-800">{t.restart}</button></div>}
+            {notice && status !== "won" && <div role="status" aria-live="polite" className="animate-feedback mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{notice}</div>}
+          </section>
+
+          <aside className="grid gap-4 md:grid-cols-2 2xl:grid-cols-1">
+            <section className="arena-panel rounded-3xl p-5">
               <div className="flex items-center gap-2"><Crown size={18} className="text-amber-500"/><h2 className="font-black text-slate-900">{t.secret}</h2></div>
               <div className="mt-4 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 p-4">
                 <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-white text-violet-600 shadow-sm"><CircleHelp size={28}/></div>
                 <div><p className="text-sm font-extrabold text-slate-800">{t.hidden}</p><p className="mt-1 text-xs leading-5 text-slate-500">{t.secretHint}</p></div>
               </div>
-              <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-500"><span className={`size-2 rounded-full ${status === "playing" ? "animate-pulse bg-emerald-500" : status === "won" ? "bg-amber-500" : "bg-slate-300"}`}/>{status === "playing" ? t.playing : status === "won" ? t.won : t.ready}</div>
+              <div className="mt-4 flex items-center justify-between gap-3 text-xs font-bold text-slate-500">
+                <span>{locale === "ar" ? "تقدم الاستبعاد" : "Elimination progress"}</span>
+                <span className="tabular-nums">{characters.length ? Math.round((eliminated.size / characters.length) * 100) : 0}%</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-teal-400 transition-all duration-300" style={{ width: \`\${characters.length ? (eliminated.size / characters.length) * 100 : 0}%\` }}/></div>
             </section>
 
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+            <section className="arena-panel rounded-3xl p-5">
               <div className="flex items-center gap-2"><HelpCircle size={18} className="text-violet-600"/><h2 className="font-black text-slate-900">{t.questions}</h2></div>
               <p className="mt-2 text-xs leading-5 text-slate-500">{t.questionsHint}</p>
               <div className="mt-4 space-y-4">
-                {groupedQuestions.map(group => (
-                  <div key={group.id}>
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">{group.label}</p>
-                    <div className="grid gap-1.5">
-                      {questionItems.filter(item => item.group === group.id).map(({ id, label }) => (
-                        <button key={id} type="button" disabled={status !== "playing" || asked.has(id)} onClick={() => askQuestion(id, label)} className="flex min-h-10 items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-start text-xs font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40">
-                          <span>{label}</span>{asked.has(id) ? <Check size={14} className="shrink-0 text-emerald-600"/> : <span className="text-violet-500">?</span>}
-                        </button>
-                      ))}
+                {groupedQuestions.map(group => {
+                  const items = questionItems.filter(item => item.group === group.id);
+                  if (!items.length) return null;
+                  return (
+                    <div key={group.id}>
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">{group.label}</p>
+                      <div className="grid gap-1.5">
+                        {items.map(({ id, label }) => (
+                          <button key={id} type="button" disabled={status !== "playing" || asked.has(id)} onClick={() => askQuestion(id, label)} className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2 text-start text-xs font-bold text-slate-700 transition hover:border-violet-200 hover:bg-violet-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400">
+                            <span>{label}</span>{asked.has(id) ? <Check size={15} className="shrink-0 text-emerald-600"/> : <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-violet-50 text-violet-600">?</span>}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+              {status !== "playing" && <p className="mt-4 rounded-xl bg-slate-100 p-3 text-xs font-semibold leading-5 text-slate-500">{locale === "ar" ? "ابدأ جولة لتفعيل الأسئلة." : "Start a round to unlock questions."}</p>}
             </section>
-          </aside>
 
-          <section className="order-1 min-w-0 rounded-[2rem] border border-white bg-white p-3 shadow-2xl shadow-slate-200/70 sm:p-5 xl:order-2">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
-              <div><p className="text-[10px] font-black tracking-[.2em] text-violet-600">GUESS ARENA</p><h2 className="mt-1 text-lg font-black text-slate-950 sm:text-xl">{t.board}</h2></div>
-              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">{t.guess}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-9">
-              {characters.map(character => {
-                const isOut = eliminated.has(character.id);
-                return (
-                  <article key={character.id} className={`animate-card-enter group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition-all duration-300 sm:p-2 ${isOut ? "border-slate-100 bg-slate-100 opacity-35 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg"}`}>
-                    <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full text-center disabled:cursor-not-allowed" aria-label={`${t.guess}: ${character.name}`}>
-                      <div className="aspect-square overflow-hidden rounded-xl bg-violet-50"><CharacterPortrait character={character}/></div>
-                      <span className="mt-1.5 block truncate text-[11px] font-extrabold text-slate-800 sm:text-xs">{character.name}</span>
-                    </button>
-                    <button type="button" disabled={status !== "playing"} onClick={() => toggleEliminated(character.id)} className="absolute end-2 top-2 grid size-6 place-items-center rounded-lg border border-white/80 bg-white/90 text-slate-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-0" aria-label={isOut ? t.restore : t.manualHide} title={isOut ? t.restore : t.manualHide}>{isOut ? <Eye size={13}/> : <EyeOff size={13}/>}</button>
-                    {isOut && <span className="pointer-events-none absolute inset-0 grid place-items-center"><span className="grid size-8 place-items-center rounded-full bg-slate-900/75 text-white"><X size={18}/></span></span>}
-                  </article>
-                );
-              })}
-            </div>
-            {status === "ready" && <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-violet-50 p-4 text-center text-sm font-bold text-violet-800">{t.ready}</div>}
-            {status === "won" && <div className="animate-feedback mt-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-extrabold text-emerald-800"><Trophy size={20}/>{t.win}</div>}
-            {notice && status !== "won" && <div className="animate-feedback mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 text-sm font-bold text-violet-900">{notice}</div>}
-          </section>
-
-          <aside className="order-3 space-y-4">
-            <section className="rounded-3xl border border-white bg-white p-5 shadow-lg shadow-slate-200/50">
+            <section className="arena-panel rounded-3xl p-5 md:col-span-2 2xl:col-span-1">
               <div className="flex items-center gap-2"><UserRound size={18} className="text-teal-600"/><h2 className="font-black text-slate-900">{t.history}</h2></div>
               <div className="mt-4 space-y-2">
                 {history.length === 0 ? <p className="rounded-xl bg-slate-50 p-4 text-xs leading-6 text-slate-400">{t.noHistory}</p> : history.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div key={\`\${item.id}-\${index}\`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <p className="text-xs font-bold text-slate-700">{item.label}</p>
-                    <div className="mt-2 flex items-center justify-between gap-2"><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${item.answer ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{item.answer ? t.yes : t.no}</span><span className="text-[10px] font-bold text-slate-400">−{item.removed}</span></div>
+                    <div className="mt-2 flex items-center justify-between gap-2"><span className={\`rounded-full px-2.5 py-1 text-[10px] font-black \${item.answer ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}\`}>{item.answer ? t.yes : t.no}</span><span className="text-[10px] font-bold text-slate-400">−{item.removed}</span></div>
                   </div>
                 ))}
               </div>
             </section>
-            <div className="rounded-3xl bg-slate-950 p-5 text-white">
-              <div className="flex items-center gap-2 text-teal-300"><HatGlasses size={18}/><span className="text-xs font-black tracking-wider">HOW TO PLAY</span></div>
-              <ol className="mt-3 space-y-2 text-xs leading-6 text-slate-300">
-                <li>1. {locale === "ar" ? "ابدأ الجولة والخصم سيختار شخصية سرية." : "Start a round; your opponent picks a secret character."}</li>
-                <li>2. {locale === "ar" ? "اسأل أسئلة بنعم أو لا لتقليل الاحتمالات." : "Ask yes/no questions to narrow the candidates."}</li>
-                <li>3. {locale === "ar" ? "اضغط على بطاقة لتخمين الشخصية." : "Click a card to make your final guess."}</li>
-              </ol>
-            </div>
-            {status === "playing" && <p className="rounded-2xl border border-slate-200 bg-white p-4 text-xs font-semibold leading-6 text-slate-500">{t.askAgain}</p>}
           </aside>
         </div>
       </div>
     </main>
   );
+}
 }
