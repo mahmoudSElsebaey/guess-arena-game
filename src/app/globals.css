@@ -131,14 +131,19 @@ button, a { touch-action: manipulation; }
 .arena-footer::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -15%;
   pointer-events: none;
-  opacity: .18;
-  background-image: radial-gradient(circle at 18% 32%,#f0abfc 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#bef264 0 2px,transparent 3px);
-  background-size: 54px 54px,72px 72px;
+  opacity: .2;
+  background-image: radial-gradient(circle at 18% 32%,#f0abfc 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#bef264 0 2px,transparent 3px),linear-gradient(115deg,transparent 15%,rgba(45,212,191,.12) 42%,transparent 70%);
+  background-size: 54px 54px,72px 72px,180% 180%;
+  animation: arena-footer-drift 18s ease-in-out infinite alternate;
+}
+@keyframes arena-footer-drift {
+  from { transform: translate3d(-1.5%,0,0); background-position: 0 0,0 0,0% 50%; }
+  to { transform: translate3d(1.5%,-1%,0); background-position: 54px 36px,72px 24px,100% 50%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .arena-play-cta { animation: none; }
+  .arena-play-cta, .arena-footer::before { animation: none; }
 }
 
 
