@@ -171,7 +171,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
     </div>}
 
     {notice && <p role="status" aria-live="polite" className="animate-feedback rounded-2xl border border-teal-200 bg-teal-50 p-4 text-sm font-bold text-teal-800">{notice}</p>}
-    {error && <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p>}
+    {error && <div role="alert" aria-live="assertive" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700"><p className="min-w-0 flex-1">{error}</p><button type="button" onClick={() => { void refresh().then(() => setError("")).catch(() => setError(ar ? "لا يزال الاتصال غير مستقر. حاول مرة أخرى." : "Connection is still unavailable. Try again.")); }} className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-white px-3 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-rose-500">{ar ? "تحديث المباراة" : "Refresh match"}</button></div>}
    </div>
   </section>
  );
