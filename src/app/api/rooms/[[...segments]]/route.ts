@@ -62,16 +62,13 @@ export async function POST(request:Request,{params}:Ctx){
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
     const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
     const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
-    if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
+    if(lastQuestion&&(!lastConfirmed||lastQuestion.sequence>lastConfirmed.sequence))throw new Error("QUESTION_ALREADY_PENDING");
     const me=current.members.find(m=>m.userId===userId),opponent=current.members.find(m=>m.userId!==userId);
     if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
     const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
     if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
     const secret=(await getActiveCharacters()).find(character=>character.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
     const answer=evaluateQuestion(secret,question);
-    const pending=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
-    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
-    if(pending&&(!lastConfirmed||pending.sequence>lastConfirmed.sequence))throw new Error("QUESTION_ALREADY_PENDING");
     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{version:{increment:1}}});
     if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"QUESTION_ASKED",payload:{questionId:parsed.data.questionId,answer}});
