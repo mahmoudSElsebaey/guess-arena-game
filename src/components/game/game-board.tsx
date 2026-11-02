@@ -401,4 +401,3 @@ export function GameBoard({ locale }: { locale: Locale }) {
     </main>
   );
 }
-}
