@@ -5,6 +5,6 @@ import { SiteFooter } from "@/components/layout/site-footer";
 
 export function PublicFooter() {
   const pathname = usePathname();
-  const hidden = pathname === "/play" || pathname.startsWith("/admin");
+  const hidden = pathname.startsWith("/play") || pathname === "/practice" || pathname.startsWith("/admin");
   return hidden ? null : <SiteFooter />;
 }
