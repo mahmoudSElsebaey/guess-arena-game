@@ -13,7 +13,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   ];
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen overflow-hidden">
+    <main id="main-content" tabIndex={-1} className="arena-shell min-h-screen overflow-hidden">
       <SiteHeader locale={locale} />
       <section className="relative isolate">
         <div className="pointer-events-none absolute -top-40 start-1/3 -z-10 size-[36rem] rounded-full bg-violet-200/50 blur-3xl" />
@@ -41,7 +41,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 
           <div className="relative mx-auto w-full max-w-xl">
             <div className="absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-violet-300/60 via-teal-100/70 to-amber-100/70 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-2xl shadow-slate-300/70 backdrop-blur-xl sm:p-7">
+            <div className="arena-panel-strong relative overflow-hidden rounded-[2rem] p-5 sm:p-7">
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-black tracking-[0.22em] text-violet-500">GUESS ARENA</p>
@@ -67,7 +67,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 
       <section className="mx-auto grid max-w-7xl gap-4 px-5 pb-20 sm:grid-cols-3 sm:px-8">
         {features.map(({ icon: Icon, title, description, tone }) => (
-          <article key={title} className="group rounded-2xl border border-[var(--border)] bg-white/90 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70">
+          <article key={title} className="arena-panel arena-interactive group rounded-2xl p-6">
             <span className={`grid size-12 place-items-center rounded-2xl ${tone === "violet" ? "bg-violet-100 text-violet-700" : tone === "teal" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"}`}><Icon size={22} aria-hidden="true" /></span>
             <h2 className="mt-5 text-lg font-extrabold text-slate-900">{title}</h2>
             <p className="mt-2 leading-7 text-slate-600">{description}</p>
