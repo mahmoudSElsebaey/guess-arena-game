@@ -25,6 +25,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [copied, setCopied] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"connected" | "reconnecting">("connected");
 
   useEffect(() => {
     let active = true;
@@ -46,6 +47,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setRoom(data);
+    setSyncStatus("connected");
     setCharacter((current) => data.mySecretCharacterId ?? current);
   }, []);
 
@@ -53,7 +55,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
     if (!room?.id) return;
     const roomId = room.id;
     let active = true;
-    const sync = () => { if (active && document.visibilityState === "visible") void refresh(roomId).catch(() => undefined); };
+    const sync = () => { if (active && document.visibilityState === "visible") void refresh(roomId).catch(() => { if (active) setSyncStatus("reconnecting"); }); };
     const timer = window.setInterval(sync, 2000);
     return () => { active = false; window.clearInterval(timer); };
   }, [room?.id, refresh]);
@@ -146,7 +148,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
               <div className="absolute -end-10 -top-20 size-64 rounded-full bg-violet-600/30 blur-3xl" />
               <div className="relative flex flex-wrap items-center justify-between gap-5">
                 <div>
-                  <div className="inline-flex items-center gap-2 text-xs font-bold text-violet-200"><span className="size-2 animate-pulse rounded-full bg-teal-400" />{ar ? "غرفة خاصة · في انتظار التحدي" : "PRIVATE ROOM · READY TO PLAY"}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-violet-200"><span className="inline-flex items-center gap-2"><span className={`size-2 rounded-full ${syncStatus === "connected" ? "animate-pulse bg-teal-400" : "bg-amber-400"}`} />{ar ? "غرفة خاصة · في انتظار التحدي" : "PRIVATE ROOM · READY TO PLAY"}</span><span role="status" aria-live="polite" className={`rounded-full px-2.5 py-1 text-[10px] ${syncStatus === "connected" ? "bg-emerald-400/15 text-emerald-200" : "bg-amber-400/15 text-amber-200"}`}>{syncStatus === "connected" ? (ar ? "متصل" : "Connected") : (ar ? "جاري إعادة الاتصال..." : "Reconnecting...")}</span></div>
                   <p className="mt-3 text-sm text-slate-300">{ar ? "شارك كود الدعوة مع اللاعب الثاني" : "Share this invite code with player two"}</p>
                   <p dir="ltr" className="mt-1 text-4xl font-black tracking-[.28em] sm:text-5xl">{room.code}</p>
                 </div>
@@ -204,7 +206,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
       )}
 
       {(room?.status === "IN_PROGRESS" || room?.status === "COMPLETED") && <MultiplayerGame roomId={room.id} locale={locale} characters={characters} questions={questions} />}
-      {error && <p role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p>}
+      {error && <div role="alert" aria-live="assertive" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700"><p className="min-w-0 flex-1">{error}</p><button type="button" onClick={() => { setError(""); if (room) void refresh(room.id).catch(() => setError(ar ? "تعذر تحديث الغرفة. حاول مرة أخرى." : "Could not refresh the room. Try again.")); else window.location.reload(); }} className="min-h-9 rounded-lg border border-rose-200 bg-white px-3 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-rose-500">{ar ? "إعادة المحاولة" : "Try again"}</button></div>}
       {notice && <p role="status" className="mt-3 text-xs text-amber-700">{notice}</p>}
       <p className="mt-5 text-center text-xs text-slate-400">{ar ? "اختيارك السري لا يظهر للطرف الآخر." : "Your secret character is private to you."}</p>
     </section>
