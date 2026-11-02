@@ -13,7 +13,7 @@ type Snapshot = {
   mySecretCharacterId: string | null;
 };
 
-export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
+export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode?: "both" | "create" | "join" }) {
   const ar = locale === "ar";
   const [code, setCode] = useState("");
   const [room, setRoom] = useState<Snapshot | null>(null);
@@ -115,7 +115,8 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
       </div>
 
       {!room ? (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className={mode === "both" ? "grid gap-4 lg:grid-cols-2" : "mx-auto grid max-w-2xl gap-4"}>
+          {mode !== "join" && (
           <article className="arena-panel-strong arena-interactive relative overflow-hidden rounded-3xl p-5 sm:p-7">
             <div className="absolute -end-10 -top-12 size-40 rounded-full bg-violet-100/80 blur-2xl" />
             <div className="relative">
@@ -127,7 +128,8 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
               </button>
             </div>
           </article>
-          <article className="arena-panel arena-interactive rounded-3xl p-5 sm:p-7">
+          )}
+          {mode !== "create" && <article className="arena-panel arena-interactive rounded-3xl p-5 sm:p-7">
             <div className="grid size-12 place-items-center rounded-2xl bg-teal-50 text-teal-700"><DoorOpen size={24} /></div>
             <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "انضم إلى غرفة" : "Join a room"}</h3>
             <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "هل وصلك كود الدعوة؟ أدخله هنا للانضمام إلى المباراة." : "Have an invite code? Enter it here to join the match."}</p>
@@ -139,7 +141,7 @@ export function RoomLobby({ locale }: { locale: "ar" | "en" }) {
               <button type="submit" disabled={busy || code.length !== 6} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{ar ? "انضمام" : "Join"} <Users size={17} /></button>
             </form>
             <p className="mt-3 text-xs text-slate-400">{ar ? "تأكد من إدخال الأرقام الستة بشكل صحيح." : "Make sure all six digits are entered correctly."}</p>
-          </article>
+          </article>}
         </div>
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
