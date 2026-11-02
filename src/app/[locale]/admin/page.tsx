@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { SiteHeader } from "@/components/layout/site-header";
 
 type AdminPageProps = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: "ar" | "en" }>;
 };
 
 export default async function AdminPage({ params }: AdminPageProps) {
@@ -87,7 +88,9 @@ export default async function AdminPage({ params }: AdminPageProps) {
   };
 
   return (
-    <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+    <>
+      <SiteHeader locale={locale} />
+      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="arena-shell min-h-screen px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -115,7 +118,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
 
         <section aria-label={isArabic ? "إحصائيات المنصة" : "Platform statistics"} className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <article key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <article key={stat.label} className="arena-panel rounded-2xl p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
@@ -128,7 +131,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
           ))}
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <section className="arena-panel-strong mt-8 overflow-hidden rounded-2xl">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
             <div>
               <h2 className="font-extrabold text-slate-900">{isArabic ? "أحدث الغرف" : "Recent rooms"}</h2>
@@ -176,7 +179,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
         </section>
 
         <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <article className="rounded-2xl border border-violet-100 bg-violet-50/70 p-5">
+          <article className="arena-panel rounded-2xl border-violet-200 bg-violet-50/80 p-5">
             <p className="text-xs font-black tracking-wider text-violet-700">CONTENT STUDIO</p>
             <h2 className="mt-2 text-lg font-extrabold text-slate-900">{isArabic ? "إدارة محتوى اللعبة" : "Game content management"}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -188,7 +191,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
               {isArabic ? "فتح إدارة المحتوى" : "Open content studio"}
             </Link>
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-5">
+          <article className="arena-panel rounded-2xl p-5">
             <p className="text-xs font-black tracking-wider text-emerald-700">{isArabic ? "ROOM OPERATIONS" : "ROOM OPERATIONS"}</p>
             <h2 className="mt-2 text-lg font-extrabold text-slate-900">{isArabic ? "إدارة الغرف والمباريات" : "Rooms & matches"}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -211,6 +214,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
           </article>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
