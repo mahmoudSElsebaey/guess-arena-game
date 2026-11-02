@@ -32,7 +32,7 @@
     "boardHint": "Pick your secret character and start guessing",
     "liveLabel": "Live duel",
     "playersLabel": "2 players",
-    "phaseLabel": "Coming next: live challenges with friends"
+    "phaseLabel": "Ready for live challenges with friends"
   },
   "auth": {
     "loginTitle": "Welcome back",
