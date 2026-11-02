@@ -86,26 +86,26 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
   return (
     <>
       <SiteHeader locale={locale} />
-      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="arena-shell min-h-screen px-4 py-8 sm:px-8">
+      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="history-arena min-h-screen px-4 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <header>
-            <p className="text-xs font-black tracking-[0.2em] text-violet-600">GUESS ARENA · PLAYER RECORD</p>
-            <h1 className="mt-2 text-3xl font-black text-slate-950">
+          <header className="history-hero relative overflow-hidden rounded-[2rem] border border-orange-200/60 bg-gradient-to-br from-[#21140d] via-[#3b2419] to-[#20352b] px-6 py-8 text-white shadow-[0_28px_70px_rgba(65,38,18,.18)] sm:px-9 sm:py-10">
+            <div className="pointer-events-none absolute -end-10 -top-20 size-64 rounded-full bg-lime-300/15 blur-3xl"/><p className="relative text-xs font-black tracking-[0.2em] text-lime-300">GUESS ARENA · PLAYER RECORD</p>
+            <h1 className="relative mt-3 text-3xl font-black text-white sm:text-4xl">
               {isArabic ? "سجل المباريات" : "Match history"}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="relative mt-3 max-w-xl text-sm leading-7 text-white/65">
               {isArabic ? "راجع نتائج مبارياتك وتفاصيل كل جولة." : "Review your results and the turn-by-turn match timeline."}
             </p>
           </header>
 
-          <section aria-label={isArabic ? "إحصائياتك" : "Your statistics"} className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <section aria-label={isArabic ? "إحصائياتك" : "Your statistics"} className="history-stats mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: isArabic ? "المباريات المكتملة" : "Completed matches", value: number(rooms.length), icon: "🎮" },
               { label: isArabic ? "مرات الفوز" : "Wins", value: number(wins), icon: "🏆" },
               { label: isArabic ? "مرات الخسارة" : "Losses", value: number(losses), icon: "📉" },
               { label: isArabic ? "نسبة الفوز" : "Win rate", value: `${number(winRate)}%`, icon: "📊" }
             ].map(stat => (
-              <article key={stat.label} className="arena-panel rounded-2xl p-5">
+              <article key={stat.label} className="history-stat arena-panel rounded-2xl p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
                   <span aria-hidden="true" className="text-xl">{stat.icon}</span>
@@ -115,7 +115,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
             ))}
           </section>
 
-          <section className="mt-8 space-y-4">
+          <section className="history-list mt-8 space-y-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xl font-extrabold text-slate-900">{isArabic ? "المباريات السابقة" : "Previous matches"}</h2>
               <span className="text-xs font-semibold text-slate-500">{isArabic ? "آخر 50 مباراة" : "Latest 50 matches"}</span>
@@ -135,7 +135,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
                 : null;
 
               return (
-                <article key={room.id} className="arena-panel-strong overflow-hidden rounded-2xl">
+                <article key={room.id} className={`history-match overflow-hidden rounded-2xl border bg-white shadow-[0_16px_45px_rgba(65,38,18,.07)] ${won ? "border-emerald-200" : "border-rose-200"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
