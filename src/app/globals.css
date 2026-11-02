@@ -173,3 +173,83 @@ button, a { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .arena-countdown-number, .animate-feedback { animation: none; }
 }
+
+
+/* Warm arcade redesign — auth + admin, intentionally no blue/purple palette */
+.auth-arena{
+  --auth-ink:#21140d;
+  --auth-panel:rgb(255 250 241 / .92);
+  background:
+    radial-gradient(circle at 10% 18%,rgb(251 146 60 / .22),transparent 24rem),
+    radial-gradient(circle at 88% 82%,rgb(163 230 53 / .20),transparent 28rem),
+    linear-gradient(135deg,#fff8eb 0%,#fffdf7 48%,#f3f8e8 100%);
+}
+.auth-arena-showcase{
+  position:relative;
+  padding:2.75rem;
+  border:1px solid rgb(251 146 60 / .18);
+  border-radius:2.25rem;
+  background:
+    linear-gradient(145deg,rgb(255 255 255 / .78),rgb(255 247 237 / .76)),
+    radial-gradient(circle at 82% 18%,rgb(190 242 100 / .38),transparent 15rem);
+  box-shadow:0 32px 80px rgb(120 53 15 / .12);
+}
+.auth-arena .w-full.rounded-3xl{
+  position:relative;
+  border:1px solid rgb(251 146 60 / .20);
+  background:var(--auth-panel);
+  box-shadow:0 32px 80px rgb(120 53 15 / .16);
+  backdrop-filter:blur(18px);
+}
+.auth-arena .w-full.rounded-3xl::before{
+  content:"";
+  position:absolute;inset:0 0 auto 0;height:4px;border-radius:inherit;
+  background:linear-gradient(90deg,#f97316,#facc15,#84cc16,#f97316);
+  background-size:220% 100%;
+  animation:warm-run 7s linear infinite;
+}
+@keyframes warm-run{to{background-position:220% 0}}
+.auth-arena input{
+  border-color:rgb(120 53 15 / .16)!important;
+  background:#fffdf8!important;
+}
+.auth-arena input:focus{
+  border-color:#f97316!important;
+  box-shadow:0 0 0 4px rgb(249 115 22 / .12)!important;
+}
+.auth-arena button[type="submit"]{
+  background:linear-gradient(135deg,#f97316,#ea580c 45%,#facc15)!important;
+  color:#2b1607!important;
+  box-shadow:0 12px 30px rgb(234 88 12 / .22);
+}
+.auth-arena button[type="submit"]:hover{filter:saturate(1.08) brightness(1.03)}
+.admin-arena{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 6% 8%,rgb(251 146 60 / .13),transparent 26rem),
+    radial-gradient(circle at 94% 14%,rgb(163 230 53 / .12),transparent 24rem),
+    linear-gradient(180deg,#fffaf0,#f8f5ed 46%,#f3f1e9);
+  color:#29231d;
+}
+.admin-arena .arena-panel,.admin-arena .arena-panel-strong{
+  border-color:rgb(120 53 15 / .13);
+  background:rgb(255 255 255 / .84);
+  box-shadow:0 18px 45px rgb(87 52 20 / .08);
+}
+.admin-arena .arena-panel:hover{transform:translateY(-3px);box-shadow:0 24px 55px rgb(87 52 20 / .12)}
+.admin-kicker{
+  display:inline-flex;align-items:center;gap:.55rem;
+  color:#c2410c;font-weight:900;letter-spacing:.18em;
+}
+.admin-kicker::before{content:"";width:.65rem;height:.65rem;border-radius:999px;background:#84cc16;box-shadow:0 0 0 5px rgb(132 204 22 / .14)}
+.admin-arena button,.admin-arena a{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.admin-arena button:hover,.admin-arena a:hover{filter:saturate(1.06)}
+.admin-arena button:active,.admin-arena a:active{transform:translateY(1px)}
+.admin-arena input,.admin-arena select,.admin-arena textarea{
+  border-color:rgb(120 53 15 / .16)!important;
+  background:#fffdf8!important;
+}
+.admin-arena input:focus,.admin-arena select:focus,.admin-arena textarea:focus{
+  border-color:#f97316!important;
+  box-shadow:0 0 0 4px rgb(249 115 22 / .11)!important;
+}
