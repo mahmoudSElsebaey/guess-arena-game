@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useId, type CSSProperties } from "react";
 
 type PortraitProps = { name: string; attributes: Record<string, unknown>; className?: string };
 const skinTones:Record<string,string>={light:"#f3c9a5",medium:"#c98961",dark:"#754832"};
@@ -12,7 +12,8 @@ export function CharacterPortrait({name,attributes,className=""}:PortraitProps){
  const long=attributes.hairLength==="long";
  const bald=attributes.hairLength==="none";
  const hat=attributes.hasHat===true,glasses=attributes.hasGlasses===true,beard=attributes.hasBeard===true;
- const id=name.toLowerCase().replace(/[^a-z0-9]/g,"")||"character";
+ const reactId=useId().replace(/:/g,"");
+ const id=(name.toLowerCase().replace(/[^a-z0-9]/g,"")||"character")+reactId;
  const style:CSSProperties={width:"100%",height:"100%"};
  return <svg viewBox="0 0 160 180" className={className} style={style} role="img" aria-label={name}>
   <defs><linearGradient id={`portrait-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={female?"#f5d0fe":"#bae6fd"}/><stop offset="100%" stopColor={female?"#c4b5fd":"#99f6e4"}/></linearGradient><linearGradient id={`shirt-${id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={female?"#a855f7":"#0f766e"}/><stop offset="100%" stopColor={female?"#6d28d9":"#164e63"}/></linearGradient></defs>
