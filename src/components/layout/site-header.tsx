@@ -69,7 +69,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
             {status === "authenticated" && user ? (
               <div className="relative" ref={profileRef}>
                 <button type="button" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu" className="inline-flex min-h-10 max-w-[190px] items-center gap-2 rounded-xl border border-white/15 bg-white/7 px-2.5 py-1.5 text-sm font-bold text-white transition hover:border-lime-300/50 hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-lime-300">
-                  <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-400 to-fuchsia-500 text-white">{user.image ? <img src={user.image} alt="" className="h-full w-full object-cover"/> : <UserRound size={17}/>}</span>
+                  <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-400 to-fuchsia-500 text-white">{user.name?.trim().charAt(0).toUpperCase() || <UserRound size={17}/>} </span>
                   <span className="hidden max-w-24 truncate sm:block">{user.name || user.email || t("account")}</span><ChevronDown size={15} className={profileOpen ? "rotate-180 transition" : "transition"}/>
                 </button>
                 {profileOpen && <div role="menu" className="absolute end-0 top-[calc(100%+12px)] z-[60] w-64 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1b3c] p-2 text-white shadow-[0_20px_70px_rgba(0,0,0,.4)]">
