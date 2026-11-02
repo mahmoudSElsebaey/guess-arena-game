@@ -11,9 +11,9 @@ export default async function AdminRoomsPage({ params }: { params: Promise<{ loc
   if (session.user.role !== "ADMIN" && session.user.role !== "OWNER") redirect(`/${locale}/play`);
 
   return (
-    <>
+    <div className="admin-arena">
       <SiteHeader locale={locale} />
       <RoomManager locale={locale} />
-    </>
+    </div>
   );
 }
