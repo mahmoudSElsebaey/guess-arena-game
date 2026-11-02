@@ -109,3 +109,34 @@ button, a { touch-action: manipulation; }
 @media (max-width: 640px) {
   .arena-panel, .arena-panel-strong { backdrop-filter: none; }
 }
+
+
+/* Phase 11 — playful arena chrome */
+.arena-play-cta {
+  background: linear-gradient(120deg, #bef264 0%, #86efac 45%, #2dd4bf 100%);
+  background-size: 180% 180%;
+  animation: arena-cta-glow 5s ease-in-out infinite;
+}
+@keyframes arena-cta-glow {
+  0%,100% { background-position: 0% 50%; box-shadow: 0 7px 24px rgb(132 204 22 / 24%); }
+  50% { background-position: 100% 50%; box-shadow: 0 9px 30px rgb(45 212 191 / 35%); }
+}
+.arena-wave-bottom, .arena-wave-top { width: 100%; line-height: 0; }
+.arena-wave-bottom svg, .arena-wave-top svg { display: block; width: 100%; }
+.arena-wave-bottom { height: 20px; background: transparent; }
+.arena-wave-bottom svg { height: 20px; }
+.arena-wave-top { position: absolute; inset-inline: 0; top: 0; height: 70px; }
+.arena-wave-top svg { height: 70px; }
+.arena-footer { background: linear-gradient(120deg,#171536,#241447 45%,#102e36); }
+.arena-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .18;
+  background-image: radial-gradient(circle at 18% 32%,#f0abfc 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#bef264 0 2px,transparent 3px);
+  background-size: 54px 54px,72px 72px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-play-cta { animation: none; }
+}
