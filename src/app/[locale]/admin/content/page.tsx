@@ -13,7 +13,7 @@ export default async function AdminContentPage({ params }: { params: Promise<{ l
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="admin-arena min-h-screen">
       <SiteHeader locale={locale} />
       <ContentManager locale={locale} />
     </main>
