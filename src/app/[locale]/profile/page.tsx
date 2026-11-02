@@ -11,7 +11,7 @@ type Profile = { name: string; email: string | null; role: string; isGuest: bool
 export default function ProfilePage() {
   const locale = useLocale();
   const ar = locale === "ar";
-  const { data: session, status, update } = useSession();
+  const { status, update } = useSession();
   const [profile,setProfile] = useState<Profile|null>(null);
   const [name,setName] = useState("");
   const [email,setEmail] = useState("");
