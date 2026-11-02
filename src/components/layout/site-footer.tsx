@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
-import { Gamepad2, Github, Heart, Sparkles } from "lucide-react";
+import { Gamepad2, Heart, Sparkles } from "lucide-react";
 
 export function SiteFooter() {
   const locale = useLocale();
