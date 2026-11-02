@@ -70,3 +70,20 @@ No game rules, APIs, database schema, migrations, permissions, or realtime/polli
 - Improved the responsive layout, including a sticky match overview on wide screens.
 - Added explicit disabled/used question states, accessible character labels, and live status/error feedback.
 - Preserved all existing server-authoritative ask/guess calls, sound effects, polling, and private character handling.
+
+### 6.4 Practice mode redesign — IMPLEMENTED
+- Rebuilt the practice screen around a primary character-board surface and a compact supporting rail.
+- Added a clearer round-status header, prominent remaining/eliminated counters, and an elimination progress bar.
+- Reorganized questions into visible groups with stronger used/disabled states.
+- Improved character-card touch targets, focus visibility, and eliminated-card feedback.
+- Added loading skeletons and a dedicated content-load error state.
+- Preserved the practice game rules, content API, sound controls, and reduced-motion support.
+
+### 6.5 Responsive polish and final UX pass — IMPLEMENTED
+- Applied the shared arena shell and panel system to the landing page, match history, and admin overview.
+- Added the shared site navigation to the admin overview for consistent navigation and language switching.
+- Kept the admin room table horizontally scrollable on narrow screens.
+- Improved empty-state and card surfaces on the history screen.
+- Updated locale switching to retain the current localized route instead of navigating back to the home page.
+- Kept Arabic RTL and English LTR layouts, keyboard focus styles, and reduced-motion preferences.
+- No game rules, permissions, APIs, database schema, or migrations were changed by the visual polish.
