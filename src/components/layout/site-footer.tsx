@@ -9,8 +9,8 @@ export function SiteFooter() {
   const ar = locale === "ar";
   return (
     <footer className="arena-footer relative isolate mt-20 overflow-hidden text-white">
-      <div className="arena-wave-top" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0 58C180 58 220 8 420 8C620 8 650 58 850 58C1050 58 1100 8 1260 8C1340 8 1380 40 1440 42V70H0Z" fill="#171536"/></svg></div>
-      <div className="relative overflow-hidden bg-[#171536] px-5 pb-8 pt-14 sm:px-8 sm:pt-20">
+      <div className="arena-wave-top" aria-hidden="true"><svg viewBox="0 0 1440 64" preserveAspectRatio="none"><path d="M0 54C150 54 190 10 360 10C530 10 570 54 720 54C870 54 910 10 1080 10C1250 10 1290 54 1440 54V64H0Z" fill="#171536"/></svg></div>
+      <div className="relative overflow-hidden bg-[#171536] px-5 pb-8 pt-14 sm:px-8 sm:pt-14">
         <div className="pointer-events-none absolute -start-20 top-10 size-80 rounded-full bg-fuchsia-500/20 blur-[100px]"/>
         <div className="pointer-events-none absolute -end-20 bottom-0 size-96 rounded-full bg-lime-400/15 blur-[110px]"/>
         <div className="relative mx-auto grid max-w-7xl gap-10 pb-10 md:grid-cols-[1.4fr_1fr_1fr]">
