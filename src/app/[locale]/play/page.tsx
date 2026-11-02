@@ -1,21 +1,11 @@
-import dynamic from "next/dynamic";
+import { Gamepad2, DoorOpen, PlusCircle, Sparkles, Swords } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
-import { RoomLobby } from "@/components/game/room-lobby";
-
-const GameBoard = dynamic(
-  () => import("@/components/game/game-board").then(module => module.GameBoard),
-  {
-    loading: () => <div className="mx-auto min-h-72 max-w-7xl animate-pulse rounded-3xl bg-slate-100" aria-hidden="true" />
-  }
-);
-
-export default async function PlayPage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
-  const { locale } = await params;
-  return (
-    <main id="main-content" tabIndex={-1}>
-      <SiteHeader locale={locale} />
-      <RoomLobby locale={locale} />
-      <GameBoard locale={locale} />
-    </main>
-  );
+import { Link } from "@/i18n/navigation";
+export default async function PlayPage({params}:{params:Promise<{locale:"ar"|"en"}>}) {
+ const {locale}=await params;const ar=locale==="ar";
+ const choices=[
+  {href:"/play/create" as const,icon:PlusCircle,title:ar?"إنشاء غرفة":"Create a room",body:ar?"ابدأ غرفة جديدة وشارك كود الدعوة مع صديقك.":"Start a new room and share the invite code with a friend.",tone:"from-lime-300 to-emerald-500"},
+  {href:"/play/join" as const,icon:DoorOpen,title:ar?"الانضمام لغرفة":"Join a room",body:ar?"معاك كود دعوة؟ اكتبه وانضم للمباراة.":"Have an invite code? Enter it and join the match.",tone:"from-cyan-300 to-blue-500"}
+ ];
+ return <main id="main-content" dir={ar?"rtl":"ltr"} className="min-h-screen bg-[#0c1028] text-white"><SiteHeader locale={locale}/><section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24"><div className="text-center"><span className="inline-flex items-center gap-2 rounded-full border border-lime-200/20 bg-lime-200/10 px-4 py-2 text-xs font-black text-lime-200"><Sparkles size={15}/> GUESS ARENA · PLAY</span><h1 className="mt-6 text-4xl font-black sm:text-6xl">{ar?"اختار طريقة التحدي":"Choose your challenge"}</h1><p className="mx-auto mt-4 max-w-2xl leading-8 text-white/55">{ar?"أنشئ غرفة خاصة أو انضم لصاحبك. كل مباراة تبدأ بشخصيتين سريتين وتحدي واحد!":"Create a private room or join your friend. Every match starts with two secret characters and one big challenge!"}</p></div><div className="mt-12 grid gap-5 md:grid-cols-2">{choices.map(({href,icon:Icon,title,body,tone})=><Link href={href} key={href} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.05] p-7 transition duration-300 hover:-translate-y-2 hover:border-lime-200/30 hover:bg-white/[.08] sm:p-10"><span className={`grid size-16 place-items-center rounded-2xl bg-gradient-to-br ${tone} text-[#11162a] shadow-xl transition group-hover:rotate-[-8deg]`}><Icon size={30}/></span><h2 className="mt-7 text-2xl font-black">{title}</h2><p className="mt-3 min-h-14 text-sm leading-7 text-white/55">{body}</p><span className="mt-7 inline-flex items-center gap-2 text-sm font-black text-lime-200"><Swords size={17}/>{ar?"متابعة":"Continue"}</span></Link>)}</div><div className="mt-8 rounded-2xl border border-white/10 bg-white/[.035] p-5 text-center"><p className="text-sm font-bold text-white/65">{ar?"عايز تتدرب لوحدك قبل المنافسة؟":"Want to practice solo before competing?"}</p><Link href="/practice" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-bold text-lime-200 transition hover:bg-white/10"><Gamepad2 size={16}/>{ar?"وضع التدريب":"Practice mode"}</Link></div></section></main>;
 }
