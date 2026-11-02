@@ -101,7 +101,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const remainingCharacters=characters.filter(character=>!eliminated.has(character.id));
  const remaining=remainingCharacters.length;
  const progress=characters.length?(eliminated.size/characters.length)*100:0;
- const latestQuestionAction=state?.actions.filter(a=>a.type==="QUESTION_ASKED").slice(-1)[0];
+ const latestQuestionAction=state?.actions.filter(a=>a.type==="QUESTION_ASKED"&&a.actorId===myId).slice(-1)[0];
  const latestQuestion=questions.find(q=>q.id===latestQuestionAction?.questionId);
  const winner=state?.members.find(member=>member.userId===state.winnerId);
 
