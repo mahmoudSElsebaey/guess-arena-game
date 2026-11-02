@@ -46,7 +46,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
  useEffect(()=>{
   if(!state)return;
-  const latest=state.actions.filter(action=>action.type==="QUESTION_ASKED").at(-1);
+  const latest=state.actions.filter(action=>action.type==="QUESTION_ASKED").slice(-1)[0];
   if(latest&&latest.id!==lastFeedbackAction.current&&latest.answer!==null){
    lastFeedbackAction.current=latest.id;
    setFeedback({answer:latest.answer,id:latest.id});
@@ -55,7 +55,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    playSound(latest.answer?"yes":"no");
   }
   if(previousVersion.current!==null&&state.version>previousVersion.current){
-   const latestGuess=state.actions.filter(action=>action.type==="GUESS_MADE").at(-1);
+   const latestGuess=state.actions.filter(action=>action.type==="GUESS_MADE").slice(-1)[0];
    if(latestGuess)playSound(latestGuess.correct?(state.members.find(m=>m.isMe)?.userId===latestGuess.actorId?"win":"lose"):"eliminate");
   }
   previousVersion.current=state.version;
@@ -91,7 +91,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const remainingCharacters=characters.filter(character=>!eliminated.has(character.id));
  const remaining=remainingCharacters.length;
  const progress=characters.length?(eliminated.size/characters.length)*100:0;
- const latestQuestionAction=state?.actions.filter(a=>a.type==="QUESTION_ASKED").at(-1);
+ const latestQuestionAction=state?.actions.filter(a=>a.type==="QUESTION_ASKED").slice(-1)[0];
  const latestQuestion=questions.find(q=>q.id===latestQuestionAction?.questionId);
  const winner=state?.members.find(member=>member.userId===state.winnerId);
 
@@ -114,10 +114,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    }
    if(action==="ask"){
     setNotice(ar?(data.answer?"الإجابة: نعم":"الإجابة: لا"):(data.answer?"Answer: Yes":"Answer: No"));
-    setFeedback({answer:data.answer,id:`local-${Date.now()}`});
-    if(feedbackTimer.current)clearTimeout(feedbackTimer.current);
-    feedbackTimer.current=setTimeout(()=>setFeedback(null),2000);
-    playSound(data.answer?"yes":"no");
+    // The persisted action triggers the shared two-second answer overlay for both players.
    }
    if(action==="eliminate"){
     setNotice(ar?(payload.eliminated?"تم قلب البطاقة. يمكنك استعادتها في أي وقت.":"تمت استعادة البطاقة."):(payload.eliminated?"Card flipped. You can restore it anytime.":"Card restored."));
