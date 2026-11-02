@@ -25,6 +25,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const {soundEnabled,toggleSound,playSound}=useGameSounds();
  const previousVersion=useRef<number|null>(null);
  const lastFeedbackAction=useRef("");
+ const lastGuessSoundAction=useRef("");
  const countdownStarted=useRef(false);
  const feedbackTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const arenaRef=useRef<HTMLElement|null>(null);
@@ -46,17 +47,26 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
  useEffect(()=>{
   if(!state)return;
-  const latest=state.actions.filter(action=>action.type==="QUESTION_ASKED").slice(-1)[0];
-  if(latest&&latest.id!==lastFeedbackAction.current&&latest.answer!==null){
-   lastFeedbackAction.current=latest.id;
-   setFeedback({answer:latest.answer,id:latest.id});
-   if(feedbackTimer.current)clearTimeout(feedbackTimer.current);
-   feedbackTimer.current=setTimeout(()=>setFeedback(null),2000);
-   playSound(latest.answer?"yes":"no");
+  const latestQuestion=state.actions.filter(action=>action.type==="QUESTION_ASKED").slice(-1)[0];
+  const latestGuess=state.actions.filter(action=>action.type==="GUESS_MADE").slice(-1)[0];
+  if(previousVersion.current===null){
+   previousVersion.current=state.version;
+   lastFeedbackAction.current=latestQuestion?.id??"";
+   lastGuessSoundAction.current=latestGuess?.id??"";
+   return;
   }
-  if(previousVersion.current!==null&&state.version>previousVersion.current){
-   const latestGuess=state.actions.filter(action=>action.type==="GUESS_MADE").slice(-1)[0];
-   if(latestGuess)playSound(latestGuess.correct?(state.members.find(m=>m.isMe)?.userId===latestGuess.actorId?"win":"lose"):"eliminate");
+  if(state.version>previousVersion.current){
+   if(latestQuestion&&latestQuestion.id!==lastFeedbackAction.current&&latestQuestion.answer!==null){
+    lastFeedbackAction.current=latestQuestion.id;
+    setFeedback({answer:latestQuestion.answer,id:latestQuestion.id});
+    if(feedbackTimer.current)clearTimeout(feedbackTimer.current);
+    feedbackTimer.current=setTimeout(()=>setFeedback(null),2000);
+    playSound(latestQuestion.answer?"yes":"no");
+   }
+   if(latestGuess&&latestGuess.id!==lastGuessSoundAction.current){
+    lastGuessSoundAction.current=latestGuess.id;
+    playSound(latestGuess.correct?(state.members.find(m=>m.isMe)?.userId===latestGuess.actorId?"win":"lose"):"eliminate");
+   }
   }
   previousVersion.current=state.version;
  },[state,playSound]);
