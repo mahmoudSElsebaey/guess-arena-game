@@ -60,6 +60,9 @@ export async function POST(request:Request,{params}:Ctx){
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
+    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
+    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
+    if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
     const me=current.members.find(m=>m.userId===userId),opponent=current.members.find(m=>m.userId!==userId);
     if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
     const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
