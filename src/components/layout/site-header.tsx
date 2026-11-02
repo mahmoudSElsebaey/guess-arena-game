@@ -5,7 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
-import { ChevronDown, CircleHelp, Gamepad2, History, Info, Languages, LogOut, ShieldCheck, UserRound, UserCircle2 } from "lucide-react";
+import { ChevronDown, CircleHelp, Gamepad2, History, Info, LogOut, ShieldCheck, UserRound, UserCircle2 } from "lucide-react";
 
 export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
   const t = useTranslations("navigation");
