@@ -5,7 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
-import { ChevronDown, CircleHelp, Gamepad2, History, Info, LogOut, ShieldCheck, UserRound, UserCircle2 } from "lucide-react";
+import { ChevronDown, CircleHelp, Gamepad2, History, Info, LogOut, ShieldCheck, UserRound, UserCircle2, Menu, X } from "lucide-react";
 
 export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
   const t = useTranslations("navigation");
@@ -46,11 +46,11 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
       <div className="relative bg-[#11102b] text-white shadow-[0_12px_35px_rgba(17,16,43,.2)]">
         <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-7">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Guess Arena">
-            <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-lime-300 via-emerald-400 to-teal-500 text-[#10152d] shadow-[0_0_24px_rgba(163,230,53,.28)] transition group-hover:rotate-[-8deg]"><Gamepad2 size={24}/></span>
-            <span className="text-lg font-black tracking-tight sm:text-xl">GUESS <span className="text-lime-300">ARENA</span></span>
+            <span className="grid size-9 sm:size-11 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-lime-300 via-emerald-400 to-teal-500 text-[#10152d] shadow-[0_0_24px_rgba(163,230,53,.28)] transition group-hover:rotate-[-8deg]"><Gamepad2 size={24}/></span>
+            <span className="text-sm font-black tracking-tight sm:text-xl">GUESS <span className="text-lime-300">ARENA</span></span>
           </Link>
 
-          <button type="button" className="inline-flex min-h-10 items-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-bold text-white md:hidden" aria-expanded={menuOpen} aria-controls="primary-navigation" onClick={() => setMenuOpen(value => !value)}>{ar ? "القائمة" : "Menu"} <ChevronDown size={15} className={menuOpen ? "rotate-180" : ""}/></button>
+          <button type="button" className="inline-flex size-10 items-center justify-center rounded-xl border border-white/15 bg-white/8 text-white transition hover:border-lime-300/50 hover:bg-white/12 md:hidden" aria-label={menuOpen ? (ar ? "إغلاق القائمة" : "Close menu") : (ar ? "فتح القائمة" : "Open menu")} aria-expanded={menuOpen} aria-controls="primary-navigation" onClick={() => setMenuOpen(value => !value)}>{menuOpen ? <X size={21}/> : <Menu size={21}/>}</button>
           <nav id="primary-navigation" aria-label={ar ? "القائمة الرئيسية" : "Main navigation"} className={`${menuOpen ? "absolute start-3 end-3 top-[calc(100%-1px)] flex flex-col rounded-2xl border border-white/10 bg-[#19183a] p-3 shadow-2xl md:static md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none" : "hidden md:flex"} items-stretch gap-1.5 md:items-center md:gap-1`}>
             {links.map(({href,label,icon:Icon,play}) => {
               const active = pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -62,9 +62,10 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
             })}
             {user && <Link href="/history" onClick={() => setMenuOpen(false)} aria-current={pathname === "/history" ? "page" : undefined} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold transition ${pathname === "/history" ? "bg-white/12 text-lime-300" : "text-white/75 hover:bg-white/8"}`}><History size={16}/>{ar ? "السجل" : "History"}</Link>}
             {isAdmin && <Link href="/admin" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold text-amber-200 hover:bg-white/8"><ShieldCheck size={16}/>{ar ? "الإدارة" : "Admin"}</Link>}
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3 md:hidden"><Link href={pathname} locale={nextLocale} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-xs font-black text-white">{ar ? "English" : "العربية"}</Link>{user ? <Link href="/profile" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{ar ? "حسابي" : "My account"}</Link> : <><Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{t("login")}</Link><Link href="/register" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-lime-300 text-xs font-black text-[#171632]">{t("register")}</Link></>}</div>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
             <Link href={pathname} locale={nextLocale} className="inline-flex size-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-xs font-black text-white transition hover:border-lime-300/50 hover:bg-white/10" aria-label={ar ? "Switch language to English" : "غيّر اللغة إلى العربية"} title={ar ? "English" : "العربية"}>{nextLocale.toUpperCase()}</Link>
             {status === "authenticated" && user ? (
               <div className="relative" ref={profileRef}>
