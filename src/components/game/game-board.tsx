@@ -300,7 +300,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
           </div>
           <div className="relative mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-              <span className={\`size-2.5 rounded-full \${status === "playing" ? "animate-pulse bg-emerald-500" : status === "won" ? "bg-amber-500" : "bg-slate-300"}\`} />
+              <span className={`size-2.5 rounded-full ${status === "playing" ? "animate-pulse bg-emerald-500" : status === "won" ? "bg-amber-500" : "bg-slate-300"}`} />
               {status === "playing" ? t.playing : status === "won" ? t.won : t.ready}
             </div>
             <span className="text-xs font-semibold text-slate-400">{characters.length} {locale === "ar" ? "شخصية في اللوحة" : "characters on the board"}</span>
@@ -328,8 +328,8 @@ export function GameBoard({ locale }: { locale: Locale }) {
                 {characters.map(character => {
                   const isOut = eliminated.has(character.id);
                   return (
-                    <article key={character.id} className={\`animate-card-enter group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition-all duration-300 sm:p-2 \${isOut ? "border-slate-200 bg-slate-100 opacity-40 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg"}\`}>
-                      <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full rounded-xl text-center outline-none focus-visible:ring-2 focus-visible:ring-violet-600 disabled:cursor-not-allowed" aria-label={\`\${t.guess}: \${character.name}\`}>
+                    <article key={character.id} className={`animate-card-enter group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 transition-all duration-300 sm:p-2 ${isOut ? "border-slate-200 bg-slate-100 opacity-40 grayscale" : "border-slate-100 bg-white hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg"}`}>
+                      <button type="button" disabled={status !== "playing" || isOut} onClick={() => guess(character)} className="w-full rounded-xl text-center outline-none focus-visible:ring-2 focus-visible:ring-violet-600 disabled:cursor-not-allowed" aria-label={`${t.guess}: ${character.name}`}>
                         <div className="aspect-square overflow-hidden rounded-xl bg-violet-50"><CharacterPortrait character={character}/></div>
                         <span className="mt-1.5 block truncate text-[11px] font-extrabold text-slate-800 sm:text-xs">{character.name}</span>
                       </button>
@@ -357,7 +357,7 @@ export function GameBoard({ locale }: { locale: Locale }) {
                 <span>{locale === "ar" ? "تقدم الاستبعاد" : "Elimination progress"}</span>
                 <span className="tabular-nums">{characters.length ? Math.round((eliminated.size / characters.length) * 100) : 0}%</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-teal-400 transition-all duration-300" style={{ width: \`\${characters.length ? (eliminated.size / characters.length) * 100 : 0}%\` }}/></div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-teal-400 transition-all duration-300" style={{ width: `${characters.length ? (eliminated.size / characters.length) * 100 : 0}%` }}/></div>
             </section>
 
             <section className="arena-panel rounded-3xl p-5">
@@ -388,9 +388,9 @@ export function GameBoard({ locale }: { locale: Locale }) {
               <div className="flex items-center gap-2"><UserRound size={18} className="text-teal-600"/><h2 className="font-black text-slate-900">{t.history}</h2></div>
               <div className="mt-4 space-y-2">
                 {history.length === 0 ? <p className="rounded-xl bg-slate-50 p-4 text-xs leading-6 text-slate-400">{t.noHistory}</p> : history.map((item, index) => (
-                  <div key={\`\${item.id}-\${index}\`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div key={`${item.id}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <p className="text-xs font-bold text-slate-700">{item.label}</p>
-                    <div className="mt-2 flex items-center justify-between gap-2"><span className={\`rounded-full px-2.5 py-1 text-[10px] font-black \${item.answer ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}\`}>{item.answer ? t.yes : t.no}</span><span className="text-[10px] font-bold text-slate-400">−{item.removed}</span></div>
+                    <div className="mt-2 flex items-center justify-between gap-2"><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${item.answer ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{item.answer ? t.yes : t.no}</span><span className="text-[10px] font-bold text-slate-400">−{item.removed}</span></div>
                   </div>
                 ))}
               </div>
