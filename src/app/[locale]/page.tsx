@@ -1,12 +1,10 @@
 import { ArrowUpLeft, ArrowUpRight, Brain, Crown, Gamepad2, Handshake, Lightbulb, ShieldCheck, Sparkles, Swords, Users, Zap } from "lucide-react";
-import { getTranslations } from "next-intl/server";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
   const ar = locale === "ar";
-  const t = await getTranslations({ locale, namespace: "home" });
   const cards = [
     { icon: Users, number: "01", title: ar ? "تحدي واحد ضد واحد" : "One-on-one showdown", body: ar ? "اعمل غرفة خاصة وادعُ صاحبك بكود بسيط. كل واحد يختار شخصيته السرية." : "Create a private room and invite a friend with a simple code. Each player picks a secret character.", color: "from-fuchsia-500 to-violet-600" },
     { icon: Brain, number: "02", title: ar ? "اسأل بذكاء" : "Ask clever questions", body: ar ? "اسأل عن الشعر أو النظارة أو الإكسسوارات، وحاول تضيق دائرة الاحتمالات." : "Ask about hair, glasses, and accessories to narrow down the possibilities.", color: "from-cyan-400 to-blue-600" },
