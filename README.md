@@ -3,7 +3,7 @@
 A bilingual, real-time multiplayer character-guessing game built with Next.js, TypeScript, PostgreSQL, Prisma, Auth.js, and Ably.
 
 ## Current status
-Phases 1–6 are implemented, and Phase 6 has been manually tested. Phase 9 (Final UX) is now implemented on `main`: authentication and demo-account guidance, clearer room/match recovery states, admin reload actions, and corrected bilingual landing-page copy. Phases 7, 8, and 10 remain separate planned work and are intentionally outside the current scope.
+Phases 1–6 are implemented, and Phase 6 has been manually tested. Phase 9 (Final UX) is implemented on `main`. Phase 11 (Arena Experience Redesign) is implemented on `main` and has passed `npm run build` and `npm run test:run` in a clean Vercel sandbox; manual acceptance is pending. Phase 11 adds the redesigned public site/header/footer, profile settings, dedicated room-entry pages, character selection modal, detailed character portraits, countdown/fullscreen/category-based questions, and player-controlled card flips. Phases 7, 8, and 10 remain separate work and were not started in this change.
 
 ## Requirements
 - Node.js 20.9+, npm, PostgreSQL 14+, Ably API key for realtime.
