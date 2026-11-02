@@ -83,7 +83,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    else{setCountdown(null);window.clearInterval(timer);}
   },1000);
   return()=>window.clearInterval(timer);
- },[state?.status,ar,playSound]);
+ },[state,ar,playSound]);
 
  useEffect(()=>{
   const update=()=>setIsFullscreen(Boolean(document.fullscreenElement));
