@@ -123,21 +123,12 @@ button, a { touch-action: manipulation; }
 }
 .arena-wave-bottom, .arena-wave-top { width: 100%; line-height: 0; }
 .arena-wave-bottom svg, .arena-wave-top svg { display: block; width: 100%; }
-.arena-wave-bottom { height: 48px; overflow: hidden; background: transparent; margin-top: -1px; }
+.arena-wave-bottom { height: 48px; overflow: hidden; background: #11102b; margin-top: 0; border: 0; }
 .arena-wave-bottom svg { height: 48px; }
-.arena-wave-top { position: relative; inset-inline: auto; top: auto; height: 64px; margin-bottom: -1px; }
+.arena-wave-top { position: relative; inset-inline: auto; top: auto; height: 64px; margin-bottom: 0; background: #171536; border: 0; }
 .arena-wave-top svg { height: 64px; }
-.arena-footer { background: transparent; }
-.arena-footer::before {
-  content: "";
-  position: absolute;
-  inset: -15%;
-  pointer-events: none;
-  opacity: .2;
-  background-image: radial-gradient(circle at 18% 32%,#f0abfc 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#bef264 0 2px,transparent 3px),linear-gradient(115deg,transparent 15%,rgba(45,212,191,.12) 42%,transparent 70%);
-  background-size: 54px 54px,72px 72px,180% 180%;
-  animation: arena-footer-drift 18s ease-in-out infinite alternate;
-}
+.arena-footer { background: #171536; border: 0; }
+.arena-footer::before { content: none; }
 @keyframes arena-footer-drift {
   from { transform: translate3d(-1.5%,0,0); background-position: 0 0,0 0,0% 50%; }
   to { transform: translate3d(1.5%,-1%,0); background-position: 54px 36px,72px 24px,100% 50%; }
