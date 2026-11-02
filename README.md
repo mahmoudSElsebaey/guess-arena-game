@@ -3,7 +3,7 @@
 A bilingual, real-time multiplayer character-guessing game built with Next.js, TypeScript, PostgreSQL, Prisma, Auth.js, and Ably.
 
 ## Current status
-Phase 1 and Phase 2 are complete. Phase 3 now includes authenticated room creation/joining, private character selection, player readiness, host-only start validation, and room-scoped Ably token authorization. Server-authoritative question/guess gameplay follows next.
+Phases 1–6 are implemented, and Phase 6 has been manually tested. Phase 9 (Final UX) is now implemented on `main`: authentication and demo-account guidance, clearer room/match recovery states, admin reload actions, and corrected bilingual landing-page copy. Phases 7, 8, and 10 remain separate planned work and are intentionally outside the current scope.
 
 ## Requirements
 - Node.js 20.9+, npm, PostgreSQL 14+, Ably API key for realtime.
