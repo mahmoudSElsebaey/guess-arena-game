@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { PublicFooter } from "@/components/layout/public-footer";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -29,7 +30,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>{children}<PublicFooter /></AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>
