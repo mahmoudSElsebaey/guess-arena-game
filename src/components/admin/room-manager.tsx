@@ -129,7 +129,7 @@ export function RoomManager({ locale }: { locale: "ar" | "en" }) {
           </article>)}
         </section>
 
-        {error && <p role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</p>}
+        {error && <div role="alert" aria-live="assertive" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700"><p className="min-w-0 flex-1">{error}</p><button type="button" onClick={() => void load()} disabled={loading} className="min-h-9 rounded-lg border border-rose-200 bg-white px-3 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-rose-500">{ar ? "إعادة تحميل الغرف" : "Reload rooms"}</button></div>}
         {notice && <p role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{notice}</p>}
 
         <div className="mt-7 flex flex-wrap gap-2">
