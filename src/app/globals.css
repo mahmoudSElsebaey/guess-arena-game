@@ -123,11 +123,11 @@ button, a { touch-action: manipulation; }
 }
 .arena-wave-bottom, .arena-wave-top { width: 100%; line-height: 0; }
 .arena-wave-bottom svg, .arena-wave-top svg { display: block; width: 100%; }
-.arena-wave-bottom { height: 20px; background: transparent; }
-.arena-wave-bottom svg { height: 20px; }
+.arena-wave-bottom { height: 24px; overflow: hidden; background: transparent; }
+.arena-wave-bottom svg { height: 24px; }
 .arena-wave-top { position: absolute; inset-inline: 0; top: 0; height: 70px; }
 .arena-wave-top svg { height: 70px; }
-.arena-footer { background: linear-gradient(120deg,#171536,#241447 45%,#102e36); }
+.arena-footer { background: #171536; }
 .arena-footer::before {
   content: "";
   position: absolute;
