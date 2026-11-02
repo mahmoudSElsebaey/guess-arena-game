@@ -83,7 +83,7 @@ export function SiteHeader({ locale }: { locale: "ar" | "en" }) {
           </div>
         </div>
       </div>
-      <div className="arena-wave-bottom" aria-hidden="true"><svg viewBox="0 0 1440 42" preserveAspectRatio="none"><path d="M0 32C180 2 310 2 480 22C650 42 760 42 930 22C1100 2 1270 2 1440 32V42H0Z" fill="#11102b"/></svg></div>
+      <div className="arena-wave-bottom" aria-hidden="true"><svg viewBox="0 0 1440 42" preserveAspectRatio="none"><path d="M0 10C180 40 310 40 480 20C650 0 760 0 930 20C1100 40 1270 40 1440 10V42H0Z" fill="#11102b"/></svg></div>
     </header>
   );
 }
