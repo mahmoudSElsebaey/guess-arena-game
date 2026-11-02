@@ -27,7 +27,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const lastFeedbackAction=useRef("");
  const lastGuessSoundAction=useRef("");
  const countdownStarted=useRef(false);
- const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);
+ const countdownTimer=useRef<number|null>(null);
  const soundRef=useRef(playSound);
  const feedbackTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const arenaRef=useRef<HTMLElement|null>(null);
