@@ -289,3 +289,39 @@ img, video, canvas, svg { max-width: 100%; }
   .arena-header nav { max-height:calc(100dvh - 78px); overflow-y:auto; overscroll-behavior:contain; }
   .arena-shell { border-radius:1.25rem; }
 }
+
+
+/* Warm color mapping for create/join and arena lobby */
+.arena-entry .arena-shell .bg-violet-700 { background-color:#c2410c; }
+.arena-entry .arena-shell .hover\\:bg-violet-800:hover { background-color:#9a3412; }
+.arena-entry .arena-shell .text-violet-700,.arena-entry .arena-shell .text-violet-800 { color:#c2410c; }
+.arena-entry .arena-shell .bg-violet-100,.arena-entry .arena-shell .bg-violet-50 { background-color:#ffedd5; }
+.arena-entry .arena-shell .border-violet-200,.arena-entry .arena-shell .border-violet-300 { border-color:#fed7aa; }
+.arena-entry .arena-shell .text-teal-700 { color:#047857; }
+.arena-entry .arena-shell .bg-teal-600 { background-color:#0f766e; }
+.arena-entry .arena-shell .hover\\:bg-teal-700:hover { background-color:#115e59; }
+
+/* Match history — editorial dashboard */
+.history-arena {
+  background:
+    radial-gradient(circle at 4% 8%,rgb(251 146 60 / .13),transparent 25rem),
+    radial-gradient(circle at 94% 18%,rgb(163 230 53 / .13),transparent 24rem),
+    linear-gradient(180deg,#fffaf1 0%,#f8f6ef 55%,#f0f5e9 100%);
+  color:#29231d;
+  overflow-x:clip;
+}
+.history-stat {
+  border-color:rgb(120 53 15 / .12)!important;
+  background:linear-gradient(145deg,#fff 0%,#fffaf2 100%)!important;
+  box-shadow:0 14px 38px rgb(87 52 20 / .07)!important;
+}
+.history-stat p:last-child { color:#21140d; }
+.history-list h2 { color:#21140d; }
+.history-match { transition:transform .2s ease,box-shadow .2s ease; }
+.history-match:hover { transform:translateY(-2px);box-shadow:0 22px 55px rgb(87 52 20 / .12); }
+.history-match summary { color:#c2410c; }
+.history-match details ol { background:#fffaf2; }
+@media (max-width:640px) {
+  .history-hero { border-radius:1.35rem; }
+  .history-match > div:first-child { padding:1rem; }
+}
