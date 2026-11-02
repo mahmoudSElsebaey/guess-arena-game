@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Copy, Crown, DoorOpen, Gamepad2, LoaderCircle, ShieldCheck, Sparkles, Users, WandSparkles } from "lucide-react";
+import { Check, Copy, Crown, DoorOpen, Gamepad2, LoaderCircle, ShieldCheck, Sparkles, Users, WandSparkles, X } from "lucide-react";
 import { MultiplayerGame } from "@/components/game/multiplayer-game";
 
 type CharacterOption = { id: string; name: string; avatar: string; attributes: Record<string, string | boolean> };
@@ -26,6 +26,7 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
   const [notice, setNotice] = useState("");
   const [copied, setCopied] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"connected" | "reconnecting">("connected");
+  const [characterPickerOpen, setCharacterPickerOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -181,12 +182,19 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
               <div className="arena-panel rounded-3xl p-5 sm:p-6">
                 <div className="flex items-center gap-2"><Sparkles size={18} className="text-violet-600" /><h3 className="text-lg font-black text-slate-950">{ar ? "اختر شخصيتك السرية" : "Choose your secret character"}</h3></div>
                 <p className="mt-1 text-sm text-slate-500">{ar ? "لن تظهر الشخصية التي تختارها لخصمك." : "Your selected character will never be shown to your opponent."}</p>
-                <label className="mt-4 block text-sm font-bold text-slate-700"><span className="sr-only">{ar ? "الشخصية السرية" : "Secret character"}</span>
-                  <select value={character} onChange={event => setCharacter(event.target.value)} disabled={contentLoading || busy} className="mt-1 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:opacity-60">
-                    <option value="">{contentLoading ? (ar ? "جارٍ تحميل الشخصيات..." : "Loading characters...") : (ar ? "اختر شخصية من القائمة" : "Select a character")}</option>
-                    {characters.map(item => <option key={item.id} value={item.id}>{item.avatar} {item.name}</option>)}
-                  </select>
-                </label>
+                <div className="mt-4">
+                  <span className="mb-2 block text-xs font-bold text-slate-500">{ar ? "شخصيتك السرية" : "Your secret character"}</span>
+                  <button type="button" disabled={contentLoading || busy} onClick={() => setCharacterPickerOpen(true)} className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-start text-sm font-bold text-slate-800 transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50">
+                    <span className="flex items-center gap-3">{character ? <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-violet-100 to-teal-100 text-2xl">{characters.find(item => item.id === character)?.avatar}</span> : <span className="grid size-11 place-items-center rounded-xl bg-slate-100 text-xl">?</span>}<span>{character ? characters.find(item => item.id === character)?.name : contentLoading ? (ar ? "جارٍ تحميل الشخصيات..." : "Loading characters...") : (ar ? "اضغط لاختيار شخصية" : "Tap to choose a character")}</span></span><span className="rounded-lg bg-violet-100 px-3 py-2 text-xs font-black text-violet-700">{ar ? "اختيار" : "Choose"}</span>
+                  </button>
+                </div>
+                {characterPickerOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/75 p-3 backdrop-blur-md sm:p-6" role="dialog" aria-modal="true" aria-labelledby="character-picker-title" onMouseDown={event => { if (event.target === event.currentTarget) setCharacterPickerOpen(false); }}>
+                  <div className="flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/15 bg-[#171536] text-white shadow-2xl">
+                    <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-7"><div><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · CHARACTER SELECT</p><h3 id="character-picker-title" className="mt-1 text-xl font-black">{ar ? "اختار شخصيتك السرية" : "Choose your secret character"}</h3><p className="mt-1 text-xs text-white/45">{ar ? "اختيارك مش هيظهر لخصمك." : "Your choice stays hidden from your opponent."}</p></div><button type="button" onClick={() => setCharacterPickerOpen(false)} className="grid size-10 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/15" aria-label={ar ? "إغلاق" : "Close"}><X size={19}/></button></header>
+                    <div className="overflow-y-auto p-4 sm:p-6"><div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6">{characters.map(item=><button key={item.id} type="button" onClick={()=>{setCharacter(item.id);setCharacterPickerOpen(false);}} className={`group min-w-0 overflow-hidden rounded-2xl border p-2 text-center transition hover:-translate-y-1 hover:border-lime-300/70 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-lime-300 ${character===item.id?"border-lime-300 bg-lime-300/10 ring-2 ring-lime-300/30":"border-white/10 bg-white/[.04]"}`}><span className="grid aspect-[4/4.4] place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-300/25 to-cyan-300/15 text-3xl sm:text-4xl">{item.avatar}</span><span className="mt-2 block truncate text-xs font-extrabold">{item.name}</span>{character===item.id&&<span className="mt-1 inline-flex items-center gap-1 text-[10px] font-black text-lime-300"><Check size={12}/>{ar?"تم الاختيار":"Selected"}</span>}</button>)}</div></div>
+                    <footer className="border-t border-white/10 px-5 py-3 text-center text-[11px] font-semibold text-white/40">{ar ? `إجمالي الشخصيات: ${characters.length}` : `Total characters: ${characters.length}`}</footer>
+                  </div>
+                </div>}
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <button type="button" disabled={busy || contentLoading || !character || !characters.some(item => item.id === character)} onClick={ready} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-teal-600 px-5 font-extrabold text-white transition hover:bg-teal-700 disabled:opacity-40">{busy && <LoaderCircle size={17} className="animate-spin" />}{room.members.find(member => member.isMe)?.isReady ? (ar ? "إلغاء الجاهزية" : "Mark not ready") : (ar ? "أنا جاهز" : "I'm ready")}</button>
                   {room.isHost && <button type="button" disabled={busy || room.members.length !== 2 || room.members.some(member => !member.isReady || !member.hasSecretCharacter)} onClick={start} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 font-extrabold text-white transition hover:bg-violet-800 disabled:opacity-40"><Gamepad2 size={17} />{ar ? "ابدأ المباراة" : "Start match"}</button>}
