@@ -85,7 +85,6 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  if (!state) return <p role="alert" className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">{error || (ar ? "تعذر تحميل المباراة." : "Could not load match.")}</p>;
 
  const winner = state.members.find(member => member.userId === state.winnerId);
- const opponent = state.members.find(member => !member.isMe);
  const remaining = Math.max(0, characters.length - eliminated.size);
  const progress = characters.length ? (eliminated.size / characters.length) * 100 : 0;
 
