@@ -29,9 +29,12 @@
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; scroll-behavior: smooth; }
+html { min-height: 100%; width: 100%; max-width: 100%; scroll-behavior: smooth; overflow-x: clip; }
 body {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   margin: 0;
   background: var(--background);
   color: var(--foreground);
@@ -252,4 +255,37 @@ button, a { touch-action: manipulation; }
 .admin-arena input:focus,.admin-arena select:focus,.admin-arena textarea:focus{
   border-color:#f97316!important;
   box-shadow:0 0 0 4px rgb(249 115 22 / .11)!important;
+}
+
+
+/* Responsive viewport guard + warm arcade surfaces */
+*, *::before, *::after { min-width: 0; }
+img, video, canvas, svg { max-width: 100%; }
+.arena-shell { width: 100%; max-width: 100%; overflow-x: clip; }
+.arena-panel, .arena-panel-strong { min-width: 0; }
+.auth-arena { width: 100%; max-width: 100%; overflow-x: clip; }
+.arena-entry {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 8% 12%,rgb(251 146 60 / .18),transparent 24rem),
+    radial-gradient(circle at 92% 82%,rgb(163 230 53 / .16),transparent 27rem),
+    linear-gradient(135deg,#fff8eb 0%,#fffdf7 48%,#f3f8e8 100%);
+  color: #21140d;
+}
+.arena-entry .arena-shell {
+  background:
+    radial-gradient(circle at 12% 8%,rgb(251 146 60 / .12),transparent 24rem),
+    radial-gradient(circle at 88% 18%,rgb(163 230 53 / .13),transparent 26rem),
+    linear-gradient(180deg,#fffdf8 0%,#fff9ef 58%,#f3f8e8 100%);
+}
+.arena-entry .arena-panel { border-color:rgb(120 53 15 / .13); background:rgb(255 255 255 / .88); box-shadow:0 12px 35px rgb(87 52 20 / .08); }
+.arena-entry .arena-panel-strong { border-color:rgb(249 115 22 / .2); background:linear-gradient(145deg,#fff 0%,#fff8ed 100%); box-shadow:0 24px 60px rgb(120 53 15 / .12); }
+.arena-entry .arena-section-title { color:#21140d; }
+@media (max-width: 767px) {
+  .arena-header > div:first-of-type > div { min-height:64px; padding-inline:12px; }
+  .arena-header nav { max-height:calc(100dvh - 78px); overflow-y:auto; overscroll-behavior:contain; }
+  .arena-shell { border-radius:1.25rem; }
 }
