@@ -5,7 +5,7 @@ import { Volume2, VolumeX } from "lucide-react";
 import { useGameSounds } from "@/hooks/use-game-sounds";
 import {
   Check, Eye, EyeOff, HelpCircle, RotateCcw, Sparkles, Trophy,
-  UserRound, X, Crown, HatGlasses, CircleHelp
+  UserRound, X, Crown, CircleHelp
 } from "lucide-react";
 type Character = {
   id: string; name: string; avatar: string;
