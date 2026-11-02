@@ -187,7 +187,6 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
    <div className="grid gap-2 sm:grid-cols-2">{state.members.map(member=><div key={member.userId} className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 ${member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?"border-lime-300/40 bg-lime-300/10":"border-white/10 bg-[#171b3c]/80"}`}><div className="flex min-w-0 items-center gap-2.5"><span className="grid size-8 place-items-center rounded-lg bg-white/10 text-xs font-black">{member.isMe?"1":"2"}</span><p className="truncate text-sm font-extrabold text-white">{member.name}{member.isMe?(ar?" (أنت)":" (You)"):""}</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?"bg-lime-300 text-[#11182d]":"bg-white/10 text-white/60"}`}>{member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?(ar?"يلعب الآن":"Playing"):(ar?"ينتظر":"Waiting")}</span></div>)}</div>
 
-   {state.status==="COMPLETED"&&}
 
    {state.status==="IN_PROGRESS"&&<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
     <div className="min-w-0 space-y-3">
