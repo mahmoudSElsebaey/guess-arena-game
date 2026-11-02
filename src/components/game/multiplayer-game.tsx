@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Maximize2, Minimize2, Volume2, VolumeX, Sparkles, Trophy, Users, History, Eye, RotateCcw, Check, X, Palette, Glasses, UserRound, Shirt, Crown, LoaderCircle } from "lucide-react";
+import { Maximize2, Minimize2, Volume2, VolumeX, Sparkles, Trophy, Users, History, Eye, Check, X, Palette, Glasses, UserRound, LoaderCircle } from "lucide-react";
 import { useGameSounds } from "@/hooks/use-game-sounds";
 import { CharacterPortrait } from "@/components/game/character-portrait";
 
