@@ -64,7 +64,7 @@ export async function POST(request:Request,{params}:Ctx){
     if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
     const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
     if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
-    const secret=await getActiveCharacterById(opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
+    const secret=(await getActiveCharacters()).find(character=>character.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
     const answer=evaluateQuestion(secret,question);
     const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},version:{increment:1}}});
