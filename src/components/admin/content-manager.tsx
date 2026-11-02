@@ -85,6 +85,7 @@ export function ContentManager({ locale }: { locale: "ar" | "en" }) {
       const response = await fetch("/api/admin/content", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      setError("");
       setCategories(data.categories);
       setCharacterForm(current => ({
         ...current,
@@ -226,7 +227,7 @@ export function ContentManager({ locale }: { locale: "ar" | "en" }) {
       </div>
 
       {activeGames > 0 && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">{ar ? "يوجد مباريات جارية. تم إيقاف تعديل المحتوى مؤقتًا حتى لا تتغير قواعد المباراة أثناء اللعب." : "Matches are in progress. Content changes are temporarily locked to keep active matches consistent."}</div>}
-      {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-700">{error}</p>}
+      {error && <div role="alert" aria-live="assertive" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-700"><p className="min-w-0 flex-1">{error}</p><button type="button" onClick={() => void load()} disabled={loading} className="min-h-9 rounded-lg border border-rose-200 bg-white px-3 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-rose-500">{ar ? "إعادة تحميل المحتوى" : "Reload content"}</button></div>}
       {notice && <p role="status" className="mt-5 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{notice}</p>}
 
       <div className="mt-7 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
