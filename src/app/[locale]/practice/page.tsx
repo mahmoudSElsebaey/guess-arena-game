@@ -1,0 +1,3 @@
+import dynamic from "next/dynamic";
+import { SiteHeader } from "@/components/layout/site-header";
+export default async function PracticePage({params}:{params:Promise<{locale:"ar"|"en"}>}){const {locale}=await params;const GameBoard=dynamic(()=>import("@/components/game/game-board").then(m=>m.GameBoard),{loading:()=> <div className="mx-auto my-8 h-72 max-w-7xl animate-pulse rounded-3xl bg-slate-200"/>});return <main id="main-content" className="min-h-screen"><SiteHeader locale={locale}/><GameBoard locale={locale}/></main>;}
