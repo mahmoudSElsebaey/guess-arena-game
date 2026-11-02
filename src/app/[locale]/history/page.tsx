@@ -86,7 +86,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
   return (
     <>
       <SiteHeader locale={locale} />
-      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+      <main id="main-content" tabIndex={-1} dir={isArabic ? "rtl" : "ltr"} className="arena-shell min-h-screen px-4 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <header>
             <p className="text-xs font-black tracking-[0.2em] text-violet-600">GUESS ARENA · PLAYER RECORD</p>
@@ -105,7 +105,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
               { label: isArabic ? "مرات الخسارة" : "Losses", value: number(losses), icon: "📉" },
               { label: isArabic ? "نسبة الفوز" : "Win rate", value: `${number(winRate)}%`, icon: "📊" }
             ].map(stat => (
-              <article key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <article key={stat.label} className="arena-panel rounded-2xl p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
                   <span aria-hidden="true" className="text-xl">{stat.icon}</span>
@@ -122,7 +122,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
             </div>
 
             {rooms.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
+              <div className="arena-panel rounded-2xl border-dashed px-5 py-14 text-center">
                 <p className="text-3xl" aria-hidden="true">🎯</p>
                 <h3 className="mt-3 font-extrabold text-slate-800">{isArabic ? "لسه مفيش مباريات مكتملة" : "No completed matches yet"}</h3>
                 <p className="mt-2 text-sm text-slate-500">{isArabic ? "العب أول مباراة أونلاين وهتظهر نتيجتها هنا." : "Play your first online match and its result will appear here."}</p>
@@ -135,7 +135,7 @@ export default async function GameHistoryPage({ params }: HistoryPageProps) {
                 : null;
 
               return (
-                <article key={room.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <article key={room.id} className="arena-panel-strong overflow-hidden rounded-2xl">
                   <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
