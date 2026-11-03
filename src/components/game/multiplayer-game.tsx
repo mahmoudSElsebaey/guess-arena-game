@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Maximize2, Minimize2, Volume2, VolumeX, Sparkles, Trophy, Users, History, Eye, Check, X, Palette, Glasses, UserRound, LoaderCircle } from "lucide-react";
+import { Maximize2, Minimize2, Volume2, VolumeX, Sparkles, Trophy, Users, History, Eye, Check, X, Palette, Glasses, UserRound, LoaderCircle, LogOut, Home, AlertTriangle } from "lucide-react";
 import { useGameSounds } from "@/hooks/use-game-sounds";
 import { CharacterPortrait } from "@/components/game/character-portrait";
+import { useRouter } from "@/i18n/navigation";
 
 type Action = { id:string; actorId:string; type:string; questionId:string|null; answer:boolean|null; characterId:string|null; correct:boolean|null; reason?:string|null; createdAt:string };
 type Snapshot = { id:string; status:string; version:number; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; members:{userId:string;name:string;isMe:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[] };
@@ -15,9 +16,12 @@ type Toast = { id:number; message:string; tone:"success"|"error"|"warning"|"info
 
 export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:string;locale:"ar"|"en";characters:CharacterOption[];questions:QuestionOption[]}) {
  const ar=locale==="ar";
+ const router=useRouter();
  const [state,setState]=useState<Snapshot|null>(null);
  const [busy,setBusy]=useState(false);
  const [rematching,setRematching]=useState(false);
+ const [leaveDestination,setLeaveDestination]=useState<"room"|"home"|null>(null);
+ const [leaving,setLeaving]=useState(false);
  const [pendingCards,setPendingCards]=useState<string[]>([]);
  const [optimisticEliminated,setOptimisticEliminated]=useState<string[]>([]);
  const [error,setError]=useState("");
@@ -157,6 +161,21 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const winner=state?.members.find(member=>member.userId===state.winnerId);
  const opponentLeft=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="PLAYER_LEFT")??false;
 
+ async function confirmLeave(){
+  if(!leaveDestination||leaving)return;
+  setLeaving(true);
+  try{
+   const response=await fetch(`/api/rooms/${roomId}/leave`,{method:"POST"});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||"LEAVE_FAILED");
+   const destination=leaveDestination;
+   setLeaveDestination(null);
+   router.replace(destination==="home"?"/":"/play");
+  }catch(e){
+   notify(e instanceof Error?e.message:(ar?"تعذر مغادرة الغرفة. حاول مرة أخرى.":"Could not leave the room. Try again."),"error");
+  }finally{setLeaving(false);}
+ }
+
  async function toggleFullscreen(){
   try{
    if(!document.fullscreenElement)await arenaRef.current?.requestFullscreen();
@@ -246,6 +265,10 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
     <aside className="space-y-3 xl:sticky xl:top-4">
      <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4"><div className="flex items-center gap-2"><Users size={17} className="text-cyan-200"/><h3 className="font-black text-white">{ar?"حالة المباراة":"Match status"}</h3></div><div className="mt-3 grid grid-cols-2 gap-2"><div className="rounded-xl bg-[#0b1028] p-3"><span className="text-[9px] font-black text-white/40">{ar?"المتبقي":"LEFT"}</span><strong className="mt-1 block text-2xl font-black text-white">{remaining}</strong></div><div className="rounded-xl bg-[#0b1028] p-3"><span className="text-[9px] font-black text-white/40">{ar?"المقلوب":"FLIPPED"}</span><strong className="mt-1 block text-2xl font-black text-white">{eliminated.size}</strong></div></div><p className="mt-3 rounded-xl bg-white/5 p-3 text-[11px] leading-6 text-white/55">{ar?"إجابات الأسئلة تساعدك في القرار فقط. أنت من يختار البطاقات التي تقلبها ويمكنك استعادتها.":"Answers are clues, not automatic moves. You decide which cards to flip and can restore any card."}</p></section>
      <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4"><div className="flex items-center gap-2"><History size={17} className="text-violet-200"/><h3 className="font-black text-white">{ar?"سجل المباراة":"Match timeline"}</h3></div><div className="mt-3 space-y-2">{state.actions.slice(-10).reverse().map(action=>{const player=state.members.find(m=>m.userId===action.actorId);const question=questions.find(q=>q.id===action.questionId);return <div key={action.id} className="rounded-xl border border-white/5 bg-[#0e1431] p-3"><p className="text-[9px] font-black text-white/40">{player?.name??(ar?"لاعب":"Player")}</p><p className="mt-1 text-xs font-bold leading-5 text-white/85">{action.type==="QUESTION_ASKED"?(ar?question?.labelAr:question?.labelEn):action.type==="GUESS_MADE"?(ar?"تخمين الشخصية":"Character guess"):(ar?"تحديث المباراة":"Match update")}</p>{action.type==="QUESTION_ASKED"&&<span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[9px] font-black ${action.answer?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}>{action.answer?(ar?"نعم":"Yes"):(ar?"لا":"No")}</span>}</div>})}{!state.actions.length&&<p className="text-xs text-white/40">{ar?"ستظهر الحركات هنا.":"Moves will appear here."}</p>}</div></section>
+     {state.status==="IN_PROGRESS"&&<section className="grid gap-2 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3">
+      <button type="button" onClick={()=>setLeaveDestination("room")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-rose-300/25 bg-rose-400/10 px-3 text-xs font-black text-rose-200 transition hover:border-rose-300/50 hover:bg-rose-400/15"><LogOut size={16}/>{ar?"مغادرة الغرفة":"Leave room"}</button>
+      <button type="button" onClick={()=>setLeaveDestination("home")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-black text-white/80 transition hover:bg-white/10"><Home size={16}/>{ar?"الصفحة الرئيسية":"Home page"}</button>
+     </section>}
      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#171b3c]/80 p-3 text-[10px] font-semibold leading-5 text-white/45"><Eye size={15} className="shrink-0 text-lime-200"/>{ar?"شخصيتك السرية لا تظهر هنا ولا يتم كشفها للخصم.":"Your opponent's secret character is never exposed here."}</div>
     </aside>
    </div>}
@@ -253,6 +276,18 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    {error&&<div role="alert" aria-live="assertive" className="sr-only">{error}</div>}
   </div>
   {state.status==="COMPLETED"&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`arena-feedback-pop my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.65)] sm:p-9 ${winner?.isMe?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-24 place-items-center rounded-[2rem] ${winner?.isMe?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}><Trophy size={54}/></div><p className={`mt-5 text-xs font-black tracking-[.3em] ${winner?.isMe?"text-emerald-200":"text-rose-200"}`}>GUESS ARENA · RESULT</p><h2 className="mt-3 text-3xl font-black text-white">{opponentLeft?(ar?"صديقك انسحب من المباراة":"Your opponent left the match"):winner?.isMe?(ar?"مبروك! أنت الفائز 🎉":"Congratulations! You won 🎉"):(ar?"حظ أوفر في المرة القادمة":"Better luck next time")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/75">{opponentLeft?(ar?"انتهت المباراة لأن اللاعب الآخر غادر الغرفة أو ضغط على مغادرة المباراة. تم احتساب الفوز لك.":"The match ended because your opponent left the room or chose to leave the match. The win has been awarded to you.") :winner?.isMe?(ar?"أحسنت! لقد استطعت اكتشاف شخصية صديقك قبل أن يتوقع شخصيتك.":"Great job! You guessed your friend character before they could guess yours."):(ar?`صديقك ${winner?.name??""} استطاع توقع شخصيتك قبلك. لا تستسلم، الجولة القادمة فرصتك!`:`Your friend ${winner?.name??""} guessed your character before you could guess theirs. The next round is yours!`)}</p><div className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-black ${winner?.isMe?"bg-emerald-300/15 text-emerald-100":"bg-rose-300/15 text-rose-100"}`}><Sparkles size={16}/>{winner?.isMe?(ar?"انتصار مستحق":"Well played"):(ar?"المنافسة لم تنته بعد":"The rivalry continues")}</div><div className="mt-8 grid gap-3 sm:grid-cols-2">{!opponentLeft&&<button type="button" disabled={rematching} onClick={async()=>{setRematching(true);setError("");try{const response=await fetch(`/api/rooms/${roomId}/rematch`,{method:"POST"});const data=await response.json();if(!response.ok)throw new Error(data.error||"REMATCH_FAILED");await refresh();}catch(e){notify(e instanceof Error?e.message:(ar?"تعذر بدء جولة جديدة.":"Could not start another round."),"error");}finally{setRematching(false);}}} className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-black text-[#142018] shadow-lg transition disabled:opacity-50 ${winner?.isMe?"bg-emerald-300 hover:bg-emerald-200":"bg-rose-200 hover:bg-rose-100"}`}><LoaderCircle size={17} className={rematching?"animate-spin":"hidden"}/>{ar?"العب مباراة أخرى":"Play another round"}</button>}<a href={`/${locale}`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/15">{ar?"العودة للصفحة الرئيسية":"Back to home"}</a></div>{!opponentLeft&&<p className="mt-4 text-[11px] text-white/45">{ar?"ستبقى مع صديقك في نفس الغرفة وسيختار كل منكما شخصية سرية جديدة.":"You will stay with your friend in the same room and both choose a new secret character."}</p>}</div></div>}
+  {leaveDestination&&createPortal(<div className="fixed inset-0 z-[99996] grid place-items-center overflow-y-auto bg-[#070a1c]/85 p-4 backdrop-blur-md" dir={ar?"rtl":"ltr"}>
+   <div role="alertdialog" aria-modal="true" aria-labelledby="leave-dialog-title" aria-describedby="leave-dialog-description" className="arena-feedback-pop my-auto w-full max-w-md rounded-[2rem] border border-orange-300/30 bg-gradient-to-br from-[#242044] via-[#171b3c] to-[#102a32] p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)] sm:p-8">
+    <div className="mx-auto grid size-20 place-items-center rounded-[1.7rem] border border-orange-200/25 bg-orange-300/10 text-orange-200"><AlertTriangle size={38}/></div>
+    <p className="mt-5 text-[10px] font-black tracking-[.3em] text-lime-300">GUESS ARENA · WARNING</p>
+    <h2 id="leave-dialog-title" className="mt-3 text-2xl font-black text-white">{ar?"هل أنت متأكد من مغادرة الجولة؟":"Are you sure you want to leave?"}</h2>
+    <p id="leave-dialog-description" className="mt-3 text-sm font-bold leading-7 text-white/65">{ar?"بمجرد التأكيد ستنسحب من الجولة الحالية، وستُحتسب المباراة لصالح اللاعب الآخر. لا يمكنك العودة إلى هذه الجولة بعد المغادرة.":"If you confirm, you will forfeit this match and the other player will be awarded the win. You cannot rejoin this round."}</p>
+    <div className="mt-7 grid gap-3 sm:grid-cols-2">
+     <button type="button" disabled={leaving} onClick={()=>void confirmLeave()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] shadow-lg shadow-orange-950/30 transition hover:brightness-110 disabled:opacity-50"><LogOut size={17}/>{leaving?(ar?"جارٍ المغادرة...":"Leaving..."):(ar?"نعم، انسحب من الجولة":"Yes, leave match")}</button>
+     <button type="button" disabled={leaving} onClick={()=>setLeaveDestination(null)} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-black text-white transition hover:bg-white/10 disabled:opacity-50">{ar?"لا، استمر في اللعب":"No, keep playing"}</button>
+    </div>
+   </div>
+  </div>,document.body)}
   {feedback&&<div className="pointer-events-none fixed inset-0 z-[99998] grid place-items-center"><div key={feedback.id} className={`animate-feedback grid size-44 place-items-center rounded-[2.5rem] border-4 shadow-[0_30px_100px_rgba(0,0,0,.5)] sm:size-56 ${feedback.answer?"border-emerald-200 bg-emerald-500/95 text-white":"border-rose-200 bg-rose-500/95 text-white"}`}><div className="text-center"><span className="grid size-20 place-items-center rounded-full bg-white/20 sm:size-24">{feedback.answer?<Check size={64} strokeWidth={4}/>:<X size={64} strokeWidth={4}/>}</span><p className="mt-3 text-2xl font-black">{feedback.answer?(ar?"نعم":"YES"):(ar?"لا":"NO")}</p></div></div></div>}
   {countdown!==null&&<div className="fixed inset-0 z-[99997] grid place-items-center bg-[#241509]/95 backdrop-blur-xl"><div className="text-center"><p className="text-xs font-black tracking-[.4em] text-lime-200">GUESS ARENA</p><div key={String(countdown)} className="arena-countdown-number mt-5 grid size-56 place-items-center rounded-[3rem] border-4 border-orange-200 bg-gradient-to-br from-orange-500 via-amber-400 to-lime-300 text-8xl font-black text-[#241509] shadow-[0_0_100px_rgba(163,230,53,.25)] sm:size-72 sm:text-9xl">{countdown}</div><p className="mt-6 text-sm font-black tracking-[.25em] text-white/65">{ar?"استعد للمواجهة":"GET READY TO DUEL"}</p></div></div>}
  </section>;
