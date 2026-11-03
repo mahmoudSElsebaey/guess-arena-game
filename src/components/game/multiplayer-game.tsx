@@ -20,7 +20,6 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const [pendingCards,setPendingCards]=useState<string[]>([]);
  const [optimisticEliminated,setOptimisticEliminated]=useState<string[]>([]);
  const [error,setError]=useState("");
- const [notice,setNotice]=useState("");
  const [toast,setToast]=useState<Toast|null>(null);
  const toastTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const notify=useCallback((message:string,tone:Toast["tone"]="info")=>{
@@ -165,7 +164,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  }
 
  async function send(action:"ask"|"guess"|"eliminate"|"confirm",payload:Record<string,string|boolean>){
-  setBusy(true);setError("");setNotice("");
+  setBusy(true);setError("");
   if(action==="ask")playSound("question");else if(action==="confirm")playSound("turn");else playSound("click");
   try{
    const response=await fetch(`/api/rooms/${roomId}/${action}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
