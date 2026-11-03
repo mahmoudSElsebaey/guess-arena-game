@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Maximize2, Minimize2, Volume2, VolumeX, Sparkles, Trophy, Users, History, Eye, Check, X, Palette, Glasses, UserRound, LoaderCircle } from "lucide-react";
 import { useGameSounds } from "@/hooks/use-game-sounds";
 import { CharacterPortrait } from "@/components/game/character-portrait";
@@ -32,6 +33,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const [feedback,setFeedback]=useState<Feedback>(null);
  const [countdown,setCountdown]=useState<number|string|null>(null);
  const [isFullscreen,setIsFullscreen]=useState(false);
+ const [isExpanded,setIsExpanded]=useState(false);
  const {soundEnabled,toggleSound,playSound}=useGameSounds();
  const previousVersion=useRef<number|null>(null);
  const lastFeedbackAction=useRef("");
@@ -110,6 +112,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
     soundRef.current("question");
    }else{
     setCountdown(null);
+    setIsExpanded(true);
     if(countdownTimer.current){
      window.clearInterval(countdownTimer.current);
      countdownTimer.current=null;
@@ -156,11 +159,9 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const winner=state?.members.find(member=>member.userId===state.winnerId);
  const opponentLeft=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="PLAYER_LEFT")??false;
 
- async function toggleFullscreen(){
-  try{
-   if(!document.fullscreenElement)await arenaRef.current?.requestFullscreen();
-   else await document.exitFullscreen();
-  }catch{notify(ar?"المتصفح لم يسمح بوضع ملء الشاشة.":"Your browser did not allow fullscreen mode.","error");}
+ function toggleFullscreen(){
+  if(document.fullscreenElement){void document.exitFullscreen();return;}
+  setIsExpanded(current=>!current);
  }
 
  async function send(action:"ask"|"guess"|"eliminate"|"confirm",payload:Record<string,string|boolean>){
@@ -191,15 +192,15 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  if(loading&&!state)return <section className="mt-6 space-y-4" role="status" aria-live="polite"><div className="h-28 animate-pulse rounded-3xl bg-slate-200"/><div className="h-64 animate-pulse rounded-3xl bg-slate-100"/><span className="sr-only">{ar?"جارٍ تحميل المباراة...":"Loading match..."}</span></section>;
  if(!state)return <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-800"><p role="alert" className="font-bold">{error|| (ar?"تعذر تحميل المباراة.":"Could not load match.")}</p><button type="button" onClick={()=>void refresh()} className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-bold">{ar?"إعادة المحاولة":"Retry"}</button></div>;
 
- return <section ref={arenaRef} dir={ar?"rtl":"ltr"} aria-label={ar?"منطقة اللعب الأونلاين":"Online game area"} className="arena-game-stage relative isolate mt-5 min-h-[calc(100dvh-90px)] overflow-hidden rounded-[1.8rem] bg-[#0b1028] p-2 text-white sm:p-4 lg:p-5">
-  {toast&&<div key={toast.id} className="pointer-events-none fixed inset-x-0 top-4 z-[99998] flex justify-center px-3 sm:top-6" dir={ar?"rtl":"ltr"}>
+ return <section ref={arenaRef} dir={ar?"rtl":"ltr"} aria-label={ar?"منطقة اللعب الأونلاين":"Online game area"} className={`arena-game-stage relative isolate mt-5 min-h-[calc(100dvh-90px)] overflow-hidden rounded-[1.8rem] bg-[#0b1028] p-2 text-white sm:p-4 lg:p-5 ${isExpanded?"arena-game-stage--expanded":""}`}>
+  {toast&&createPortal(<div key={toast.id} className="pointer-events-none fixed inset-x-0 top-4 z-[99998] flex justify-center px-3 sm:top-6" dir={ar?"rtl":"ltr"}>
    <div role={toast.tone==="error"?"alert":"status"} aria-live={toast.tone==="error"?"assertive":"polite"} className={`arena-toast-pop pointer-events-auto flex w-full max-w-lg items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-extrabold shadow-[0_18px_55px_rgba(0,0,0,.38)] backdrop-blur-xl ${toast.tone==="error"?"border-rose-300/40 bg-rose-950/95 text-rose-100":toast.tone==="warning"?"border-amber-300/40 bg-amber-950/95 text-amber-100":toast.tone==="success"?"border-emerald-300/40 bg-emerald-950/95 text-emerald-100":"border-sky-300/40 bg-slate-900/95 text-sky-100"}`}>
     <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${toast.tone==="error"?"bg-rose-400/20":toast.tone==="warning"?"bg-amber-400/20":toast.tone==="success"?"bg-emerald-400/20":"bg-sky-400/20"}`}>
      {toast.tone==="error"?<X size={19}/>:toast.tone==="warning"?<Eye size={19}/>:toast.tone==="success"?<Check size={19}/>:<Sparkles size={19}/>}
     </span>
     <p className="min-w-0 flex-1 leading-6">{toast.message}</p>
    </div>
-  </div>}
+  </div>,document.body)}
   <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" style={{backgroundImage:"radial-gradient(circle at 15% 12%,rgba(139,92,246,.32),transparent 30%),radial-gradient(circle at 90% 80%,rgba(20,184,166,.22),transparent 28%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px)",backgroundSize:"auto,auto,32px 32px,32px 32px"}}/>
   <div className="relative z-10 space-y-4">
    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 shadow-xl sm:p-4">
@@ -208,7 +209,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
      <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"><span className="block text-[9px] font-black text-white/40">{ar?"رقم الدور":"TURN"}</span><strong className="text-xl font-black text-white">{state.turnNumber}</strong></div>
      <div className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 sm:flex"><span className={`size-2 rounded-full ${myTurn?"animate-pulse bg-lime-300":"bg-amber-300"}`}/><span className="text-xs font-bold text-white/80">{myTurn?(ar?"دورك":"Your turn"):(ar?"انتظار الخصم":"Waiting")}</span></div>
      <button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled?(ar?"إيقاف الصوت":"Mute sounds"):(ar?"تشغيل الصوت":"Enable sounds")} className="grid size-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">{soundEnabled?<Volume2 size={18}/>:<VolumeX size={18}/>}</button>
-     <button type="button" onClick={()=>void toggleFullscreen()} aria-label={isFullscreen?(ar?"الخروج من ملء الشاشة":"Exit fullscreen"):(ar?"ملء الشاشة":"Enter fullscreen")} className="grid size-10 place-items-center rounded-xl border border-lime-300/25 bg-lime-300/10 text-lime-200 hover:bg-lime-300/20">{isFullscreen?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>
+     <button type="button" onClick={()=>void toggleFullscreen()} aria-label={isFullscreen?(ar?"الخروج من ملء الشاشة":"Exit fullscreen"):(ar?"ملء الشاشة":"Enter fullscreen")} className="grid size-10 place-items-center rounded-xl border border-lime-300/25 bg-lime-300/10 text-lime-200 hover:bg-lime-300/20">{isFullscreen||isExpanded?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>
     </div>
    </header>
 
