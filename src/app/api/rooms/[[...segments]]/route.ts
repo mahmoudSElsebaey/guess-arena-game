@@ -43,16 +43,25 @@ export async function GET(request:Request,{params}:Ctx){
  await prisma.roomMember.updateMany({where:{roomId,userId,leftAt:null},data:{isConnected:true,lastSeenAt:new Date()}});
  const snapshot=await getRoomSnapshot(roomId,userId);if(!snapshot)return NextResponse.json({error:"ROOM_NOT_FOUND"},{status:404});
  const [room,latestStart,me]=await Promise.all([
-  prisma.room.findUnique({where:{id:roomId},select:{currentTurnUserId:true,turnNumber:true,winnerId:true}}),
+  prisma.room.findUnique({where:{id:roomId},select:{currentTurnUserId:true,turnNumber:true,winnerId:true,hostId:true}}),
   prisma.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}}),
   prisma.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},select:{eliminatedCharacterIds:true}})
  ]);
- const actions=await prisma.gameAction.findMany({where:{roomId,sequence:{gt:latestStart?.sequence??0},type:{in:["QUESTION_ASKED","TURN_CONFIRMED","GUESS_MADE","GAME_FINISHED","PLAYER_LEFT"]}},orderBy:{sequence:"desc"},take:40});
+ const [actions,finishedActions]=await Promise.all([
+  prisma.gameAction.findMany({where:{roomId,sequence:{gt:latestStart?.sequence??0},type:{in:["QUESTION_ASKED","TURN_CONFIRMED","GUESS_MADE","GAME_FINISHED","PLAYER_LEFT"]}},orderBy:{sequence:"desc"},take:40}),
+  prisma.gameAction.findMany({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"asc"},select:{id:true,actorId:true,payload:true,createdAt:true}})
+ ]);
+ const roundHistory=finishedActions.flatMap((action,index)=>{
+  const p=action.payload&&typeof action.payload==="object"&&!Array.isArray(action.payload)?action.payload as Record<string,unknown>:{};
+  const reason=typeof p.reason==="string"?p.reason:null;
+  if(reason?.startsWith("REMATCH_"))return [];
+  return [{id:action.id,round:index+1,actorId:action.actorId,winnerId:typeof p.winnerId==="string"?p.winnerId:null,reason,createdAt:action.createdAt.toISOString()}];
+ });
  const safeActions=actions.reverse().map(a=>{
   const p=a.payload&&typeof a.payload==="object"&&!Array.isArray(a.payload)?a.payload as Record<string,unknown>:{};
-  return {id:a.id,actorId:a.actorId,type:a.type,questionId:typeof p.questionId==="string"?p.questionId:null,answer:typeof p.answer==="boolean"?p.answer:null,characterId:typeof p.characterId==="string"?p.characterId:null,correct:typeof p.correct==="boolean"?p.correct:null,reason:typeof p.reason==="string"?p.reason:null,newRoomId:typeof p.newRoomId==="string"?p.newRoomId:null,createdAt:a.createdAt.toISOString()};
+  return {id:a.id,actorId:a.actorId,type:a.type,questionId:typeof p.questionId==="string"?p.questionId:null,answer:typeof p.answer==="boolean"?p.answer:null,characterId:typeof p.characterId==="string"?p.characterId:null,correct:typeof p.correct==="boolean"?p.correct:null,reason:typeof p.reason==="string"?p.reason:null,winnerId:typeof p.winnerId==="string"?p.winnerId:null,newRoomId:typeof p.newRoomId==="string"?p.newRoomId:null,createdAt:a.createdAt.toISOString()};
  });
- return NextResponse.json({...snapshot,currentTurnUserId:room?.currentTurnUserId??null,turnNumber:room?.turnNumber??0,winnerId:room?.winnerId??null,myEliminatedCharacterIds:me?.eliminatedCharacterIds??[],actions:safeActions},{headers:{"Cache-Control":"no-store"}});
+ return NextResponse.json({...snapshot,hostId:room?.hostId??snapshot.hostId,currentTurnUserId:room?.currentTurnUserId??null,turnNumber:room?.turnNumber??0,winnerId:room?.winnerId??null,myEliminatedCharacterIds:me?.eliminatedCharacterIds??[],actions:safeActions,roundHistory},{headers:{"Cache-Control":"no-store"}});
 }
 export async function POST(request:Request,{params}:Ctx){
  const userId=await actor();if(!userId)return NextResponse.json({error:"UNAUTHORIZED"},{status:401});
@@ -178,6 +187,7 @@ export async function POST(request:Request,{params}:Ctx){
     if(room.members.length!==2||!room.members.some(m=>m.userId===userId))throw new Error("OPPONENT_REQUIRED");
     const latest=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
     const payload=latest?.payload&&typeof latest.payload==="object"&&!Array.isArray(latest.payload)?latest.payload as Record<string,unknown>:{};
+    if(payload.reason==="PLAYER_LEFT")throw new Error("REMATCH_NOT_AVAILABLE_AFTER_LEAVE");
     if(payload.reason==="REMATCH_REQUESTED")throw new Error("REMATCH_ALREADY_REQUESTED");
     if(typeof payload.newRoomId==="string")throw new Error("REMATCH_ALREADY_RESOLVED");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_REQUESTED",requesterId:userId}});
@@ -197,18 +207,15 @@ export async function POST(request:Request,{params}:Ctx){
     if(payload.reason!=="REMATCH_REQUESTED"||typeof payload.requesterId!=="string")throw new Error("NO_REMATCH_REQUEST");
     if(payload.requesterId===userId)throw new Error("CANNOT_RESPOND_TO_OWN_REQUEST");
     if(parsed.data.accept){
-     const code=makeRoomCode();
-     const created=await tx.room.create({data:{code,hostId:room.hostId,expiresAt:new Date(Date.now()+1800000),members:{create:room.members.map(m=>({userId:m.userId,seat:m.seat}))}}});
-     await appendRoomAction(tx,{roomId:created.id,actorId:userId,type:"ROOM_CREATED",payload:{code,rematchOf:roomId}});
-     for(const member of room.members)await appendRoomAction(tx,{roomId:created.id,actorId:member.userId,type:"ROOM_JOINED",payload:{seat:member.seat,rematchOf:roomId}});
-     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_ACCEPTED",newRoomId:created.id}});
-     return {accepted:true,newRoomId:created.id,version:room.version+1};
+     await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isReady:false,isConnected:true,secretCharacterId:null,eliminatedCharacterIds:[],lastSeenAt:new Date()}});
+     const updated=await tx.room.update({where:{id:roomId},data:{status:"WAITING",winnerId:null,currentTurnUserId:null,turnNumber:0,startedAt:null,finishedAt:null,expiresAt:new Date(Date.now()+1800000),turnExpiresAt:null,version:{increment:1}}});
+     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_ACCEPTED"}});
+     return {accepted:true,newRoomId:null,roomId:updated.id,version:updated.version};
     }
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_DECLINED"}});
     return {accepted:false,newRoomId:null,version:room.version+1};
    });
-   await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,rematchResolved:true,newRoomId:result.newRoomId});
-   if(result.newRoomId)await publishRoomEvent(result.newRoomId,"room.updated",{roomId:result.newRoomId,status:"WAITING"});
+   await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.accepted?"WAITING":"COMPLETED",rematchResolved:true});
    return NextResponse.json({ok:true,...result});
   }
   if(action==="rematch"){
@@ -218,5 +225,5 @@ export async function POST(request:Request,{params}:Ctx){
    const result=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt)throw new Error("NOT_MEMBER");if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});const closedAt=new Date();await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{}});if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});return {...updated,deleted:false};});await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status});return NextResponse.json({ok:true,deleted:result.deleted});
   }
   return NextResponse.json({error:"NOT_FOUND"},{status:404});
- }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED","REMATCH_ALREADY_REQUESTED","REMATCH_ALREADY_RESOLVED","NO_REMATCH_REQUEST","CANNOT_RESPOND_TO_OWN_REQUEST"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
+ }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED","REMATCH_ALREADY_REQUESTED","REMATCH_ALREADY_RESOLVED","REMATCH_NOT_AVAILABLE_AFTER_LEAVE","NO_REMATCH_REQUEST","CANNOT_RESPOND_TO_OWN_REQUEST"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
 }
