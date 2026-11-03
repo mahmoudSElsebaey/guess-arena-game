@@ -344,7 +344,7 @@ img, video, canvas, svg { max-width: 100%; }
 /* Gameplay interaction polish */
 .arena-game-stage { overflow-anchor:none; scroll-behavior:auto; }
 .arena-game-stage button { touch-action:manipulation; }
-.arena-game-stage [aria-label^="قلب "], .arena-game-stage [aria-label^="Flip "] { scroll-margin-block:5rem; }
+.arena-game-stage button { scroll-margin-block:5rem; }
 .arena-countdown-number { border-color:#fed7aa; box-shadow:0 0 90px rgb(249 115 22 / .3),0 0 150px rgb(163 230 53 / .18); }
 
 /* Create / join room cards — same warm identity as auth and header */
