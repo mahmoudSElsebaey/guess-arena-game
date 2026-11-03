@@ -43,7 +43,7 @@ export async function GET(request:Request,{params}:Ctx){
  await prisma.roomMember.updateMany({where:{roomId,userId,leftAt:null},data:{isConnected:true,lastSeenAt:new Date()}});
  const snapshot=await getRoomSnapshot(roomId,userId);if(!snapshot)return NextResponse.json({error:"ROOM_NOT_FOUND"},{status:404});
  const [room,latestStart,me]=await Promise.all([
-  prisma.room.findUnique({where:{id:roomId},select:{currentTurnUserId:true,turnNumber:true,winnerId:true,hostId:true}}),
+  prisma.room.findUnique({where:{id:roomId},select:{currentTurnUserId:true,turnNumber:true,winnerId:true,hostId:true,startedAt:true}}),
   prisma.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}}),
   prisma.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},select:{eliminatedCharacterIds:true}})
  ]);
@@ -63,7 +63,7 @@ export async function GET(request:Request,{params}:Ctx){
   const p=a.payload&&typeof a.payload==="object"&&!Array.isArray(a.payload)?a.payload as Record<string,unknown>:{};
   return {id:a.id,actorId:a.actorId,type:a.type,questionId:typeof p.questionId==="string"?p.questionId:null,answer:typeof p.answer==="boolean"?p.answer:null,characterId:typeof p.characterId==="string"?p.characterId:null,correct:typeof p.correct==="boolean"?p.correct:null,reason:typeof p.reason==="string"?p.reason:null,winnerId:typeof p.winnerId==="string"?p.winnerId:null,newRoomId:typeof p.newRoomId==="string"?p.newRoomId:null,createdAt:a.createdAt.toISOString()};
  });
- return NextResponse.json({...snapshot,hostId:room?.hostId??snapshot.hostId,currentTurnUserId:room?.currentTurnUserId??null,turnNumber:room?.turnNumber??0,winnerId:room?.winnerId??null,myEliminatedCharacterIds:me?.eliminatedCharacterIds??[],actions:safeActions,roundHistory},{headers:{"Cache-Control":"no-store"}});
+ return NextResponse.json({...snapshot,hostId:room?.hostId??snapshot.hostId,startedAt:room?.startedAt?.toISOString()??null,currentTurnUserId:room?.currentTurnUserId??null,turnNumber:room?.turnNumber??0,winnerId:room?.winnerId??null,myEliminatedCharacterIds:me?.eliminatedCharacterIds??[],actions:safeActions,roundHistory},{headers:{"Cache-Control":"no-store"}});
 }
 export async function POST(request:Request,{params}:Ctx){
  const userId=await actor();if(!userId)return NextResponse.json({error:"UNAUTHORIZED"},{status:401});
@@ -94,12 +94,14 @@ export async function POST(request:Request,{params}:Ctx){
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
-    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
-    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
+    const roundStart=await tx.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}});
+    const roundSequence=roundStart?.sequence??0;
+    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
+    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
     if(lastQuestion&&(!lastConfirmed||lastQuestion.sequence>lastConfirmed.sequence))throw new Error("QUESTION_ALREADY_PENDING");
     const me=current.members.find(m=>m.userId===userId),opponent=current.members.find(m=>m.userId!==userId);
     if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
-    const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},select:{payload:true}});
+    const previous=await tx.gameAction.findMany({where:{roomId,actorId:userId,type:"QUESTION_ASKED",sequence:{gt:roundSequence}},select:{payload:true}});
     if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
     const secret=(await getActiveCharacters()).find(character=>character.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
     const answer=evaluateQuestion(secret,question);
@@ -120,8 +122,10 @@ export async function POST(request:Request,{params}:Ctx){
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
     const me=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},select:{id:true,eliminatedCharacterIds:true,leftAt:true}});
     if(!me||me.leftAt)throw new Error("NOT_MEMBER");
-    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
-    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
+    const roundStart=await tx.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}});
+    const roundSequence=roundStart?.sequence??0;
+    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
+    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
     if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
     const ids=new Set(me.eliminatedCharacterIds);
     if(parsed.data.eliminated){ids.add(parsed.data.characterId);const active=await getActiveCharacters();if(active.length-ids.size<1)throw new Error("LAST_CHARACTER_REQUIRED");}else ids.delete(parsed.data.characterId);
@@ -138,8 +142,10 @@ export async function POST(request:Request,{params}:Ctx){
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
-    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED"},orderBy:{sequence:"desc"}});
-    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED"},orderBy:{sequence:"desc"}});
+    const roundStart=await tx.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}});
+    const roundSequence=roundStart?.sequence??0;
+    const lastQuestion=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"QUESTION_ASKED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
+    const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
     if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
     const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},version:{increment:1}}});
