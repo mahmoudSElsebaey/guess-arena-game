@@ -264,43 +264,6 @@ img, video, canvas, svg { max-width: 100%; }
 .arena-shell { width: 100%; max-width: 100%; overflow-x: clip; }
 .arena-panel, .arena-panel-strong { min-width: 0; }
 .auth-arena { width: 100%; max-width: 100%; overflow-x: clip; }
-.arena-entry {
-  min-height: 100vh;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: clip;
-  background:
-    radial-gradient(circle at 8% 12%,rgb(251 146 60 / .18),transparent 24rem),
-    radial-gradient(circle at 92% 82%,rgb(163 230 53 / .16),transparent 27rem),
-    linear-gradient(135deg,#fff8eb 0%,#fffdf7 48%,#f3f8e8 100%);
-  color: #21140d;
-}
-.arena-entry .arena-shell {
-  background:
-    radial-gradient(circle at 12% 8%,rgb(251 146 60 / .12),transparent 24rem),
-    radial-gradient(circle at 88% 18%,rgb(163 230 53 / .13),transparent 26rem),
-    linear-gradient(180deg,#fffdf8 0%,#fff9ef 58%,#f3f8e8 100%);
-}
-.arena-entry .arena-panel { border-color:rgb(120 53 15 / .13); background:rgb(255 255 255 / .88); box-shadow:0 12px 35px rgb(87 52 20 / .08); }
-.arena-entry .arena-panel-strong { border-color:rgb(249 115 22 / .2); background:linear-gradient(145deg,#fff 0%,#fff8ed 100%); box-shadow:0 24px 60px rgb(120 53 15 / .12); }
-.arena-entry .arena-section-title { color:#21140d; }
-@media (max-width: 767px) {
-  .arena-header > div:first-of-type > div { min-height:64px; padding-inline:12px; }
-  .arena-header nav { max-height:calc(100dvh - 78px); overflow-y:auto; overscroll-behavior:contain; }
-  .arena-shell { border-radius:1.25rem; }
-}
-
-
-/* Warm color mapping for create/join and arena lobby */
-.arena-entry .arena-shell .bg-violet-700 { background-color:#c2410c; }
-.arena-entry .arena-shell .hover\\:bg-violet-800:hover { background-color:#9a3412; }
-.arena-entry .arena-shell .text-violet-700,.arena-entry .arena-shell .text-violet-800 { color:#c2410c; }
-.arena-entry .arena-shell .bg-violet-100,.arena-entry .arena-shell .bg-violet-50 { background-color:#ffedd5; }
-.arena-entry .arena-shell .border-violet-200,.arena-entry .arena-shell .border-violet-300 { border-color:#fed7aa; }
-.arena-entry .arena-shell .text-teal-700 { color:#047857; }
-.arena-entry .arena-shell .bg-teal-600 { background-color:#0f766e; }
-.arena-entry .arena-shell .hover\\:bg-teal-700:hover { background-color:#115e59; }
-
 /* Match history — editorial dashboard */
 .history-arena {
   background:
