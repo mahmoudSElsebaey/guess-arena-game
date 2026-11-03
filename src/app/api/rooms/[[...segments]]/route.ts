@@ -51,11 +51,13 @@ export async function GET(request:Request,{params}:Ctx){
   prisma.gameAction.findMany({where:{roomId,sequence:{gt:latestStart?.sequence??0},type:{in:["QUESTION_ASKED","TURN_CONFIRMED","GUESS_MADE","GAME_FINISHED","PLAYER_LEFT"]}},orderBy:{sequence:"desc"},take:40}),
   prisma.gameAction.findMany({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"asc"},select:{id:true,actorId:true,payload:true,createdAt:true}})
  ]);
- const roundHistory=finishedActions.flatMap((action,index)=>{
+ let roundNumber=0;
+ const roundHistory=finishedActions.flatMap(action=>{
   const p=action.payload&&typeof action.payload==="object"&&!Array.isArray(action.payload)?action.payload as Record<string,unknown>:{};
   const reason=typeof p.reason==="string"?p.reason:null;
   if(reason?.startsWith("REMATCH_"))return [];
-  return [{id:action.id,round:index+1,actorId:action.actorId,winnerId:typeof p.winnerId==="string"?p.winnerId:null,reason,createdAt:action.createdAt.toISOString()}];
+  roundNumber+=1;
+  return [{id:action.id,round:roundNumber,actorId:action.actorId,winnerId:typeof p.winnerId==="string"?p.winnerId:null,reason,createdAt:action.createdAt.toISOString()}];
  });
  const safeActions=actions.reverse().map(a=>{
   const p=a.payload&&typeof a.payload==="object"&&!Array.isArray(a.payload)?a.payload as Record<string,unknown>:{};
