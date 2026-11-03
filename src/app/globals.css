@@ -370,3 +370,21 @@ img, video, canvas, svg { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .arena-toast-pop { animation: none; }
 }
+
+
+/* One-shot wild guess + last-character spotlight */
+.arena-wild-guess-panel{
+  position:relative;overflow:hidden;border-color:rgb(251 191 36 / .24);
+  background:radial-gradient(circle at 92% 0%,rgb(251 191 36 / .13),transparent 16rem),linear-gradient(135deg,rgb(63 42 26 / .55),rgb(23 27 60 / .96) 55%,rgb(20 34 54 / .96));
+  box-shadow:0 16px 42px rgb(0 0 0 / .2),inset 0 1px rgb(255 255 255 / .04);
+}
+.arena-wild-guess-active{border-color:rgb(251 191 36 / .6);box-shadow:0 0 0 1px rgb(251 191 36 / .16),0 0 38px rgb(251 191 36 / .12),0 18px 50px rgb(0 0 0 / .24)}
+.arena-last-character{isolation:isolate;border-color:transparent!important;box-shadow:0 0 0 1px rgb(217 249 157 / .7),0 0 18px rgb(190 242 100 / .35),0 0 42px rgb(45 212 191 / .2);animation:arena-last-card-pulse 2.4s ease-in-out infinite}
+.arena-last-character::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;padding:2px;background:conic-gradient(from 0deg,transparent 0deg,#d9f99d 65deg,#5eead4 125deg,transparent 190deg,#fef08a 260deg,transparent 360deg);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:arena-last-ring-spin 3.2s linear infinite}
+.arena-last-character::after{content:"";position:absolute;inset:3px;z-index:2;pointer-events:none;border-radius:inherit;background:radial-gradient(ellipse at 50% 0%,rgb(217 249 157 / .2),transparent 58%);animation:arena-last-card-shimmer 2s ease-in-out infinite alternate}
+.arena-last-character-banner{border:1px solid rgb(190 242 100 / .32);background:radial-gradient(circle at 85% 50%,rgb(190 242 100 / .2),transparent 12rem),linear-gradient(100deg,rgb(101 163 13 / .18),rgb(13 148 136 / .13));box-shadow:0 0 28px rgb(190 242 100 / .1),inset 0 0 24px rgb(190 242 100 / .04)}
+.arena-wild-selected{border-color:#fbbf24!important;box-shadow:0 0 0 2px rgb(251 191 36 / .55),0 0 28px rgb(251 191 36 / .38)!important;transform:translateY(-3px) scale(1.025)}
+@keyframes arena-last-card-pulse{0%,100%{box-shadow:0 0 0 1px rgb(217 249 157 / .48),0 0 16px rgb(190 242 100 / .22),0 0 34px rgb(45 212 191 / .12)}50%{box-shadow:0 0 0 2px rgb(217 249 157 / .9),0 0 28px rgb(190 242 100 / .55),0 0 62px rgb(45 212 191 / .32)}}
+@keyframes arena-last-ring-spin{to{transform:rotate(360deg)}}
+@keyframes arena-last-card-shimmer{from{opacity:.25}to{opacity:.9}}
+@media(prefers-reduced-motion:reduce){.arena-last-character,.arena-last-character::before,.arena-last-character::after{animation:none}}
