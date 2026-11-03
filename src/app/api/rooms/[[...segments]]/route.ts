@@ -12,6 +12,10 @@ async function actor(){return (await auth())?.user?.id??null;}
 export async function GET(request:Request,{params}:Ctx){
  const userId=await actor();if(!userId)return NextResponse.json({error:"UNAUTHORIZED"},{status:401});
  const {segments=[]}=await params;
+ if(segments[0]==="active"){
+  const active=await prisma.room.findFirst({where:{status:"IN_PROGRESS",members:{some:{userId,leftAt:null}}},orderBy:{updatedAt:"desc"},select:{id:true}});
+  return NextResponse.json({roomId:active?.id??null},{headers:{"Cache-Control":"no-store"}});
+ }
  if(segments[0]==="realtime-token"){
   const roomId=new URL(request.url).searchParams.get("roomId");if(!roomId)return NextResponse.json({error:"ROOM_REQUIRED"},{status:400});
   const member=await prisma.roomMember.findFirst({where:{roomId,userId,leftAt:null}});if(!member)return NextResponse.json({error:"FORBIDDEN"},{status:403});
