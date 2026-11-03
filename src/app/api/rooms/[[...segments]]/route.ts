@@ -64,22 +64,22 @@ export async function POST(request:Request,{params}:Ctx){
  }
  if(segments[0]==="join"){
   const parsed=z.object({code:z.string().trim().regex(/^\d{6}$/)}).safeParse(body);if(!parsed.success)return NextResponse.json({error:"INVALID_ROOM_CODE"},{status:400});
-  try{const room=await prisma.$transaction(async tx=>{const current=await tx.room.findUnique({where:{code:parsed.data.code}});if(!current||current.status!=="WAITING"||(current.expiresAt&&current.expiresAt<new Date()))throw new Error("ROOM_NOT_AVAILABLE");const existing=await tx.roomMember.findUnique({where:{roomId_userId:{roomId:current.id,userId}}});if(existing&&!existing.leftAt)return current;const count=await tx.roomMember.count({where:{roomId:current.id,leftAt:null}});if(count>=current.maxPlayers)throw new Error("ROOM_FULL");const seat=count===0?1:2;if(existing)await tx.roomMember.update({where:{id:existing.id},data:{seat,isConnected:true,isReady:false,secretCharacterId:null,leftAt:null,lastSeenAt:new Date()}});else await tx.roomMember.create({data:{roomId:current.id,userId,seat}});const updated=await tx.room.update({where:{id:current.id},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId:current.id,actorId:userId,type:"ROOM_JOINED",payload:{seat}});return updated;});await publishRoomEvent(room.id,"room.updated",{roomId:room.id,version:room.version,status:room.status});return NextResponse.json({roomId:room.id,code:room.code});}catch(e){const m=e instanceof Error?e.message:"";const s=m==="ROOM_FULL"?409:m==="ROOM_NOT_AVAILABLE"?404:500;return NextResponse.json({error:s===500?"ROOM_JOIN_FAILED":m},{status:s});}
+  try{const room=await runRoomTransaction(async tx=>{const current=await tx.room.findUnique({where:{code:parsed.data.code}});if(!current||current.status!=="WAITING"||(current.expiresAt&&current.expiresAt<new Date()))throw new Error("ROOM_NOT_AVAILABLE");const existing=await tx.roomMember.findUnique({where:{roomId_userId:{roomId:current.id,userId}}});if(existing&&!existing.leftAt)return current;const count=await tx.roomMember.count({where:{roomId:current.id,leftAt:null}});if(count>=current.maxPlayers)throw new Error("ROOM_FULL");const seat=count===0?1:2;if(existing)await tx.roomMember.update({where:{id:existing.id},data:{seat,isConnected:true,isReady:false,secretCharacterId:null,leftAt:null,lastSeenAt:new Date()}});else await tx.roomMember.create({data:{roomId:current.id,userId,seat}});const updated=await tx.room.update({where:{id:current.id},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId:current.id,actorId:userId,type:"ROOM_JOINED",payload:{seat}});return updated;});await publishRoomEvent(room.id,"room.updated",{roomId:room.id,version:room.version,status:room.status});return NextResponse.json({roomId:room.id,code:room.code});}catch(e){const m=e instanceof Error?e.message:"";const s=m==="ROOM_FULL"?409:m==="ROOM_NOT_AVAILABLE"?404:500;return NextResponse.json({error:s===500?"ROOM_JOIN_FAILED":m},{status:s});}
  }
  const roomId=segments[0],action=segments[1];if(!roomId||segments.length!==2)return NextResponse.json({error:"NOT_FOUND"},{status:404});
  try{
   if(action==="ready"){
    const parsed=readySchema.safeParse(body);if(!parsed.success||(parsed.data.isReady&&!(await getActiveCharacterById(parsed.data.secretCharacterId??""))))return NextResponse.json({error:"INVALID_READY_STATE"},{status:400});
-   const room=await prisma.$transaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt||member.room.status!=="WAITING")throw new Error("ROOM_NOT_AVAILABLE");await tx.roomMember.update({where:{id:member.id},data:{isReady:parsed.data.isReady,secretCharacterId:parsed.data.isReady?parsed.data.secretCharacterId:null,lastSeenAt:new Date()}});const updated=await tx.room.update({where:{id:roomId},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_READY",payload:{isReady:parsed.data.isReady}});return updated;});await publishRoomEvent(roomId,"room.updated",{roomId,version:room.version,status:room.status});return NextResponse.json({ok:true});
+   const room=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt||member.room.status!=="WAITING")throw new Error("ROOM_NOT_AVAILABLE");await tx.roomMember.update({where:{id:member.id},data:{isReady:parsed.data.isReady,secretCharacterId:parsed.data.isReady?parsed.data.secretCharacterId:null,lastSeenAt:new Date()}});const updated=await tx.room.update({where:{id:roomId},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_READY",payload:{isReady:parsed.data.isReady}});return updated;});await publishRoomEvent(roomId,"room.updated",{roomId,version:room.version,status:room.status});return NextResponse.json({ok:true});
   }
   if(action==="start"){
-   const room=await prisma.$transaction(async tx=>{const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});if(!current)throw new Error("NOT_FOUND");if(current.hostId!==userId)throw new Error("FORBIDDEN");if(current.status!=="WAITING"||current.members.length!==2||current.members.some(m=>!m.isReady||!m.secretCharacterId))throw new Error("NOT_READY");const started=await tx.room.update({where:{id:roomId},data:{status:"IN_PROGRESS",startedAt:new Date(),currentTurnUserId:current.members[0].userId,turnNumber:1,version:{increment:1},expiresAt:null}});await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_STARTED",payload:{startedAt:started.startedAt?.toISOString()}});return started;});await publishRoomEvent(roomId,"game.started",{roomId,version:room.version,status:room.status,currentTurnUserId:room.currentTurnUserId});return NextResponse.json({ok:true,status:room.status});
+   const room=await runRoomTransaction(async tx=>{const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});if(!current)throw new Error("NOT_FOUND");if(current.hostId!==userId)throw new Error("FORBIDDEN");if(current.status!=="WAITING"||current.members.length!==2||current.members.some(m=>!m.isReady||!m.secretCharacterId))throw new Error("NOT_READY");const started=await tx.room.update({where:{id:roomId},data:{status:"IN_PROGRESS",startedAt:new Date(),currentTurnUserId:current.members[0].userId,turnNumber:1,version:{increment:1},expiresAt:null}});await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_STARTED",payload:{startedAt:started.startedAt?.toISOString()}});return started;});await publishRoomEvent(roomId,"game.started",{roomId,version:room.version,status:room.status,currentTurnUserId:room.currentTurnUserId});return NextResponse.json({ok:true,status:room.status});
   }
   if(action==="ask"){
    const parsed=z.object({questionId:z.string().min(1).max(40)}).safeParse(body);
    const question=parsed.success?await getActiveQuestionById(parsed.data.questionId):null;
    if(!parsed.success||!question)return NextResponse.json({error:"INVALID_QUESTION"},{status:400});
-   const result=await prisma.$transaction(async tx=>{
+   const result=await runRoomTransaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
@@ -103,7 +103,7 @@ export async function POST(request:Request,{params}:Ctx){
   if(action==="eliminate"){
    const parsed=z.object({characterId:z.string().min(1).max(40),eliminated:z.boolean()}).safeParse(body);
    if(!parsed.success||!(await getActiveCharacterById(parsed.data.characterId)))return NextResponse.json({error:"INVALID_CHARACTER"},{status:400});
-   const result=await prisma.$transaction(async tx=>{
+   const result=await runRoomTransaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},select:{status:true,version:true,currentTurnUserId:true}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
@@ -118,12 +118,12 @@ export async function POST(request:Request,{params}:Ctx){
     if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await tx.roomMember.update({where:{id:me.id},data:{eliminatedCharacterIds:[...ids]}});
     return {version:current.version+1,eliminatedCharacterIds:[...ids]};
-   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+   });
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version});
    return NextResponse.json({ok:true,...result});
   }
   if(action==="confirm"){
-   const result=await prisma.$transaction(async tx=>{
+   const result=await runRoomTransaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
@@ -135,14 +135,14 @@ export async function POST(request:Request,{params}:Ctx){
     if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"TURN_CONFIRMED",payload:{questionActionId:lastQuestion.id}});
     return {version:current.version+1,currentTurnUserId:next.userId};
-   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+   });
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,currentTurnUserId:result.currentTurnUserId});
    return NextResponse.json({ok:true,...result});
   }
   if(action==="guess"){
    const parsed=z.object({characterId:z.string().min(1).max(40)}).safeParse(body);
    if(!parsed.success||!(await getActiveCharacterById(parsed.data.characterId)))return NextResponse.json({error:"INVALID_GUESS"},{status:400});
-   const result=await prisma.$transaction(async tx=>{
+   const result=await runRoomTransaction(async tx=>{
     const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
     if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
@@ -166,7 +166,7 @@ export async function POST(request:Request,{params}:Ctx){
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct:false}});
     }
     return {correct,version:current.version+1,winnerId:correct?userId:null};
-   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+   });
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,winnerId:result.winnerId});
    return NextResponse.json({ok:true,...result});
   }
@@ -174,7 +174,7 @@ export async function POST(request:Request,{params}:Ctx){
    return NextResponse.json({error:"ROOM_CLOSED"}, {status:409});
   }
   if(action==="leave"){
-   const result=await prisma.$transaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt)throw new Error("NOT_MEMBER");if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});const closedAt=new Date();await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{}});if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});return {...updated,deleted:false};});await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status});return NextResponse.json({ok:true,deleted:result.deleted});
+   const result=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt)throw new Error("NOT_MEMBER");if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});const closedAt=new Date();await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{}});if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});return {...updated,deleted:false};});await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status});return NextResponse.json({ok:true,deleted:result.deleted});
   }
   return NextResponse.json({error:"NOT_FOUND"},{status:404});
  }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
