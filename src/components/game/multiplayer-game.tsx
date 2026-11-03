@@ -7,8 +7,9 @@ import { useGameSounds } from "@/hooks/use-game-sounds";
 import { CharacterPortrait } from "@/components/game/character-portrait";
 import { useRouter } from "@/i18n/navigation";
 
-type Action = { id:string; actorId:string; type:string; questionId:string|null; answer:boolean|null; characterId:string|null; correct:boolean|null; reason?:string|null; newRoomId?:string|null; createdAt:string };
-type Snapshot = { id:string; status:string; version:number; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; members:{userId:string;name:string;isMe:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[] };
+type Action = { id:string; actorId:string; type:string; questionId:string|null; answer:boolean|null; characterId:string|null; correct:boolean|null; reason?:string|null; winnerId?:string|null; newRoomId?:string|null; createdAt:string };
+type RoundResult = {id:string;round:number;actorId:string;winnerId:string|null;reason:string|null;createdAt:string};
+type Snapshot = { id:string; code:string; status:string; version:number; hostId:string; isHost:boolean; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; mySecretCharacterId:string|null; members:{userId:string;name:string;isMe:boolean;seat:number;isReady:boolean;isConnected:boolean;hasSecretCharacter:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[]; roundHistory:RoundResult[] };
 type CharacterOption = { id:string; name:string; avatar:string; attributes:Record<string,string|boolean> };
 type QuestionOption = { id:string; labelAr:string; labelEn:string; attributeKey:string; expectedValue:string|boolean; category:{slug:string;nameAr:string;nameEn:string}; sortOrder:number };
 type Feedback = { answer:boolean; id:string } | null;
@@ -33,6 +34,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  },[]);
  const [loading,setLoading]=useState(true);
  const [selectedCategory,setSelectedCategory]=useState("");
+ const [selectedSecretCharacterId,setSelectedSecretCharacterId]=useState("");
  const [feedback,setFeedback]=useState<Feedback>(null);
  const [countdown,setCountdown]=useState<number|string|null>(null);
  const [isFullscreen,setIsFullscreen]=useState(false);
@@ -89,6 +91,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  },[state,playSound]);
 
  useEffect(()=>{soundRef.current=playSound;},[playSound]);
+ useEffect(()=>{setSelectedSecretCharacterId(state?.mySecretCharacterId??"");},[state?.mySecretCharacterId]);
 
  useEffect(()=>{
   const status=state?.status;
@@ -158,6 +161,8 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const canFlip=myTurn&&hasPendingQuestion;
  const latestQuestion=questions.find(q=>q.id===latestQuestionAction?.questionId);
  const winner=state?.members.find(member=>member.userId===state.winnerId);
+ const myMember=state?.members.find(member=>member.isMe);
+ const bothReady=Boolean(state?.members.length===2&&state.members.every(member=>member.isReady&&member.hasSecretCharacter));
  const opponentLeft=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="PLAYER_LEFT")??false;
  const wrongGuess=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="WRONG_GUESS")??false;
  const rematchEvents=state?.actions.filter(action=>action.type==="GAME_FINISHED"&&action.reason?.startsWith("REMATCH_"))??[];
@@ -202,16 +207,39 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    const data=await response.json();
    if(!response.ok)throw new Error(data.error||"REMATCH_FAILED");
    if(!accept){router.replace("/play");return;}
-   if(data.newRoomId)router.replace(`/play/room/${data.newRoomId}`);
    await refresh();
+   notify(ar?"تمت الموافقة! اختارا شخصيتين جديدتين ثم ابدآ الجولة.":"Rematch accepted! Choose new characters and start the next round.","success");
   }catch(e){notify(e instanceof Error?e.message:(ar?"تعذر تنفيذ طلب إعادة المباراة.":"Could not process the rematch."),"error");}
   finally{setBusy(false);}
  }
  useEffect(()=>{
-  if(state?.status==="COMPLETED"&&rematchRoomId)router.replace(`/play/room/${rematchRoomId}`);
-  else if(state?.status==="COMPLETED"&&rematchResolved?.reason==="REMATCH_DECLINED")router.replace("/play");
- },[state?.status,rematchRoomId,rematchResolved?.reason,router]);
+  if(state?.status==="COMPLETED"&&rematchResolved?.reason==="REMATCH_DECLINED")router.replace("/play");
+ },[state?.status,rematchResolved?.reason,router]);
 
+ async function setPlayerReady(isReady:boolean){
+  if(busy||!state)return;
+  if(isReady&&!selectedSecretCharacterId){notify(ar?"اختار شخصيتك السرية أولًا.":"Choose your secret character first.","warning");return;}
+  setBusy(true);
+  try{
+   const response=await fetch(`/api/rooms/${roomId}/ready`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isReady,secretCharacterId:isReady?selectedSecretCharacterId:undefined})});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||"READY_FAILED");
+   await refresh();
+   notify(isReady?(ar?"أصبحت جاهزًا!":"You are ready!"):(ar?"يمكنك تغيير شخصيتك الآن.":"You can change your character now."),"success");
+  }catch(e){notify(e instanceof Error?e.message:(ar?"تعذر تحديث الاستعداد.":"Could not update readiness."),"error");}
+  finally{setBusy(false);}
+ }
+ async function startNewRound(){
+  if(busy||!state?.isHost||!bothReady)return;
+  setBusy(true);
+  try{
+   const response=await fetch(`/api/rooms/${roomId}/start`,{method:"POST"});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||"NOT_READY");
+   await refresh();
+  }catch(e){notify(e instanceof Error?e.message:(ar?"تعذر بدء المباراة.":"Could not start the match."),"error");}
+  finally{setBusy(false);}
+ }
  async function toggleFullscreen(){
   try{
    if(!document.fullscreenElement)await arenaRef.current?.requestFullscreen();
@@ -271,6 +299,33 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    <div className="grid gap-2 sm:grid-cols-2">{state.members.map(member=><div key={member.userId} className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 ${member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?"border-lime-300/40 bg-lime-300/10":"border-white/10 bg-[#171b3c]/80"}`}><div className="flex min-w-0 items-center gap-2.5"><span className="grid size-8 place-items-center rounded-lg bg-white/10 text-xs font-black">{member.isMe?"1":"2"}</span><p className="truncate text-sm font-extrabold text-white">{member.name}{member.isMe?(ar?" (أنت)":" (You)"):""}</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?"bg-lime-300 text-[#11182d]":"bg-white/10 text-white/60"}`}>{member.userId===state.currentTurnUserId&&state.status==="IN_PROGRESS"?(ar?"يلعب الآن":"Playing"):(ar?"ينتظر":"Waiting")}</span></div>)}</div>
 
 
+   {state.status==="WAITING"&&<section className="space-y-4">
+    <div className="rounded-2xl border border-lime-300/25 bg-gradient-to-br from-[#202448] via-[#171b3c] to-[#102a32] p-4 sm:p-6">
+     <div className="flex flex-wrap items-start justify-between gap-3">
+      <div><p className="text-[10px] font-black tracking-[.25em] text-lime-300">GUESS ARENA · {ar?"استعداد الجولة":"ROUND SETUP"}</p><h3 className="mt-2 text-2xl font-black text-white">{ar?"استعدوا لمواجهة جديدة!":"Get ready for a new duel!"}</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">{ar?"كل لاعب يختار شخصية سرية مختلفة عن الآخر ثم يضغط جاهز. صاحب الغرفة يبدأ المباراة بعد استعداد اللاعبين الاثنين.":"Each player chooses a secret character and marks ready. The room host starts once both players are ready."}</p></div>
+      <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2 text-center"><span className="block text-[9px] font-black text-white/40">{ar?"كود الغرفة":"ROOM CODE"}</span><strong className="text-xl font-black tracking-[.2em] text-lime-200">{state.code}</strong></div>
+     </div>
+     <div className="mt-5 grid gap-3 sm:grid-cols-2">{state.members.map(member=><div key={member.userId} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3"><div className="min-w-0"><p className="truncate text-sm font-black text-white">{member.name}{member.isMe?(ar?" (أنت)":" (You)"):""}</p><p className="mt-1 text-[10px] text-white/45">{member.isMe&&member.hasSecretCharacter?(ar?"تم اختيار الشخصية السرية":"Secret character selected"):member.isMe?(ar?"لم تختر شخصية بعد":"No character selected"):member.hasSecretCharacter?(ar?"اختار شخصية سرية":"Secret character selected"):(ar?"ينتظر اختيار الشخصية":"Choosing a character")}</p></div><span className={`rounded-full px-3 py-1.5 text-[10px] font-black ${member.isReady?"bg-emerald-300/15 text-emerald-200":"bg-amber-300/15 text-amber-200"}`}>{member.isReady?(ar?"جاهز":"READY"):(ar?"غير جاهز":"NOT READY")}</span></div>)}
+      {state.members.length<2&&<div className="rounded-xl border border-dashed border-white/15 bg-black/15 p-3 text-center text-xs font-bold text-white/50">{ar?"في انتظار انضمام اللاعب الثاني...":"Waiting for the second player to join..."}</div>}
+     </div>
+    </div>
+    {state.members.length===2&&<div className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 sm:p-5">
+     <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><p className="text-[10px] font-black tracking-[.2em] text-cyan-200">{ar?"اختر شخصيتك السرية":"YOUR SECRET CHARACTER"}</p><h4 className="mt-1 text-lg font-black text-white">{ar?"اختار شخصية واحدة فقط":"Choose exactly one character"}</h4></div><span className="rounded-full bg-white/5 px-3 py-1.5 text-[10px] font-bold text-white/55">{ar?"اختيارك مخفي عن الخصم":"Your choice stays hidden from your opponent"}</span></div>
+     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9">{characters.map(character=><button key={character.id} type="button" disabled={busy} onClick={()=>setSelectedSecretCharacterId(character.id)} aria-pressed={selectedSecretCharacterId===character.id} className={`min-w-0 overflow-hidden rounded-xl border p-1.5 text-center transition sm:rounded-2xl sm:p-2 ${selectedSecretCharacterId===character.id?"border-lime-300 bg-lime-300/15 shadow-[0_0_25px_rgba(190,242,100,.18)]":"border-white/10 bg-[#22264a] hover:border-lime-300/40"}`}>
+      <span className="block aspect-[4/4.8] overflow-hidden rounded-lg bg-gradient-to-br from-violet-200 to-cyan-100"><CharacterPortrait name={character.name} attributes={character.attributes} className="h-full w-full"/></span><span className="mt-1 block truncate text-[10px] font-black text-white sm:text-xs">{character.name}</span>{selectedSecretCharacterId===character.id&&<span className="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-lime-200"><Check size={12}/>{ar?"مختارة":"Selected"}</span>}
+     </button>)}</div>
+     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <p className="text-xs font-bold text-white/55">{myMember?.isReady?(ar?"أنت جاهز. يمكنك إلغاء الجاهزية لتغيير اختيارك.":"You are ready. Unready to change your choice."):(ar?"بعد اختيار الشخصية اضغط جاهز.":"Mark ready after selecting your character.")}</p>
+      <button type="button" disabled={busy||(!myMember?.isReady&&!selectedSecretCharacterId)} onClick={()=>void setPlayerReady(!Boolean(myMember?.isReady))} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-6 text-sm font-black text-[#102018] disabled:cursor-not-allowed disabled:opacity-40">{busy?<LoaderCircle size={17} className="animate-spin"/>:<Check size={17}/>}{myMember?.isReady?(ar?"إلغاء الجاهزية":"I'm not ready"):(ar?"أنا جاهز":"I'm ready")}</button>
+     </div>
+    </div>}
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+     <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4 sm:p-5"><div className="flex items-center gap-2"><History size={18} className="text-violet-200"/><h4 className="font-black text-white">{ar?"نتائج الجولات السابقة":"Previous round results"}</h4></div>
+      <div className="mt-3 space-y-2">{(state.roundHistory??[]).slice().reverse().map(round=>{const roundWinner=state.members.find(member=>member.userId===round.winnerId);return <div key={round.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/5 bg-[#0e1431] p-3"><div><p className="text-[10px] font-black text-white/45">{ar?`الجولة ${round.round}`:`ROUND ${round.round}`}</p><p className="mt-1 text-sm font-bold text-white">{roundWinner?(ar?`الفائز: ${roundWinner.name}`:`Winner: ${roundWinner.name}`):(ar?"لا يوجد فائز":"No winner")}</p></div><span className={`rounded-full px-3 py-1 text-[10px] font-black ${round.reason==="PLAYER_LEFT"?"bg-amber-300/15 text-amber-200":"bg-emerald-300/15 text-emerald-200"}`}>{round.reason==="PLAYER_LEFT"?(ar?"انسحاب":"Forfeit"):(ar?"انتهت":"Completed")}</span></div>})}{!state.roundHistory?.length&&<p className="rounded-xl bg-white/5 p-4 text-xs text-white/45">{ar?"لا توجد جولات سابقة حتى الآن.":"No previous rounds yet."}</p>}</div>
+     </section>
+     <aside className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4"><h4 className="font-black text-white">{ar?"بدء المباراة":"Start the match"}</h4><p className="mt-2 text-xs leading-6 text-white/55">{state.isHost?(ar?"بمجرد جاهزية اللاعبين الاثنين يمكنك بدء الجولة الجديدة.":"You can start when both players are ready."):(ar?"في انتظار صاحب الغرفة ليبدأ المباراة بعد جاهزية الجميع.":"Waiting for the room host to start once everyone is ready.")}</p>{state.isHost&&<button type="button" disabled={busy||!bothReady} onClick={()=>void startNewRound()} className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] disabled:cursor-not-allowed disabled:opacity-40"><Sparkles size={17}/>{ar?"ابدأ المباراة":"Start match"}</button>}<p className="mt-3 text-center text-[10px] font-bold text-white/40">{bothReady?(ar?"اللاعبان جاهزان":"Both players are ready"):(ar?"بانتظار جاهزية اللاعبين":"Waiting for both players")}</p></aside>
+    </div>
+   </section>}
    {state.status==="IN_PROGRESS"&&<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_310px]">
     <div className="min-w-0 space-y-3">
      <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 sm:p-4">
@@ -311,7 +366,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
    {error&&<div role="alert" aria-live="assertive" className="sr-only">{error}</div>}
   </div>
-  {state.status==="COMPLETED"&&!rematchPending&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`arena-feedback-pop my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.65)] sm:p-9 ${winner?.isMe?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-24 place-items-center rounded-[2rem] ${winner?.isMe?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}><Trophy size={54}/></div><p className={`mt-5 text-xs font-black tracking-[.3em] ${winner?.isMe?"text-emerald-200":"text-rose-200"}`}>GUESS ARENA · RESULT</p><h2 className="mt-3 text-3xl font-black text-white">{opponentLeft?(ar?"صديقك انسحب من المباراة":"Your opponent left the match"):winner?.isMe?(ar?"مبروك! أنت الفائز 🎉":"Congratulations! You won 🎉"):(ar?"حظ أوفر في المرة القادمة":"Better luck next time")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/75">{opponentLeft?(ar?"انتهت المباراة لأن اللاعب الآخر غادر الغرفة أو ضغط على مغادرة المباراة. تم احتساب الفوز لك.":"The match ended because your opponent left the room or chose to leave the match. The win has been awarded to you."):wrongGuess?(winner?.isMe?(ar?"خصمك أخطأ في تخمين شخصيتك، ولذلك فزت بالمباراة!":"Your opponent guessed incorrectly, so you win!"): (ar?"لقد أخطأت في تخمين الشخصية الأخيرة، ولذلك فاز خصمك.":"Your final guess was incorrect, so your opponent wins.")):winner?.isMe?(ar?"أحسنت! لقد استطعت اكتشاف شخصية صديقك قبل أن يتوقع شخصيتك.":"Great job! You guessed your friend character before they could guess yours."):(ar?`صديقك ${winner?.name??""} استطاع توقع شخصيتك قبلك. لا تستسلم، الجولة القادمة فرصتك!`:`Your friend ${winner?.name??""} guessed your character before you could guess theirs. The next round is yours!`)}</p><div className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-black ${winner?.isMe?"bg-emerald-300/15 text-emerald-100":"bg-rose-300/15 text-rose-100"}`}><Sparkles size={16}/>{winner?.isMe?(ar?"انتصار مستحق":"Well played"):(ar?"المنافسة لم تنته بعد":"The rivalry continues")}</div><div className="mt-8 grid gap-3 sm:grid-cols-2"><button type="button" disabled={busy} onClick={()=>void requestRematch()} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] disabled:opacity-50">{ar?"إعادة المباراة":"Rematch"}</button><a href={`/${locale}`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/15">{ar?"العودة للصفحة الرئيسية":"Back to home"}</a></div></div></div>}
+  {state.status==="COMPLETED"&&!rematchPending&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`arena-feedback-pop my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.65)] sm:p-9 ${winner?.isMe?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-24 place-items-center rounded-[2rem] ${winner?.isMe?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}><Trophy size={54}/></div><p className={`mt-5 text-xs font-black tracking-[.3em] ${winner?.isMe?"text-emerald-200":"text-rose-200"}`}>GUESS ARENA · RESULT</p><h2 className="mt-3 text-3xl font-black text-white">{opponentLeft?(ar?"صديقك انسحب من المباراة":"Your opponent left the match"):winner?.isMe?(ar?"مبروك! أنت الفائز 🎉":"Congratulations! You won 🎉"):(ar?"حظ أوفر في المرة القادمة":"Better luck next time")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/75">{opponentLeft?(ar?"انتهت المباراة لأن اللاعب الآخر غادر الغرفة أو ضغط على مغادرة المباراة. تم احتساب الفوز لك.":"The match ended because your opponent left the room or chose to leave the match. The win has been awarded to you."):wrongGuess?(winner?.isMe?(ar?"خصمك أخطأ في تخمين شخصيتك، ولذلك فزت بالمباراة!":"Your opponent guessed incorrectly, so you win!"): (ar?"لقد أخطأت في تخمين الشخصية الأخيرة، ولذلك فاز خصمك.":"Your final guess was incorrect, so your opponent wins.")):winner?.isMe?(ar?"أحسنت! لقد استطعت اكتشاف شخصية صديقك قبل أن يتوقع شخصيتك.":"Great job! You guessed your friend character before they could guess yours."):(ar?`صديقك ${winner?.name??""} استطاع توقع شخصيتك قبلك. لا تستسلم، الجولة القادمة فرصتك!`:`Your friend ${winner?.name??""} guessed your character before you could guess theirs. The next round is yours!`)}</p><div className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-black ${winner?.isMe?"bg-emerald-300/15 text-emerald-100":"bg-rose-300/15 text-rose-100"}`}><Sparkles size={16}/>{winner?.isMe?(ar?"انتصار مستحق":"Well played"):(ar?"المنافسة لم تنته بعد":"The rivalry continues")}</div><div className={`mt-8 grid gap-3 ${opponentLeft?"":"sm:grid-cols-2"}`}>{!opponentLeft&&<button type="button" disabled={busy} onClick={()=>void requestRematch()} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] disabled:opacity-50">{ar?"إعادة المباراة":"Rematch"}</button>}<a href={`/${locale}`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/15">{ar?"العودة للصفحة الرئيسية":"Back to home"}</a></div></div></div>}
   {rematchPending&&state.status==="COMPLETED"&&createPortal(<div className="fixed inset-0 z-[99999] grid place-items-center bg-[#070a1c]/90 p-4 backdrop-blur-xl" dir={ar?"rtl":"ltr"}><div role="alertdialog" aria-modal="true" className="arena-feedback-pop w-full max-w-md rounded-[2rem] border border-lime-300/30 bg-gradient-to-br from-[#242044] via-[#171b3c] to-[#102a32] p-7 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)]"><div className="mx-auto grid size-20 place-items-center rounded-[1.7rem] border border-lime-200/25 bg-lime-300/10 text-lime-200"><Trophy size={38}/></div><p className="mt-5 text-[10px] font-black tracking-[.3em] text-lime-300">GUESS ARENA · REMATCH</p><h2 className="mt-3 text-2xl font-black text-white">{requestedByMe?(ar?"تم إرسال طلب إعادة المباراة":"Rematch request sent"):(ar?"خصمك يطلب إعادة المباراة":"Your opponent wants a rematch")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/65">{requestedByMe?(ar?"في انتظار موافقة اللاعب الآخر.":"Waiting for the other player to respond."):(ar?"هل توافق على بدء جولة جديدة؟ سيتم اختيار الشخصيات السرية من البداية.":"Accept to start a fresh round. Both players will choose new secret characters.")}</p>{!requestedByMe&&<div className="mt-7 grid gap-3 sm:grid-cols-2"><button type="button" disabled={busy} onClick={()=>void respondRematch(true)} className="min-h-12 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-4 text-sm font-black text-[#102018] disabled:opacity-50">{ar?"موافق، نعيد المباراة":"Accept rematch"}</button><button type="button" disabled={busy} onClick={()=>void respondRematch(false)} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-black text-white disabled:opacity-50">{ar?"رفض والعودة للعب":"Decline"}</button></div>}</div></div>,document.body)}
   {leaveDestination&&createPortal(<div className="fixed inset-0 z-[99996] grid place-items-center overflow-y-auto bg-[#070a1c]/85 p-4 backdrop-blur-md" dir={ar?"rtl":"ltr"}>
    <div role="alertdialog" aria-modal="true" aria-labelledby="leave-dialog-title" aria-describedby="leave-dialog-description" className="arena-feedback-pop my-auto w-full max-w-md rounded-[2rem] border border-orange-300/30 bg-gradient-to-br from-[#242044] via-[#171b3c] to-[#102a32] p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)] sm:p-8">
