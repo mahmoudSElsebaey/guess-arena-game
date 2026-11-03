@@ -94,8 +94,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  useEffect(()=>{setSelectedSecretCharacterId(state?.mySecretCharacterId??"");},[state?.mySecretCharacterId]);
 
  useEffect(()=>{
-  const status=state?.status;
-  if(status!=="IN_PROGRESS"){
+  if(!state||state.status!=="IN_PROGRESS"){
    countdownStarted.current=false;
    if(countdownTimer.current){window.clearInterval(countdownTimer.current);countdownTimer.current=null;}
    setCountdown(null);
