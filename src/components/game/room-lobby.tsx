@@ -122,19 +122,19 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
       {!room ? (
         <div className={mode === "both" ? "grid gap-4 lg:grid-cols-2" : "mx-auto grid max-w-2xl gap-4"}>
           {mode !== "join" && (
-          <article className="arena-panel-strong arena-interactive relative overflow-hidden rounded-3xl p-5 sm:p-7">
+          <article className="room-action-card room-create-card relative overflow-hidden rounded-[2rem] p-6 sm:p-8">
             <div className="absolute -end-10 -top-12 size-40 rounded-full bg-violet-100/80 blur-2xl" />
             <div className="relative">
               <div className="grid size-12 place-items-center rounded-2xl bg-orange-100 text-orange-700"><Gamepad2 size={24} /></div>
               <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "أنشئ غرفة جديدة" : "Create a new room"}</h3>
               <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "ابدأ التحدي وادعُ صديقك بكود خاص. أنت ستكون مضيف الغرفة." : "Start a challenge and invite a friend with a private code. You will host the room."}</p>
-              <button type="button" disabled={busy} onClick={create} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-800 disabled:cursor-wait disabled:opacity-50">
+              <button type="button" disabled={busy} onClick={create} className="room-action-primary mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 font-extrabold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-50">
                 {busy ? <LoaderCircle size={18} className="animate-spin" /> : <WandSparkles size={18} />}{ar ? "إنشاء غرفة ودعوة صديق" : "Create room & invite a friend"}
               </button>
             </div>
           </article>
           )}
-          {mode !== "create" && <article className="arena-panel arena-interactive rounded-3xl p-5 sm:p-7">
+          {mode !== "create" && <article className="room-action-card room-join-card rounded-[2rem] p-6 sm:p-8">
             <div className="grid size-12 place-items-center rounded-2xl bg-teal-50 text-teal-700"><DoorOpen size={24} /></div>
             <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "انضم إلى غرفة" : "Join a room"}</h3>
             <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "هل وصلك كود الدعوة؟ أدخله هنا للانضمام إلى المباراة." : "Have an invite code? Enter it here to join the match."}</p>
@@ -143,7 +143,7 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
                 <span className="sr-only">{ar ? "كود الغرفة" : "Room code"}</span>
                 <input value={code} onChange={event => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} maxLength={6} inputMode="numeric" autoComplete="one-time-code" placeholder={ar ? "أدخل الكود المكون من 6 أرقام" : "Enter 6-digit room code"} className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-center text-lg font-black tracking-[.35em] text-slate-900 outline-none transition placeholder:text-xs placeholder:font-medium placeholder:tracking-normal focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
               </label>
-              <button type="submit" disabled={busy || code.length !== 6} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{ar ? "انضمام" : "Join"} <Users size={17} /></button>
+              <button type="submit" disabled={busy || code.length !== 6} className="room-action-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 font-extrabold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40">{ar ? "انضمام" : "Join"} <Users size={17} /></button>
             </form>
             <p className="mt-3 text-xs text-slate-400">{ar ? "تأكد من إدخال الأرقام الستة بشكل صحيح." : "Make sure all six digits are entered correctly."}</p>
           </article>}
