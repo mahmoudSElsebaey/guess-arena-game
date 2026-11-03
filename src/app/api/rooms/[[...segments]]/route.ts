@@ -204,6 +204,7 @@ export async function POST(request:Request,{params}:Ctx){
    const result=await runRoomTransaction(async tx=>{
     const room=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
     if(!room||room.status!=="COMPLETED"||room.members.length!==2)throw new Error("MATCH_NOT_COMPLETED");
+    if(!room.members.some(member=>member.userId===userId))throw new Error("NOT_MEMBER");
     const latest=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
     const payload=latest?.payload&&typeof latest.payload==="object"&&!Array.isArray(latest.payload)?latest.payload as Record<string,unknown>:{};
     if(payload.reason!=="REMATCH_REQUESTED"||typeof payload.requesterId!=="string")throw new Error("NO_REMATCH_REQUEST");
