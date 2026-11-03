@@ -156,6 +156,31 @@ export async function POST(request:Request,{params}:Ctx){
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,currentTurnUserId:result.currentTurnUserId});
    return NextResponse.json({ok:true,...result});
   }
+  if(action==="wild-guess"){
+   const parsed=z.object({characterId:z.string().min(1).max(40)}).safeParse(body);
+   if(!parsed.success||!(await getActiveCharacterById(parsed.data.characterId)))return NextResponse.json({error:"INVALID_CHARACTER"},{status:400});
+   const result=await runRoomTransaction(async tx=>{
+    const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
+    if(!current||current.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
+    if(current.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
+    const me=current.members.find(m=>m.userId===userId),opponent=current.members.find(m=>m.userId!==userId);
+    if(!me||!opponent?.secretCharacterId)throw new Error("OPPONENT_REQUIRED");
+    if(me.eliminatedCharacterIds.includes(parsed.data.characterId))throw new Error("CHARACTER_ELIMINATED");
+    const roundStart=await tx.gameAction.findFirst({where:{roomId,type:"GAME_STARTED"},orderBy:{sequence:"desc"},select:{sequence:true}});
+    const previousGuess=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"GUESS_MADE",sequence:{gt:roundStart?.sequence??0}},select:{id:true}});
+    if(previousGuess)throw new Error("GUESS_ALREADY_USED");
+    const correct=opponent.secretCharacterId===parsed.data.characterId;
+    const nextWinner=correct?userId:opponent.userId;
+    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{status:"COMPLETED",winnerId:nextWinner,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
+    if(changed.count!==1)throw new Error("STATE_CONFLICT");
+    await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isConnected:false,isReady:false}});
+    await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct,mode:"WILD"}});
+    await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:correct?{winnerId:userId}:{reason:"WRONG_GUESS",winnerId:opponent.userId}});
+    return {correct,version:current.version+1,winnerId:nextWinner};
+   });
+   await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,winnerId:result.winnerId});
+   return NextResponse.json({ok:true,...result});
+  }
   if(action==="guess"){
    const parsed=z.object({characterId:z.string().min(1).max(40)}).safeParse(body);
    if(!parsed.success||!(await getActiveCharacterById(parsed.data.characterId)))return NextResponse.json({error:"INVALID_GUESS"},{status:400});
@@ -234,5 +259,5 @@ export async function POST(request:Request,{params}:Ctx){
    const result=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt)throw new Error("NOT_MEMBER");if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});const closedAt=new Date();await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{}});if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});return {...updated,deleted:false};});await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status});return NextResponse.json({ok:true,deleted:result.deleted});
   }
   return NextResponse.json({error:"NOT_FOUND"},{status:404});
- }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED","REMATCH_ALREADY_REQUESTED","REMATCH_ALREADY_RESOLVED","REMATCH_NOT_AVAILABLE_AFTER_LEAVE","NO_REMATCH_REQUEST","CANNOT_RESPOND_TO_OWN_REQUEST"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
+ }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","GUESS_ALREADY_USED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED","REMATCH_ALREADY_REQUESTED","REMATCH_ALREADY_RESOLVED","REMATCH_NOT_AVAILABLE_AFTER_LEAVE","NO_REMATCH_REQUEST","CANNOT_RESPOND_TO_OWN_REQUEST"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
 }
