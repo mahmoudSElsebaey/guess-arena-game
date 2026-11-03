@@ -108,11 +108,11 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
   };
 
   return (
-    <section dir={ar ? "rtl" : "ltr"} aria-label={ar ? "غرف اللعب أونلاين" : "Online game rooms"} className="arena-shell relative isolate mx-auto my-7 w-full max-w-7xl overflow-hidden rounded-[2rem] px-4 py-6 sm:my-10 sm:px-7 sm:py-9">
+    <section dir={ar ? "rtl" : "ltr"} aria-label={ar ? "غرف اللعب أونلاين" : "Online game rooms"} className="arena-shell room-lobby-warm relative isolate mx-auto my-7 w-full max-w-7xl overflow-hidden rounded-[2rem] px-4 py-6 sm:my-10 sm:px-7 sm:py-9">
       <div className="pointer-events-none absolute inset-0 -z-10 arena-grid-bg opacity-60" />
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-3 py-1.5 text-[11px] font-black tracking-wider text-violet-700"><Sparkles size={14} /> GUESS ARENA · LIVE</div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-3 py-1.5 text-[11px] font-black tracking-wider text-orange-700"><Sparkles size={14} /> GUESS ARENA · LIVE</div>
           <h2 className="arena-section-title mt-3 text-3xl font-black tracking-tight sm:text-4xl">{ar ? "ساحة التحدي" : "The challenge arena"}</h2>
           <p className="mt-2 max-w-xl text-sm leading-7 text-slate-600">{ar ? "أنشئ غرفة خاصة أو انضم إلى صديق، واختبروا مهارات التخمين وجهًا لوجه." : "Create a private room or join a friend and put your guessing skills to the test."}</p>
         </div>
@@ -125,7 +125,7 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
           <article className="arena-panel-strong arena-interactive relative overflow-hidden rounded-3xl p-5 sm:p-7">
             <div className="absolute -end-10 -top-12 size-40 rounded-full bg-violet-100/80 blur-2xl" />
             <div className="relative">
-              <div className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Gamepad2 size={24} /></div>
+              <div className="grid size-12 place-items-center rounded-2xl bg-orange-100 text-orange-700"><Gamepad2 size={24} /></div>
               <h3 className="mt-5 text-xl font-black text-slate-950">{ar ? "أنشئ غرفة جديدة" : "Create a new room"}</h3>
               <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">{ar ? "ابدأ التحدي وادعُ صديقك بكود خاص. أنت ستكون مضيف الغرفة." : "Start a challenge and invite a friend with a private code. You will host the room."}</p>
               <button type="button" disabled={busy} onClick={create} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 font-extrabold text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-800 disabled:cursor-wait disabled:opacity-50">
@@ -151,24 +151,24 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-5">
-            <div className="arena-panel-strong relative overflow-hidden rounded-3xl bg-slate-950 p-5 text-white sm:p-7">
-              <div className="absolute -end-10 -top-20 size-64 rounded-full bg-violet-600/30 blur-3xl" />
+            <div className="room-code-card relative overflow-hidden rounded-[2rem] p-6 text-stone-950 sm:p-9">
+              <div className="pointer-events-none absolute -end-10 -top-20 size-64 rounded-full bg-lime-300/35 blur-3xl" />
               <div className="relative flex flex-wrap items-center justify-between gap-5">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-violet-200"><span className="inline-flex items-center gap-2"><span className={`size-2 rounded-full ${syncStatus === "connected" ? "animate-pulse bg-teal-400" : "bg-amber-400"}`} />{ar ? "غرفة خاصة · في انتظار التحدي" : "PRIVATE ROOM · READY TO PLAY"}</span><span role="status" aria-live="polite" className={`rounded-full px-2.5 py-1 text-[10px] ${syncStatus === "connected" ? "bg-emerald-400/15 text-emerald-200" : "bg-amber-400/15 text-amber-200"}`}>{syncStatus === "connected" ? (ar ? "متصل" : "Connected") : (ar ? "جاري إعادة الاتصال..." : "Reconnecting...")}</span></div>
-                  <p className="mt-3 text-sm text-slate-300">{ar ? "شارك كود الدعوة مع اللاعب الثاني" : "Share this invite code with player two"}</p>
-                  <p dir="ltr" className="mt-1 text-4xl font-black tracking-[.28em] sm:text-5xl">{room.code}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-black text-orange-800"><span className="inline-flex items-center gap-2"><span className={`size-2 rounded-full ${syncStatus === "connected" ? "animate-pulse bg-teal-400" : "bg-amber-400"}`} />{ar ? "غرفة خاصة · في انتظار التحدي" : "PRIVATE ROOM · READY TO PLAY"}</span><span role="status" aria-live="polite" className={`rounded-full px-2.5 py-1 text-[10px] ${syncStatus === "connected" ? "bg-emerald-400/15 text-emerald-200" : "bg-amber-400/15 text-amber-200"}`}>{syncStatus === "connected" ? (ar ? "متصل" : "Connected") : (ar ? "جاري إعادة الاتصال..." : "Reconnecting...")}</span></div>
+                  <p className="mt-4 text-sm font-bold text-stone-600">{ar ? "شارك كود الدعوة مع اللاعب الثاني" : "Share this invite code with player two"}</p>
+                  <p dir="ltr" className="mt-2 inline-flex rounded-2xl border-2 border-dashed border-orange-300 bg-white/75 px-5 py-3 text-4xl font-black tracking-[.28em] text-stone-950 shadow-inner sm:text-5xl">{room.code}</p>
                 </div>
-                <button type="button" onClick={() => void copyCode()} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 font-bold text-white transition hover:bg-white/20"><Copy size={17} />{copied ? (ar ? "تم النسخ" : "Copied") : (ar ? "نسخ الكود" : "Copy code")}</button>
+                <button type="button" onClick={() => void copyCode()} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 px-5 font-black text-white shadow-lg shadow-orange-900/15 transition hover:-translate-y-0.5 hover:brightness-105"><Copy size={17} />{copied ? (ar ? "تم النسخ" : "Copied") : (ar ? "نسخ الكود" : "Copy code")}</button>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {room.members.map(member => (
-                <article key={member.userId} className="arena-panel rounded-2xl p-4 sm:p-5">
+                <article key={member.userId} className="room-player-card rounded-2xl p-4 sm:p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Crown size={19} /></div>
+                      <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-700"><Crown size={19} /></div>
                       <div className="min-w-0"><p className="truncate font-extrabold text-slate-900">{member.name} {member.isMe ? (ar ? "(أنت)" : "(You)") : ""}</p><p className="mt-0.5 text-xs text-slate-500">{ar ? `اللاعب ${member.seat}` : `Player ${member.seat}`}</p></div>
                     </div>
                     <span className={`size-2.5 shrink-0 rounded-full ${member.isConnected ? "bg-emerald-500" : "bg-slate-300"}`} title={member.isConnected ? (ar ? "متصل" : "Connected") : (ar ? "غير متصل" : "Offline")} />
@@ -179,24 +179,24 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
                   </div>
                 </article>
               ))}
-              {room.members.length < 2 && <div className="grid min-h-32 place-items-center rounded-2xl border border-dashed border-violet-300 bg-violet-50/60 p-5 text-center"><div><Users size={25} className="mx-auto text-violet-500" /><p className="mt-2 font-bold text-violet-800">{ar ? "في انتظار اللاعب الثاني..." : "Waiting for player two..."}</p><p className="mt-1 text-xs text-violet-600">{ar ? "أرسل كود الغرفة ليتمكن من الانضمام" : "Send the room code so they can join"}</p></div></div>}
+              {room.members.length < 2 && <div className="grid min-h-32 place-items-center rounded-2xl border border-dashed border-orange-300 bg-orange-50/80 p-5 text-center"><div><Users size={25} className="mx-auto text-orange-600" /><p className="mt-2 font-black text-orange-900">{ar ? "في انتظار اللاعب الثاني..." : "Waiting for player two..."}</p><p className="mt-1 text-xs text-orange-700">{ar ? "أرسل كود الغرفة ليتمكن من الانضمام" : "Send the room code so they can join"}</p></div></div>}
             </div>
 
             {room.status === "WAITING" && (
               <div className="arena-panel rounded-3xl p-5 sm:p-6">
-                <div className="flex items-center gap-2"><Sparkles size={18} className="text-violet-600" /><h3 className="text-lg font-black text-slate-950">{ar ? "اختر شخصيتك السرية" : "Choose your secret character"}</h3></div>
+                <div className="flex items-center gap-2"><Sparkles size={18} className="text-orange-700" /><h3 className="text-lg font-black text-slate-950">{ar ? "اختر شخصيتك السرية" : "Choose your secret character"}</h3></div>
                 <p className="mt-1 text-sm text-slate-500">{ar ? "لن تظهر الشخصية التي تختارها لخصمك." : "Your selected character will never be shown to your opponent."}</p>
                 <div className="mt-4">
                   <span className="mb-2 block text-xs font-bold text-slate-500">{ar ? "شخصيتك السرية" : "Your secret character"}</span>
-                  <button type="button" disabled={contentLoading || busy} onClick={() => setCharacterPickerOpen(true)} className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-start text-sm font-bold text-slate-800 transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50">
+                  <button type="button" disabled={contentLoading || busy} onClick={() => setCharacterPickerOpen(true)} className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-start text-sm font-bold text-slate-800 transition hover:border-orange-300 hover:bg-orange-50 disabled:opacity-50">
                     <span className="flex items-center gap-3">{character ? <span className="grid size-11 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-100 to-teal-100">{character&&characters.find(item => item.id === character)?<CharacterPortrait name={characters.find(item => item.id === character)!.name} attributes={characters.find(item => item.id === character)!.attributes}/>:<span className="text-2xl">?</span>}</span> : <span className="grid size-11 place-items-center rounded-xl bg-slate-100 text-xl">?</span>}<span>{character ? characters.find(item => item.id === character)?.name : contentLoading ? (ar ? "جارٍ تحميل الشخصيات..." : "Loading characters...") : (ar ? "اضغط لاختيار شخصية" : "Tap to choose a character")}</span></span><span className="rounded-lg bg-violet-100 px-3 py-2 text-xs font-black text-violet-700">{ar ? "اختيار" : "Choose"}</span>
                   </button>
                 </div>
                 {characterPickerOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/75 p-3 backdrop-blur-md sm:p-6" role="dialog" aria-modal="true" aria-labelledby="character-picker-title" onMouseDown={event => { if (event.target === event.currentTarget) setCharacterPickerOpen(false); }}>
-                  <div className="flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/15 bg-[#171536] text-white shadow-2xl">
-                    <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-7"><div><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · CHARACTER SELECT</p><h3 id="character-picker-title" className="mt-1 text-xl font-black">{ar ? "اختار شخصيتك السرية" : "Choose your secret character"}</h3><p className="mt-1 text-xs text-white/45">{ar ? "اختيارك مش هيظهر لخصمك." : "Your choice stays hidden from your opponent."}</p></div><button type="button" onClick={() => setCharacterPickerOpen(false)} className="grid size-10 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/15" aria-label={ar ? "إغلاق" : "Close"}><X size={19}/></button></header>
-                    <div className="overflow-y-auto p-4 sm:p-6"><div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6">{characters.map(item=><button key={item.id} type="button" onClick={()=>{setCharacter(item.id);setCharacterPickerOpen(false);}} className={`group min-w-0 overflow-hidden rounded-2xl border p-2 text-center transition hover:-translate-y-1 hover:border-lime-300/70 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-lime-300 ${character===item.id?"border-lime-300 bg-lime-300/10 ring-2 ring-lime-300/30":"border-white/10 bg-white/[.04]"}`}><span className="grid aspect-[4/4.4] place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-300/25 to-cyan-300/15"><CharacterPortrait name={item.name} attributes={item.attributes}/></span><span className="mt-2 block truncate text-xs font-extrabold">{item.name}</span>{character===item.id&&<span className="mt-1 inline-flex items-center gap-1 text-[10px] font-black text-lime-300"><Check size={12}/>{ar?"تم الاختيار":"Selected"}</span>}</button>)}</div></div>
-                    <footer className="border-t border-white/10 px-5 py-3 text-center text-[11px] font-semibold text-white/40">{ar ? `إجمالي الشخصيات: ${characters.length}` : `Total characters: ${characters.length}`}</footer>
+                  <div className="flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-orange-200 bg-[#fffaf1] text-stone-900 shadow-2xl">
+                    <header className="flex items-center justify-between gap-3 border-b border-orange-100 px-5 py-4 sm:px-7"><div><p className="text-[10px] font-black tracking-[.2em] text-orange-600">GUESS ARENA · CHARACTER SELECT</p><h3 id="character-picker-title" className="mt-1 text-xl font-black">{ar ? "اختار شخصيتك السرية" : "Choose your secret character"}</h3><p className="mt-1 text-xs text-stone-500">{ar ? "اختيارك مش هيظهر لخصمك." : "Your choice stays hidden from your opponent."}</p></div><button type="button" onClick={() => setCharacterPickerOpen(false)} className="grid size-10 place-items-center rounded-xl bg-orange-100 text-orange-800 hover:bg-orange-200" aria-label={ar ? "إغلاق" : "Close"}><X size={19}/></button></header>
+                    <div className="overflow-y-auto p-4 sm:p-6"><div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6">{characters.map(item=><button key={item.id} type="button" onClick={()=>{setCharacter(item.id);setCharacterPickerOpen(false);}} className={`group min-w-0 overflow-hidden rounded-2xl border p-2 text-center transition hover:-translate-y-1 hover:border-lime-300/70 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-lime-300 ${character===item.id?"border-lime-300 bg-lime-300/10 ring-2 ring-lime-300/30":"border-orange-100 bg-white"}`}><span className="grid aspect-[4/4.4] place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 to-lime-100"><CharacterPortrait name={item.name} attributes={item.attributes}/></span><span className="mt-2 block truncate text-xs font-extrabold">{item.name}</span>{character===item.id&&<span className="mt-1 inline-flex items-center gap-1 text-[10px] font-black text-lime-300"><Check size={12}/>{ar?"تم الاختيار":"Selected"}</span>}</button>)}</div></div>
+                    <footer className="border-t border-orange-100 px-5 py-3 text-center text-[11px] font-semibold text-stone-500">{ar ? `إجمالي الشخصيات: ${characters.length}` : `Total characters: ${characters.length}`}</footer>
                   </div>
                 </div>}
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
