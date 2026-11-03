@@ -170,6 +170,46 @@ export async function POST(request:Request,{params}:Ctx){
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,winnerId:result.winnerId});
    return NextResponse.json({ok:true,...result});
   }
+  if(action==="rematch-request"){
+   const result=await runRoomTransaction(async tx=>{
+    const room=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
+    if(!room||room.status!=="COMPLETED")throw new Error("MATCH_NOT_COMPLETED");
+    if(room.members.length!==2||!room.members.some(m=>m.userId===userId))throw new Error("OPPONENT_REQUIRED");
+    const latest=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
+    const payload=latest?.payload&&typeof latest.payload==="object"&&!Array.isArray(latest.payload)?latest.payload as Record<string,unknown>:{};
+    if(payload.reason==="REMATCH_REQUESTED")throw new Error("REMATCH_ALREADY_REQUESTED");
+    if(typeof payload.newRoomId==="string")throw new Error("REMATCH_ALREADY_RESOLVED");
+    await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_REQUESTED",requesterId:userId}});
+    return {version:room.version+1};
+   });
+   await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,rematchRequested:true});
+   return NextResponse.json({ok:true});
+  }
+  if(action==="rematch-response"){
+   const parsed=z.object({accept:z.boolean()}).safeParse(body);
+   if(!parsed.success)return NextResponse.json({error:"INVALID_RESPONSE"},{status:400});
+   const result=await runRoomTransaction(async tx=>{
+    const room=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});
+    if(!room||room.status!=="COMPLETED"||room.members.length!==2)throw new Error("MATCH_NOT_COMPLETED");
+    const latest=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
+    const payload=latest?.payload&&typeof latest.payload==="object"&&!Array.isArray(latest.payload)?latest.payload as Record<string,unknown>:{};
+    if(payload.reason!=="REMATCH_REQUESTED"||typeof payload.requesterId!=="string")throw new Error("NO_REMATCH_REQUEST");
+    if(payload.requesterId===userId)throw new Error("CANNOT_RESPOND_TO_OWN_REQUEST");
+    if(parsed.data.accept){
+     const code=makeRoomCode();
+     const created=await tx.room.create({data:{code,hostId:room.hostId,expiresAt:new Date(Date.now()+1800000),members:{create:room.members.map(m=>({userId:m.userId,seat:m.seat}))}}});
+     await appendRoomAction(tx,{roomId:created.id,actorId:userId,type:"ROOM_CREATED",payload:{code,rematchOf:roomId}});
+     for(const member of room.members)await appendRoomAction(tx,{roomId:created.id,actorId:member.userId,type:"ROOM_JOINED",payload:{seat:member.seat,rematchOf:roomId}});
+     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_ACCEPTED",newRoomId:created.id}});
+     return {accepted:true,newRoomId:created.id,version:room.version+1};
+    }
+    await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_DECLINED"}});
+    return {accepted:false,newRoomId:null,version:room.version+1};
+   });
+   await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,rematchResolved:true,newRoomId:result.newRoomId});
+   if(result.newRoomId)await publishRoomEvent(result.newRoomId,"room.updated",{roomId:result.newRoomId,status:"WAITING"});
+   return NextResponse.json({ok:true,...result});
+  }
   if(action==="rematch"){
    return NextResponse.json({error:"ROOM_CLOSED"}, {status:409});
   }
@@ -177,5 +217,5 @@ export async function POST(request:Request,{params}:Ctx){
    const result=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt)throw new Error("NOT_MEMBER");if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});const closedAt=new Date();await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{}});if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});return {...updated,deleted:false};});await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status});return NextResponse.json({ok:true,deleted:result.deleted});
   }
   return NextResponse.json({error:"NOT_FOUND"},{status:404});
- }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
+ }catch(e){const m=e instanceof Error?e.message:"";const s=m==="FORBIDDEN"?403:["NOT_READY","ROOM_NOT_AVAILABLE","GAME_NOT_ACTIVE","NOT_YOUR_TURN","QUESTION_ALREADY_ASKED","QUESTION_ALREADY_PENDING","ASK_BEFORE_FLIP","LAST_CHARACTER_REQUIRED","CHARACTER_ELIMINATED","ONE_CHARACTER_REQUIRED","STATE_CONFLICT","MATCH_NOT_COMPLETED","OPPONENT_REQUIRED","REMATCH_ALREADY_REQUESTED","REMATCH_ALREADY_RESOLVED","NO_REMATCH_REQUEST","CANNOT_RESPOND_TO_OWN_REQUEST"].includes(m)?409:m==="INVALID_QUESTION"||m==="INVALID_CHARACTER"?400:404;return NextResponse.json({error:m||"ROOM_ACTION_FAILED"},{status:s});}
 }
