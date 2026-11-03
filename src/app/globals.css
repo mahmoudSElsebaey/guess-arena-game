@@ -151,6 +151,22 @@ button, a { touch-action: manipulation; }
 
 
 /* Full-screen duel and feedback effects */
+/* Automatically expand the arena after the opening countdown. */
+.arena-game-stage--expanded {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: clamp(8px, 1.5vw, 24px) !important;
+  background: #0b1028 !important;
+}
 .arena-game-stage:fullscreen {
   width: 100vw;
   height: 100dvh;
