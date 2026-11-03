@@ -346,3 +346,13 @@ img, video, canvas, svg { max-width: 100%; }
 .arena-game-stage button { touch-action:manipulation; }
 .arena-game-stage [aria-label^="قلب "], .arena-game-stage [aria-label^="Flip "] { scroll-margin-block:5rem; }
 .arena-countdown-number { border-color:#fed7aa; box-shadow:0 0 90px rgb(249 115 22 / .3),0 0 150px rgb(163 230 53 / .18); }
+
+/* Create / join room cards — same warm identity as auth and header */
+.room-action-card { position:relative; isolation:isolate; border:1px solid rgb(194 65 12 / .13); box-shadow:0 24px 60px rgb(120 53 15 / .09); }
+.room-create-card { background:radial-gradient(circle at 92% 8%,rgb(190 242 100 / .34),transparent 13rem),linear-gradient(140deg,#fff2df,#fffdf7 58%,#f6f8e9); }
+.room-join-card { background:radial-gradient(circle at 90% 5%,rgb(251 191 36 / .25),transparent 13rem),linear-gradient(140deg,#fffdf7,#fff4e6 55%,#f0f8e7); }
+.room-action-card h3 { color:#24170f; }
+.room-action-primary { background:linear-gradient(115deg,#ea580c,#f97316 48%,#f59e0b);box-shadow:0 12px 28px rgb(234 88 12 / .22); }
+.room-action-primary:hover { filter:brightness(1.04); }
+.room-action-secondary { background:linear-gradient(115deg,#0f766e,#0d9488);box-shadow:0 12px 28px rgb(13 148 136 / .2); }
+.room-join-card input:focus { border-color:#f97316!important;box-shadow:0 0 0 4px rgb(249 115 22 / .12)!important; }
