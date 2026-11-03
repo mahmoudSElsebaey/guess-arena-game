@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "@/i18n/navigation";
 import { Check, Copy, Crown, DoorOpen, Gamepad2, LoaderCircle, ShieldCheck, Sparkles, Users, WandSparkles, X } from "lucide-react";
-import { MultiplayerGame } from "@/components/game/multiplayer-game";
 import { CharacterPortrait } from "@/components/game/character-portrait";
 
 type CharacterOption = { id: string; name: string; avatar: string; attributes: Record<string, string | boolean> };
@@ -16,6 +16,7 @@ type Snapshot = {
 
 export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode?: "both" | "create" | "join" }) {
   const ar = locale === "ar";
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [room, setRoom] = useState<Snapshot | null>(null);
   const [character, setCharacter] = useState("");
@@ -44,6 +45,15 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
     return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, [ar]);
 
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/rooms/active", { cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => { if (active && data?.roomId) router.replace(`/play/room/${data.roomId}`); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [router]);
+
   const refresh = useCallback(async (id: string) => {
     const response = await fetch(`/api/rooms/${id}`, { cache: "no-store" });
     const data = await response.json();
@@ -54,7 +64,8 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
     });
     setSyncStatus("connected");
     setCharacter((current) => data.mySecretCharacterId ?? current);
-  }, []);
+    if (data.status === "IN_PROGRESS") router.replace(`/play/room/${id}`);
+  }, [router]);
 
   useEffect(() => {
     if (!room?.id) return;
@@ -219,7 +230,6 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
         </div>
       )}
 
-      {(room?.status === "IN_PROGRESS" || room?.status === "COMPLETED") && <MultiplayerGame roomId={room.id} locale={locale} characters={characters} questions={questions} />}
       {error && <div role="alert" aria-live="assertive" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700"><p className="min-w-0 flex-1">{error}</p><button type="button" onClick={() => { setError(""); if (room) void refresh(room.id).catch(() => setError(ar ? "تعذر تحديث الغرفة. حاول مرة أخرى." : "Could not refresh the room. Try again.")); else window.location.reload(); }} className="min-h-9 rounded-lg border border-rose-200 bg-white px-3 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-rose-500">{ar ? "إعادة المحاولة" : "Try again"}</button></div>}
       {notice && <p role="status" className="mt-3 text-xs text-amber-700">{notice}</p>}
       <p className="mt-5 text-center text-xs text-slate-400">{ar ? "اختيارك السري لا يظهر للطرف الآخر." : "Your secret character is private to you."}</p>
