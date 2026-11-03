@@ -356,3 +356,17 @@ img, video, canvas, svg { max-width: 100%; }
 .room-action-primary:hover { filter:brightness(1.04); }
 .room-action-secondary { background:linear-gradient(115deg,#0f766e,#0d9488);box-shadow:0 12px 28px rgb(13 148 136 / .2); }
 .room-join-card input:focus { border-color:#f97316!important;box-shadow:0 0 0 4px rgb(249 115 22 / .12)!important; }
+
+
+/* Unified top-center game notifications */
+.arena-toast-pop {
+  animation: arena-toast-enter 260ms cubic-bezier(.2,.9,.3,1.2) both;
+  transform-origin: top center;
+}
+@keyframes arena-toast-enter {
+  0% { opacity: 0; transform: translateY(-14px) scale(.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-toast-pop { animation: none; }
+}
