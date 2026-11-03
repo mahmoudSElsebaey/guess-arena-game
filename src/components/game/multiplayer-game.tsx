@@ -170,7 +170,6 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const rematchResolved=rematchEvents.slice(-1)[0];
  const rematchPending=Boolean(rematchRequest&&(!rematchResolved||rematchResolved.id===rematchRequest.id));
  const requestedByMe=rematchRequest?.actorId===myId;
- const rematchRoomId=rematchResolved?.newRoomId;
 
  async function confirmLeave(){
   if(!leaveDestination||leaving)return;
@@ -287,7 +286,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" style={{backgroundImage:"radial-gradient(circle at 15% 12%,rgba(139,92,246,.32),transparent 30%),radial-gradient(circle at 90% 80%,rgba(20,184,166,.22),transparent 28%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px)",backgroundSize:"auto,auto,32px 32px,32px 32px"}}/>
   <div className="relative z-10 space-y-4">
    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 shadow-xl sm:p-4">
-    <div className="flex min-w-0 items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-lime-300 to-emerald-400 text-[#10172c]"><Sparkles size={21}/></span><div className="min-w-0"><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · LIVE DUEL</p><h2 className="truncate text-lg font-black sm:text-xl">{state.status==="COMPLETED"?(ar?"انتهت المباراة":"Match complete"):myTurn?(ar?"دورك الآن!":"Your turn!"):(ar?"الخصم يفكر...":"Opponent's turn...")}</h2></div></div>
+    <div className="flex min-w-0 items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-lime-300 to-emerald-400 text-[#10172c]"><Sparkles size={21}/></span><div className="min-w-0"><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · LIVE DUEL</p><h2 className="truncate text-lg font-black sm:text-xl">{state.status==="WAITING"?(ar?"تجهيز المباراة":"Match setup"):state.status==="COMPLETED"?(ar?"انتهت المباراة":"Match complete"):myTurn?(ar?"دورك الآن!":"Your turn!"):(ar?"الخصم يفكر...":"Opponent's turn...")}</h2></div></div>
     <div className="flex flex-wrap items-center gap-2">
      <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"><span className="block text-[9px] font-black text-white/40">{ar?"رقم الدور":"TURN"}</span><strong className="text-xl font-black text-white">{state.turnNumber}</strong></div>
      <div className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 sm:flex"><span className={`size-2 rounded-full ${myTurn?"animate-pulse bg-lime-300":"bg-amber-300"}`}/><span className="text-xs font-bold text-white/80">{myTurn?(ar?"دورك":"Your turn"):(ar?"انتظار الخصم":"Waiting")}</span></div>
