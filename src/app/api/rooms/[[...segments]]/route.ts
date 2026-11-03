@@ -160,12 +160,13 @@ export async function POST(request:Request,{params}:Ctx){
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{winnerId:userId}});
     }else{
      const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
-     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},version:{increment:1}}});
+     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{status:"COMPLETED",winnerId:next.userId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
      if(changed.count!==1)throw new Error("STATE_CONFLICT");
-     await tx.roomMember.update({where:{id:me.id},data:{eliminatedCharacterIds:[...me.eliminatedCharacterIds,parsed.data.characterId]}});
+     await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isConnected:false,isReady:false}});
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct:false}});
+     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"WRONG_GUESS",winnerId:next.userId}});
     }
-    return {correct,version:current.version+1,winnerId:correct?userId:null};
+    return {correct,version:current.version+1,winnerId:correct?userId:(current.members.find(m=>m.userId!==userId)?.userId??null)};
    });
    await publishRoomEvent(roomId,"game.updated",{roomId,version:result.version,winnerId:result.winnerId});
    return NextResponse.json({ok:true,...result});
