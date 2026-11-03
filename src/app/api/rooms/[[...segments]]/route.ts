@@ -50,7 +50,7 @@ export async function GET(request:Request,{params}:Ctx){
  const actions=await prisma.gameAction.findMany({where:{roomId,sequence:{gt:latestStart?.sequence??0},type:{in:["QUESTION_ASKED","TURN_CONFIRMED","GUESS_MADE","GAME_FINISHED","PLAYER_LEFT"]}},orderBy:{sequence:"desc"},take:40});
  const safeActions=actions.reverse().map(a=>{
   const p=a.payload&&typeof a.payload==="object"&&!Array.isArray(a.payload)?a.payload as Record<string,unknown>:{};
-  return {id:a.id,actorId:a.actorId,type:a.type,questionId:typeof p.questionId==="string"?p.questionId:null,answer:typeof p.answer==="boolean"?p.answer:null,characterId:typeof p.characterId==="string"?p.characterId:null,correct:typeof p.correct==="boolean"?p.correct:null,reason:typeof p.reason==="string"?p.reason:null,createdAt:a.createdAt.toISOString()};
+  return {id:a.id,actorId:a.actorId,type:a.type,questionId:typeof p.questionId==="string"?p.questionId:null,answer:typeof p.answer==="boolean"?p.answer:null,characterId:typeof p.characterId==="string"?p.characterId:null,correct:typeof p.correct==="boolean"?p.correct:null,reason:typeof p.reason==="string"?p.reason:null,newRoomId:typeof p.newRoomId==="string"?p.newRoomId:null,createdAt:a.createdAt.toISOString()};
  });
  return NextResponse.json({...snapshot,currentTurnUserId:room?.currentTurnUserId??null,turnNumber:room?.turnNumber??0,winnerId:room?.winnerId??null,myEliminatedCharacterIds:me?.eliminatedCharacterIds??[],actions:safeActions},{headers:{"Cache-Control":"no-store"}});
 }
