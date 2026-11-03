@@ -6,7 +6,6 @@ import { Check, Copy, Crown, DoorOpen, Gamepad2, LoaderCircle, ShieldCheck, Spar
 import { CharacterPortrait } from "@/components/game/character-portrait";
 
 type CharacterOption = { id: string; name: string; avatar: string; attributes: Record<string, string | boolean> };
-type QuestionOption = { id: string; labelAr: string; labelEn: string; attributeKey: string; expectedValue: string | boolean; category: { slug: string; nameAr: string; nameEn: string }; sortOrder: number };
 type Snapshot = {
   id: string; code: string; status: "WAITING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   isHost: boolean; version: number;
@@ -21,7 +20,6 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
   const [room, setRoom] = useState<Snapshot | null>(null);
   const [character, setCharacter] = useState("");
   const [characters, setCharacters] = useState<CharacterOption[]>([]);
-  const [questions, setQuestions] = useState<QuestionOption[]>([]);
   const [contentLoading, setContentLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +36,7 @@ export function RoomLobby({ locale, mode = "both" }: { locale: "ar" | "en"; mode
       .then(async response => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
-        if (active) { setCharacters(data.characters ?? []); setQuestions(data.questions ?? []); }
+        if (active) setCharacters(data.characters ?? []);
       })
       .catch(() => { if (active) setError(ar ? "تعذر تحميل محتوى اللعبة. حدّث الصفحة وحاول مجددًا." : "Could not load game content. Refresh and try again."); })
       .finally(() => { window.clearTimeout(timeout); if (active) setContentLoading(false); });
