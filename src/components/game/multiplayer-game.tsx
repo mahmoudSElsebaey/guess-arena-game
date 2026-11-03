@@ -9,7 +9,7 @@ import { useRouter } from "@/i18n/navigation";
 
 type Action = { id:string; actorId:string; type:string; questionId:string|null; answer:boolean|null; characterId:string|null; correct:boolean|null; reason?:string|null; winnerId?:string|null; newRoomId?:string|null; createdAt:string };
 type RoundResult = {id:string;round:number;actorId:string;winnerId:string|null;reason:string|null;createdAt:string};
-type Snapshot = { id:string; code:string; status:string; version:number; hostId:string; isHost:boolean; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; mySecretCharacterId:string|null; members:{userId:string;name:string;isMe:boolean;seat:number;isReady:boolean;isConnected:boolean;hasSecretCharacter:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[]; roundHistory:RoundResult[] };
+type Snapshot = { id:string; code:string; status:string; version:number; hostId:string; isHost:boolean; startedAt:string|null; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; mySecretCharacterId:string|null; members:{userId:string;name:string;isMe:boolean;seat:number;isReady:boolean;isConnected:boolean;hasSecretCharacter:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[]; roundHistory:RoundResult[] };
 type CharacterOption = { id:string; name:string; avatar:string; attributes:Record<string,string|boolean> };
 type QuestionOption = { id:string; labelAr:string; labelEn:string; attributeKey:string; expectedValue:string|boolean; category:{slug:string;nameAr:string;nameEn:string}; sortOrder:number };
 type Feedback = { answer:boolean; id:string } | null;
@@ -103,6 +103,20 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   }
   if(countdownStarted.current)return;
 
+  const countdownKey=state.startedAt?"guess-arena:countdown:"+roomId+":"+state.startedAt:null;
+  if(countdownKey){
+   try{
+    if(window.localStorage.getItem(countdownKey)==="shown"){
+     countdownStarted.current=true;
+     setCountdown(null);
+     return;
+    }
+    window.localStorage.setItem(countdownKey,"shown");
+   }catch{
+    // The in-memory guard still prevents duplicate countdowns if browser storage is unavailable.
+   }
+  }
+
   countdownStarted.current=true;
   setCountdown(5);
   let current=5;
@@ -125,10 +139,9 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
   },1000);
 
   return()=>{
-   // Do not clear the countdown when the room snapshot refreshes.
-   // The status-driven effect only owns cleanup when the match actually leaves IN_PROGRESS.
+   // Keep the countdown running across polling refreshes.
   };
- },[state?.status,ar]);
+ },[state?.status,state?.startedAt,roomId,ar]);
 
  useEffect(()=>{
   const update=()=>setIsFullscreen(Boolean(document.fullscreenElement));
