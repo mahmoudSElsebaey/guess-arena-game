@@ -1,0 +1,12 @@
+{
+  "name": "Guess Arena",
+  "short_name": "Guess Arena",
+  "description": "An online character guessing game. Challenge a friend or play against the bot.",
+  "lang": "en",
+  "start_url": "/ar",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff9ed",
+  "theme_color": "#21140d",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
