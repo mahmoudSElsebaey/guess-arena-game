@@ -1,3 +1,16 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
+  const { locale } = await params;
+  return localizedPageMetadata({
+    locale, path: "/login",
+    titleAr: "تسجيل الدخول",
+    titleEn: "Sign in",
+    descriptionAr: "سجل الدخول إلى حسابك في Guess Arena.",
+    descriptionEn: "Sign in to your Guess Arena account.",
+    indexable: false
+  });
+}
+
 import { getTranslations } from "next-intl/server";
 import { AuthForm } from "@/components/auth/auth-form";
 import { SiteHeader } from "@/components/layout/site-header";
