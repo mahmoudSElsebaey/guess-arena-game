@@ -42,7 +42,7 @@ const copy = {
     guess: "Guess character", wrongGuess: "Wrong guess! Keep trying.", win: "You beat the bot! 🎉", lose: "The bot discovered your character. Better luck next time.",
     draw: "The duel is over.", playAgain: "Play again", changeLevel: "Change difficulty", history: "Duel history", noHistory: "No questions yet.",
     selectFirst: "Choose your secret character first.", loading: "Loading characters and questions...", loadError: "Could not load game content. Refresh and try again.",
-    botGuessedWrong: "The bot guessed incorrectly and eliminated a character.", botGuessedRight: "The bot discovered your secret character!",
+    botGuessedWrong: "The bot guessed incorrectly and eliminated a character.", botSecret: "This was the secret character chosen by the bot.", botGuessedRight: "The bot discovered your secret character!",
     playerQuestion: "Your question", botAnswer: "Bot answered", botQuestionIntro: "The bot asks:", turnPlayer: "Your turn", turnBot: "Bot's turn",
     back: "Back", level: "Difficulty", selected: "Selected", characters: "characters", allQuestions: "You used all available questions. Start a new round.",
     progress: "Bot progress", secretHint: "The bot can only learn your choice through your answers."
