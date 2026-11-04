@@ -136,7 +136,7 @@ export function BotGame({ locale }: { locale: Locale }) {
     const removed = characters.filter(character => !playerEliminated.has(character.id) && readAnswer(character, question) !== answer);
     setPlayerEliminated(previous => new Set([...previous, ...removed.map(character => character.id)]));
     setAskedByPlayer(previous => new Set([...previous, question.id]));
-    setHistory(previous => [{ id: Date.now(), speaker: "player", text: ar ? question.labelAr : question.labelEn, answer, detail: ar ? (answer ? "نعم" : "لا") : (answer ? "Yes" : "No") }, ...previous].slice(0, 12));
+    setHistory(previous => [{ id: Date.now(), speaker: "player" as const, text: ar ? question.labelAr : question.labelEn, answer, detail: ar ? (answer ? "نعم" : "لا") : (answer ? "Yes" : "No") }, ...previous].slice(0, 12));
     setNotice("");
     const nextBotQuestion = selectBotQuestion(botCandidates, askedByBot);
     if (!nextBotQuestion) {
@@ -156,7 +156,7 @@ export function BotGame({ locale }: { locale: Locale }) {
     const nextSet = new Set(nextCandidates.map(character => character.id));
     setBotCandidates(nextSet);
     setAskedByBot(previous => new Set([...previous, question.id]));
-    setHistory(previous => [{ id: Date.now(), speaker: "bot", text: ar ? question.labelAr : question.labelEn, answer, detail: ar ? (answer ? "أجبت بنعم" : "أجبت بلا") : (answer ? "You said yes" : "You said no") }, ...previous].slice(0, 12));
+    setHistory(previous => [{ id: Date.now(), speaker: "bot" as const, text: ar ? question.labelAr : question.labelEn, answer, detail: ar ? (answer ? "أجبت بنعم" : "أجبت بلا") : (answer ? "You said yes" : "You said no") }, ...previous].slice(0, 12));
     setPendingBotQuestion(null);
     if (nextSet.size === 0) {
       setNotice(t.botGuessedWrong);
@@ -172,7 +172,7 @@ export function BotGame({ locale }: { locale: Locale }) {
         }
         nextSet.delete(guess.id);
         setBotCandidates(new Set(nextSet));
-        setHistory(previous => [{ id: Date.now() + 1, speaker: "bot", text: ar ? `تخمين: ${guess.name}` : `Bot guessed: ${guess.name}`, detail: ar ? "تخمين خاطئ" : "Wrong guess" }, ...previous].slice(0, 12));
+        setHistory(previous => [{ id: Date.now() + 1, speaker: "bot" as const, text: ar ? `تخمين: ${guess.name}` : `Bot guessed: ${guess.name}`, detail: ar ? "تخمين خاطئ" : "Wrong guess" }, ...previous].slice(0, 12));
         setNotice(t.botGuessedWrong);
       }
     }
