@@ -96,6 +96,17 @@ export function BotGame({ locale }: { locale: Locale }) {
   const remaining = characters.length - playerEliminated.size;
   const botRemaining = botCandidates.size;
   const availablePlayerQuestions = questions.filter(question => !askedByPlayer.has(question.id));
+  const questionGroups = [
+    { slug: "accessories", nameAr: "الإكسسوارات", nameEn: "Accessories", test: (key: string) => /accessor|glass|hat|earring|necklace|beard|mustache|scar|mark|glasses|jewel|wear/i.test(key) },
+    { slug: "skin", nameAr: "لون البشرة", nameEn: "Skin tone", test: (key: string) => /skin|complexion|tone/i.test(key) },
+    { slug: "gender", nameAr: "النوع", nameEn: "Gender", test: (key: string) => /gender|sex/i.test(key) },
+    { slug: "hair-length", nameAr: "طول الشعر", nameEn: "Hair length", test: (key: string) => /hair.*(length|long|short)|length.*hair/i.test(key) },
+    { slug: "hair-color", nameAr: "لون الشعر", nameEn: "Hair color", test: (key: string) => /hair.*(color|colour)|color.*hair|colour.*hair/i.test(key) },
+    { slug: "eyes", nameAr: "لون العين", nameEn: "Eye color", test: (key: string) => /eye/i.test(key) }
+  ];
+  const categorizedQuestions = questionGroups.map(group => ({ ...group, items: questions.filter(question => group.test(question.attributeKey) || group.test(question.category.slug)) })).filter(group => group.items.length > 0);
+  const activeCategory = categorizedQuestions.find(group => group.slug === selectedCategory) ?? categorizedQuestions[0];
+  const visibleQuestions = activeCategory?.items ?? [];
 
   function startGame() {
     if (!mySecretId) { setNotice(t.selectFirst); return; }
