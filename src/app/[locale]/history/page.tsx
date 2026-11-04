@@ -1,3 +1,6 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) { const { locale } = await params; return localizedPageMetadata({ locale, path: "/history", titleAr: "سجل المباريات", titleEn: "Match History", descriptionAr: "راجع نتائج مباريات Guess Arena السابقة.", descriptionEn: "Review your previous Guess Arena match results.", indexable: false }); }
+
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
