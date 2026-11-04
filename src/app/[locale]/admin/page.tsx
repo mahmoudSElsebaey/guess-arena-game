@@ -1,3 +1,6 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) { const { locale } = await params; return localizedPageMetadata({ locale, path: "/admin", titleAr: "لوحة الإدارة", titleEn: "Admin Dashboard", descriptionAr: "لوحة إدارة Guess Arena.", descriptionEn: "Guess Arena administration dashboard.", indexable: false }); }
+
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
