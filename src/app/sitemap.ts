@@ -13,7 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return publicPaths.flatMap(({ path, priority, changeFrequency }) =>
     locales.map((locale) => ({
       url: `${SITE_URL}/${locale}${path}`,
-      lastModified: new Date(),
       changeFrequency,
       priority,
       alternates: { languages: { ar: `${SITE_URL}/ar${path}`, en: `${SITE_URL}/en${path}` } }
