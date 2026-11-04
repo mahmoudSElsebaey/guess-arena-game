@@ -8,8 +8,37 @@ import { routing } from "@/i18n/routing";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Guess Arena",
-  description: "A real-time multiplayer character guessing game."
+  metadataBase: new URL("https://guess-arena-game.vercel.app"),
+  applicationName: "Guess Arena",
+  title: {
+    default: "Guess Arena | لعبة تخمين الشخصيات أونلاين",
+    template: "%s | Guess Arena"
+  },
+  description: "العب Guess Arena، لعبة تخمين الشخصيات أونلاين. تحدى أصدقاءك في مباراة مباشرة أو اختبر ذكاءك ضد البوت.",
+  category: "games",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: ["/icon.svg"]
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Guess Arena",
+    title: "Guess Arena | Online Character Guessing Game",
+    description: "Challenge a friend in a live character guessing duel or play against the bot.",
+    images: [{ url: "/ar/opengraph-image", width: 1200, height: 630, alt: "Guess Arena character guessing game" }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Guess Arena | Online Character Guessing Game",
+    description: "Challenge a friend or play against the bot.",
+    images: ["/ar/opengraph-image"]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 }
+  }
 };
 
 export function generateStaticParams() {
