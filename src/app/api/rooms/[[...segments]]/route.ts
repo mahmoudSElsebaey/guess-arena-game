@@ -309,12 +309,14 @@ export async function POST(request:Request,{params}:Ctx){
       const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});
       const closedAt=new Date();
       await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});
-      const closed=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:other?.userId??null,currentTurnUserId:null,turnExpiresAt:null,finishedAt:closedAt,expiresAt:null,version:{increment:1}}});
+      const changed=await tx.room.updateMany({where:{id:roomId,version:member.room.version,status:"WAITING"},data:{status:"COMPLETED",winnerId:other?.userId??null,currentTurnUserId:null,turnExpiresAt:null,finishedAt:closedAt,expiresAt:null,version:{increment:1}}});
+      if(changed.count!==1)throw new Error("STATE_CONFLICT");
       await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{destination:"HOME",duringRematchSetup:true}});
       await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_CANCELLED_LEFT",winnerId:other?.userId??null}});
-      return {...closed,deleted:false};
+      return {version:member.room.version+1,status:"COMPLETED" as const,deleted:false};
      }
-     await tx.room.delete({where:{id:roomId}});
+     const deleted=await tx.room.deleteMany({where:{id:roomId,version:member.room.version,status:"WAITING"}});
+     if(deleted.count!==1)throw new Error("STATE_CONFLICT");
      return {version:member.room.version+1,status:"DELETED" as const,deleted:true};
     }
     const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});
@@ -324,11 +326,12 @@ export async function POST(request:Request,{params}:Ctx){
     const closedAt=new Date();
     await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});
     await tx.roomMember.updateMany({where:{roomId,leftAt:null,userId:{not:userId}},data:{isConnected:false,isReady:false}});
-    const updated=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,turnExpiresAt:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
+    const changed=await tx.room.updateMany({where:{id:roomId,version:member.room.version,status:member.room.status},data:{status:"COMPLETED",winnerId:member.room.status==="IN_PROGRESS"?(other?.userId??null):member.room.winnerId,currentTurnUserId:null,turnExpiresAt:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
+    if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{destination:"HOME"}});
     if(member.room.status==="IN_PROGRESS")await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});
     else if(pendingRematch)await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_CANCELLED_LEFT",departedUserId:userId}});
-    return {...updated,deleted:false,rematchCancelled:pendingRematch};
+    return {version:member.room.version+1,status:"COMPLETED" as const,deleted:false,rematchCancelled:pendingRematch};
    });
    await publishRoomEvent(roomId,"room.updated",{roomId,version:result.version,status:result.status,rematchCancelled:"rematchCancelled" in result?result.rematchCancelled:false});
    return NextResponse.json({ok:true,deleted:result.deleted});
