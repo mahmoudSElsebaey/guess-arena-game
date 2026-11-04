@@ -1,3 +1,18 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
+  const { locale } = await params;
+  return localizedPageMetadata({
+    locale, path: "",
+    titleAr: "لعبة تخمين الشخصيات أونلاين | العب مع أصحابك أو البوت",
+    titleEn: "Online Character Guessing Game | Play with Friends or Bot",
+    descriptionAr: "العب Guess Arena مجانًا: اختار شخصية سرية، اسأل أسئلة ذكية، واقلب البطاقات لتكشف اختيار منافسك. العب أونلاين مع صديق أو تحدى البوت.",
+    descriptionEn: "Play Guess Arena, a free online character guessing game. Pick a secret character, ask smart yes-or-no questions, flip cards, and outguess a friend or the bot.",
+    keywords: locale === "ar"
+      ? ["لعبة تخمين", "لعبة تخمين شخصيات", "ألعاب أونلاين", "لعبة مع الأصدقاء", "لعبة ذكاء", "Guess Arena"]
+      : ["online guessing game", "character guessing game", "play with friends online", "guess who game", "free browser game", "Guess Arena"]
+  });
+}
+
 import { ArrowLeft, ArrowRight, ArrowUpLeft, ArrowUpRight, Bot, Brain, Check, CircleHelp, Crown, Flame, Gamepad2, Lightbulb, LockKeyhole, Sparkles, Swords, Target, Trophy, Users, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
