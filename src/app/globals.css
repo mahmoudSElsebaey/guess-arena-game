@@ -2,28 +2,28 @@
 
 :root {
   color-scheme: light;
-  --background: #f4f5fa;
-  --foreground: #171a2d;
-  --surface: #ffffff;
-  --surface-muted: #eceef5;
-  --primary: #7257e8;
-  --primary-foreground: #ffffff;
-  --secondary: #37cdb0;
-  --highlight: #ffb84d;
-  --muted: #697086;
-  --border: #e2e5ee;
+  --background: #fff9ed;
+  --foreground: #24170f;
+  --surface: #fffaf1;
+  --surface-muted: #f1e8d8;
+  --primary: #c84e16;
+  --primary-foreground: #fff9ed;
+  --secondary: #557a3d;
+  --highlight: #bef264;
+  --muted: #78685a;
+  --border: #e2d3bd;
   --success: #16865f;
   --danger: #c74655;
-  --focus: #2563eb;
+  --focus: #c84e16;
 
   /* Phase 6 design-system foundation */
-  --arena-ink: #111827;
+  --arena-ink: #24170f;
   --arena-panel: rgb(255 255 255 / 92%);
   --arena-panel-strong: #ffffff;
-  --arena-grid: rgb(114 87 232 / 8%);
-  --arena-ring: rgb(114 87 232 / 18%);
-  --arena-shadow-sm: 0 8px 24px rgb(15 23 42 / 7%);
-  --arena-shadow-lg: 0 24px 70px rgb(15 23 42 / 13%);
+  --arena-grid: rgb(200 78 22 / 8%);
+  --arena-ring: rgb(200 78 22 / 18%);
+  --arena-shadow-sm: 0 8px 24px rgb(87 52 20 / 7%);
+  --arena-shadow-lg: 0 24px 70px rgb(87 52 20 / 13%);
   --radius-card: 1.25rem;
   --radius-panel: 1.75rem;
 }
@@ -388,3 +388,88 @@ img, video, canvas, svg { max-width: 100%; }
 @keyframes arena-last-ring-spin{to{transform:rotate(360deg)}}
 @keyframes arena-last-card-shimmer{from{opacity:.25}to{opacity:.9}}
 @media(prefers-reduced-motion:reduce){.arena-last-character,.arena-last-character::before,.arena-last-character::after{animation:none}}
+
+
+/* Guess Arena Warm Arcade — shared site design tokens and page surfaces */
+:root {
+  --arena-brown: #21140d;
+  --arena-brown-soft: #3b2a1d;
+  --arena-cream: #fff9ed;
+  --arena-cream-deep: #f1e8d8;
+  --arena-lime: #bef264;
+  --arena-orange: #c84e16;
+  --arena-orange-hover: #a93c10;
+  --arena-muted: #78685a;
+  --arena-line: #e2d3bd;
+}
+body { background: var(--arena-cream); color: #24170f; }
+:focus-visible { outline-color: var(--arena-orange); }
+::selection { color: var(--arena-brown); background: var(--arena-lime); }
+.arena-shell {
+  background:
+    radial-gradient(circle at 8% 5%,rgb(217 119 54 / .12),transparent 25rem),
+    radial-gradient(circle at 92% 20%,rgb(190 242 100 / .16),transparent 27rem),
+    linear-gradient(180deg,#fffaf1 0%,#f1e8d8 100%);
+}
+.arena-panel,.arena-panel-strong {
+  border-color: rgb(120 72 35 / .14);
+  background: rgb(255 250 241 / .94);
+  box-shadow: 0 12px 34px rgb(87 52 20 / .08);
+}
+.arena-section-title { color: #24170f; }
+.arena-home-primary {
+  color: #24170f !important;
+  background: linear-gradient(115deg,#bef264 0%,#d9f99d 48%,#facc15 100%) !important;
+  border: 2px solid #f1f8d9;
+  box-shadow: 0 12px 30px rgb(132 204 22 / .24), inset 0 1px rgb(255 255 255 / .55);
+}
+.arena-home-primary:hover {
+  color: #21140d !important;
+  background: linear-gradient(115deg,#d9f99d 0%,#bef264 55%,#facc15 100%) !important;
+  box-shadow: 0 16px 36px rgb(132 204 22 / .34);
+}
+.arena-play-cta {
+  color: #24170f !important;
+  background: linear-gradient(115deg,#bef264 0%,#d9f99d 52%,#facc15 100%) !important;
+  box-shadow: 0 8px 24px rgb(132 204 22 / .24);
+  animation: none;
+}
+.arena-play-cta:hover { filter: brightness(1.04) saturate(1.08); }
+.arena-header > div:first-of-type { background: #21140d !important; box-shadow: none !important; }
+.arena-header .arena-wave-bottom svg path { fill: #21140d !important; }
+.arena-header .arena-wave-bottom { background: transparent; }
+.arena-header a[aria-current="page"] { color: #bef264; }
+.arena-header [class*="bg-gradient-to-br"] { color: #21140d; }
+.arena-footer::before { opacity: .12; background-image: radial-gradient(circle at 18% 32%,#f0c9a3 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#bef264 0 2px,transparent 3px),linear-gradient(115deg,transparent 15%,rgba(217,119,54,.12) 42%,transparent 70%); }
+.arena-footer .arena-wave-top svg path { fill: #21140d !important; }
+.arena-footer > div:nth-child(2) { background: #21140d !important; }
+.arena-footer a:hover { color: #bef264; }
+.warm-public-page {
+  min-height: 100vh;
+  color: #24170f !important;
+  background:
+    radial-gradient(circle at 7% 8%,rgb(217 119 54 / .13),transparent 25rem),
+    radial-gradient(circle at 93% 18%,rgb(190 242 100 / .17),transparent 27rem),
+    linear-gradient(180deg,#fffaf1 0%,#f1e8d8 100%) !important;
+}
+.warm-public-page h1,.warm-public-page h2,.warm-public-page h3 { color:#24170f; }
+.warm-public-page p { color:#78685a; }
+.warm-public-page article {
+  border:1px solid #e2d3bd !important;
+  background:linear-gradient(145deg,#fffaf1,#fff4e4) !important;
+  color:#24170f;
+  box-shadow:0 14px 36px rgb(87 52 20 / .07);
+}
+.warm-public-page article h2 { color:#24170f; }
+.warm-public-page article p { color:#78685a; }
+.warm-public-page .text-white,.warm-public-page .text-white\/60,.warm-public-page .text-white\/55 { color:#78685a !important; }
+.warm-public-page .text-lime-300,.warm-public-page .text-lime-200 { color:#557a3d !important; }
+.warm-public-page .border-white\/10 { border-color:#e2d3bd !important; }
+.warm-public-page .bg-white\/\[\.05\] { background:#fffaf1 !important; }
+.warm-public-page .bg-fuchsia-600\/20 { background:rgb(217 119 54 / .12) !important; }
+.warm-public-page .arena-play-cta { color:#24170f !important; }
+.auth-arena { background:linear-gradient(135deg,#fff8eb 0%,#fffdf7 48%,#f3f8e8 100%) !important; }
+.auth-arena .auth-arena-showcase { border-color:#eadbc5; background:linear-gradient(145deg,#fffaf1,#fff1d6 65%,#eff8d9); }
+.auth-arena .w-full.rounded-3xl { border-color:#eadbc5; }
+.auth-arena button[type="submit"] { color:#fff9ed !important; background:linear-gradient(120deg,#c84e16,#d97736 55%,#b28a42) !important; }
+.auth-arena button[type="submit"]:hover { background:linear-gradient(120deg,#a93c10,#c84e16 55%,#9c6c2b) !important; }
