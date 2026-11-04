@@ -290,7 +290,21 @@ export async function POST(request:Request,{params}:Ctx){
    const result=await runRoomTransaction(async tx=>{
     const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});
     if(!member||member.leftAt)throw new Error("NOT_MEMBER");
-    if(member.room.status==="WAITING"){await tx.room.delete({where:{id:roomId}});return {version:member.room.version+1,status:"DELETED" as const,deleted:true};}
+    if(member.room.status==="WAITING"){
+     const latestSetupAction=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
+     const setupPayload=latestSetupAction?.payload&&typeof latestSetupAction.payload==="object"&&!Array.isArray(latestSetupAction.payload)?latestSetupAction.payload as Record<string,unknown>:{};
+     if(setupPayload.reason==="REMATCH_ACCEPTED"){
+      const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});
+      const closedAt=new Date();
+      await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});
+      const closed=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:other?.userId??null,currentTurnUserId:null,turnExpiresAt:null,finishedAt:closedAt,expiresAt:null,version:{increment:1}}});
+      await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{destination:"HOME",duringRematchSetup:true}});
+      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});
+      return {...closed,deleted:false};
+     }
+     await tx.room.delete({where:{id:roomId}});
+     return {version:member.room.version+1,status:"DELETED" as const,deleted:true};
+    }
     const other=await tx.roomMember.findFirst({where:{roomId,leftAt:null,userId:{not:userId}},select:{userId:true}});
     const latest=await tx.gameAction.findFirst({where:{roomId,type:"GAME_FINISHED"},orderBy:{sequence:"desc"}});
     const latestPayload=latest?.payload&&typeof latest.payload==="object"&&!Array.isArray(latest.payload)?latest.payload as Record<string,unknown>:{};
