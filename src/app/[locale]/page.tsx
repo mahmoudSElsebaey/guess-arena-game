@@ -1,59 +1,111 @@
-import { ArrowUpLeft, ArrowUpRight, Brain, Crown, Gamepad2, Handshake, Lightbulb, ShieldCheck, Sparkles, Swords, Users, Zap } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpLeft, ArrowUpRight, Bot, Brain, Check, CircleHelp, Crown, Flame, Gamepad2, Lightbulb, LockKeyhole, Sparkles, Swords, Target, Trophy, Users, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
   const { locale } = await params;
   const ar = locale === "ar";
-  const cards = [
-    { icon: Users, number: "01", title: ar ? "تحدي واحد ضد واحد" : "One-on-one showdown", body: ar ? "اعمل غرفة خاصة وادعُ صاحبك بكود بسيط. كل واحد يختار شخصيته السرية." : "Create a private room and invite a friend with a simple code. Each player picks a secret character.", color: "from-fuchsia-500 to-violet-600" },
-    { icon: Brain, number: "02", title: ar ? "اسأل بذكاء" : "Ask clever questions", body: ar ? "اسأل عن الشعر أو النظارة أو الإكسسوارات، وحاول تضيق دائرة الاحتمالات." : "Ask about hair, glasses, and accessories to narrow down the possibilities.", color: "from-cyan-400 to-blue-600" },
-    { icon: Crown, number: "03", title: ar ? "اكشف الشخصية" : "Reveal the character", body: ar ? "اقلب البطاقات بنفسك، راجع اختياراتك، وخمّن في اللحظة المناسبة." : "Flip cards yourself, review your choices, and make your guess at the perfect moment.", color: "from-lime-300 to-emerald-500" }
+  const modes = [
+    { icon: Users, tag: ar ? "مع أصحابك" : "WITH FRIENDS", title: ar ? "مواجهة حقيقية" : "The real showdown", body: ar ? "افتح غرفة خاصة وشارك الكود مع صاحبك. كل واحد يختار شخصية سرية، والباقي ذكاء وتركيز." : "Create a private room and share the code. Pick secret characters, then let the mind games begin.", href: "/play", tone: "orange", number: "01" },
+    { icon: Bot, tag: ar ? "في أي وقت" : "ANYTIME", title: ar ? "تحدي البوت" : "Challenge the bot", body: ar ? "ابدأ فورًا من غير انتظار. اختار مستوى سهل أو متوسط أو صعب وشوف هتقدر تكسب الكمبيوتر؟" : "Jump straight in. Choose Easy, Medium, or Hard and see if you can outsmart the computer.", href: "/practice", tone: "lime", number: "02" }
   ];
+  const steps = [
+    { icon: Users, n: "01", title: ar ? "اختار طريقة اللعب" : "Choose your arena", body: ar ? "العب مع صاحبك أونلاين أو واجه البوت." : "Play online with a friend or face the bot." },
+    { icon: Target, n: "02", title: ar ? "اسأل وركّز" : "Ask & focus", body: ar ? "اسأل أسئلة إجابتها نعم أو لا لتضييق الاحتمالات." : "Ask yes-or-no questions to narrow the possibilities." },
+    { icon: Zap, n: "03", title: ar ? "اقلب البطاقات" : "Flip the cards", body: ar ? "استبعد الشخصيات التي لا تطابق الإجابة." : "Flip away every character that doesn't fit." },
+    { icon: Crown, n: "04", title: ar ? "اكشف السر" : "Make your guess", body: ar ? "اختار الشخصية الصح قبل منافسك." : "Name the right character before your rival." }
+  ];
+
   return (
-    <main id="main-content" tabIndex={-1} className="arena-home min-h-screen overflow-hidden bg-[#0c1028] text-white">
-      <SiteHeader locale={locale}/>
-      <section className="relative isolate min-h-[680px] overflow-hidden">
-        <div className="pointer-events-none absolute -start-40 top-20 -z-10 size-[34rem] rounded-full bg-violet-700/35 blur-[110px]"/>
-        <div className="pointer-events-none absolute -end-32 top-0 -z-10 size-[38rem] rounded-full bg-teal-400/15 blur-[120px]"/>
-        <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:min-h-[680px] lg:grid-cols-[1fr_1fr]">
+    <main id="main-content" tabIndex={-1} className="arena-home min-h-screen overflow-x-clip bg-[#fff9ed] text-[#24170f]">
+      <SiteHeader locale={locale} />
+
+      {/* 01 — Hero */}
+      <section className="relative isolate overflow-hidden bg-[#21140d] text-[#fff9ed]">
+        <div className="pointer-events-none absolute -start-32 -top-28 size-[34rem] rounded-full bg-orange-500/25 blur-[110px]" />
+        <div className="pointer-events-none absolute -end-32 bottom-[-10rem] size-[38rem] rounded-full bg-lime-400/20 blur-[120px]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[.12]" style={{ backgroundImage: "radial-gradient(#fff1d6 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        <div className="relative mx-auto grid min-h-[680px] max-w-[1440px] items-center gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[.95fr_1.05fr]">
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-lime-300/25 bg-lime-300/10 px-4 py-2 text-xs font-black tracking-wide text-lime-200"><Sparkles size={15}/>{ar ? "اللعبة اللي هتجمع الشلة" : "The game that brings everyone together"}</div>
-            <h1 className="mt-7 text-5xl leading-[1.15] font-black tracking-tight sm:text-6xl lg:text-7xl">{ar ? "مين يقدر يكشف" : "Who can uncover"}<span className="mt-2 block bg-gradient-to-r from-lime-200 via-emerald-300 to-cyan-300 bg-clip-text text-transparent">{ar ? "الشخصية السرية؟" : "the secret face?"}</span></h1>
-            <p className="mt-7 max-w-xl text-base leading-8 text-white/65 sm:text-lg">{ar ? "اسأل، فكّر، اقلب البطاقات، ونافس أصحابك في تحدي مباشر مليان مفاجآت. جهّز تركيزك… أول سؤال ممكن يغيّر كل حاجة!" : "Ask, think, flip the cards, and challenge your friends in a live duel full of surprises. Get focused — one smart question can change everything!"}</p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-300/10 px-4 py-2 text-xs font-black text-orange-200"><Sparkles size={15}/>{ar ? "جهّز مخك… المنافسة بدأت" : "GET YOUR GAME FACE ON"}</div>
+            <h1 className="mt-7 text-5xl leading-[1.12] font-black tracking-tight sm:text-6xl lg:text-[5.2rem]">{ar ? "مش مجرد تخمين" : "More than a"}<span className="mt-2 block text-[#bef264]">{ar ? "دي معركة ذكاء!" : "guessing game."}</span></h1>
+            <p className="mt-7 max-w-xl text-base leading-8 text-white/65 sm:text-lg">{ar ? "شخصية واحدة مستخبية وسط 45 وشّ. اسأل السؤال الصح، اقلب البطاقات، واكشف اختيار منافسك قبل ما يكشف اختيارك." : "One secret face hiding among 45 characters. Ask the right question, flip the cards, and uncover your rival's pick before they find yours."}</p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/play" className="arena-play-cta inline-flex min-h-14 items-center gap-3 rounded-2xl px-7 py-3 text-base font-black text-[#102018]"><Swords size={20}/>{ar ? "ابدأ اللعب الآن" : "Play now"}{ar ? <ArrowUpLeft size={19}/> : <ArrowUpRight size={19}/>}</Link>
-              <Link href="/how-to-play" className="inline-flex min-h-14 items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10"><Lightbulb size={18}/>{ar ? "اعرف طريقة اللعب" : "How to play"}</Link>
+              <Link href="/play" className="arena-home-primary inline-flex min-h-14 items-center gap-3 rounded-2xl px-7 py-3 text-base font-black text-[#21140d] shadow-[0_12px_35px_rgba(249,115,22,.25)] transition hover:-translate-y-1">{ar ? "ادخل الساحة" : "Enter the arena"}{ar ? <ArrowUpLeft size={19}/> : <ArrowUpRight size={19}/>}</Link>
+              <Link href="/how-to-play" className="inline-flex min-h-14 items-center gap-2 rounded-2xl border border-white/15 bg-white/[.06] px-6 py-3 font-bold text-white transition hover:bg-white/10"><CircleHelp size={18}/>{ar ? "ازاي تلعب؟" : "How to play"}</Link>
             </div>
-            <div className="mt-9 flex flex-wrap gap-5 text-xs font-bold text-white/45"><span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-lime-300"/> {ar ? "مواجهة مباشرة" : "Live multiplayer"}</span><span className="inline-flex items-center gap-2"><Users size={15}/>{ar ? "لاعبان في كل غرفة" : "Two players per room"}</span><span className="inline-flex items-center gap-2"><ShieldCheck size={15}/>{ar ? "شخصيتك سرية" : "Secret character stays private"}</span></div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-white/50"><span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-lime-300"/> {ar ? "45 شخصية في كل جولة" : "45 characters per round"}</span><span className="inline-flex items-center gap-2"><LockKeyhole size={14}/>{ar ? "اختيارات سرية" : "Secret picks"}</span><span className="inline-flex items-center gap-2"><Flame size={14}/>{ar ? "منافسة حماسية" : "Fast-paced fun"}</span></div>
           </div>
-          <div className="relative mx-auto w-full max-w-[610px]">
-            <div className="absolute inset-8 rounded-[4rem] bg-gradient-to-br from-violet-500/35 via-cyan-400/20 to-lime-300/25 blur-3xl"/>
-            <div className="relative aspect-[1.08/1]">
-              <div className="absolute left-[8%] top-[12%] h-[72%] w-[76%] rotate-[-7deg] rounded-[2.7rem] border border-white/15 bg-gradient-to-br from-violet-500/35 to-indigo-950/80 p-4 shadow-[0_35px_100px_rgba(0,0,0,.45)] backdrop-blur-xl sm:p-6">
-                <div className="flex items-center justify-between"><span className="text-[10px] font-black tracking-[.25em] text-violet-200">GUESS ARENA</span><span className="rounded-full bg-lime-300/15 px-3 py-1 text-[10px] font-black text-lime-200">LIVE</span></div>
-                <div className="mt-5 grid grid-cols-4 gap-2 sm:gap-3">
-                  {Array.from({length:16},(_,i)=><div key={i} className={`relative aspect-[4/5] overflow-hidden rounded-xl border border-white/10 ${i===5?"bg-gradient-to-br from-amber-200 to-orange-500 ring-2 ring-lime-300":"bg-gradient-to-br from-slate-700 to-slate-900"}`}>
-                    <div className={`absolute left-1/2 top-[18%] h-[42%] w-[45%] -translate-x-1/2 rounded-[48%] ${["bg-[#f0c7a1]","bg-[#a76b4c]","bg-[#d69a72]","bg-[#e8bd91]"][i%4]}`}/>
-                    <div className={`absolute left-1/2 top-[12%] h-[18%] w-[49%] -translate-x-1/2 rounded-t-full ${["bg-[#2c2432]","bg-[#754b32]","bg-[#d3a94e]","bg-[#48334b]"][i%4]}`}/>
-                    <div className="absolute bottom-[-8%] left-1/2 h-[43%] w-[78%] -translate-x-1/2 rounded-t-[45%] bg-gradient-to-b from-cyan-300 to-blue-600"/>
-                    {i===5&&<span className="absolute inset-0 grid place-items-center bg-lime-300/10 text-2xl font-black text-white">?</span>}
-                  </div>)}
-                </div>
+
+          <div className="relative mx-auto w-full max-w-[650px]">
+            <div className="absolute inset-[12%] rounded-full bg-orange-500/20 blur-[70px]"/>
+            <div className="relative rotate-[-2deg] rounded-[2.4rem] border border-white/15 bg-[#fff7e8]/[.08] p-3 shadow-[0_35px_100px_rgba(0,0,0,.38)] backdrop-blur-xl sm:rounded-[3rem] sm:p-5">
+              <div className="flex items-center justify-between px-2 pb-4">
+                <div><p className="text-[10px] font-black tracking-[.28em] text-orange-200">GUESS ARENA</p><p className="mt-1 text-sm font-black">{ar ? "مين الشخصية؟" : "WHO'S THE MYSTERY?"}</p></div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-lime-200/25 bg-lime-300/10 px-3 py-1.5 text-[10px] font-black text-lime-200"><span className="size-1.5 animate-pulse rounded-full bg-lime-300"/> LIVE DUEL</span>
               </div>
-              <div className="absolute right-[0%] top-[2%] grid size-24 rotate-[10deg] place-items-center rounded-[2rem] border border-cyan-200/25 bg-cyan-300/15 text-cyan-100 shadow-2xl backdrop-blur-xl sm:size-32"><Brain size={44}/></div>
-              <div className="absolute bottom-[4%] left-[0%] grid size-24 rotate-[-12deg] place-items-center rounded-[2rem] border border-lime-200/25 bg-lime-300/15 text-lime-200 shadow-2xl backdrop-blur-xl sm:size-32"><Zap size={42}/></div>
-              <div className="absolute bottom-[10%] right-[1%] rounded-2xl border border-white/15 bg-[#191b3c]/90 px-4 py-3 shadow-2xl backdrop-blur-xl"><p className="text-[10px] font-bold text-white/45">{ar ? "مستعد للتحدي؟" : "READY TO DUEL?"}</p><p className="mt-1 text-sm font-black text-lime-200">{ar ? "دورك تكسب!" : "Your move!"}</p></div>
+              <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                {Array.from({length:20},(_,i)=><div key={i} className={`relative aspect-[.82] overflow-hidden rounded-xl border p-1.5 sm:rounded-2xl sm:p-2 ${i===7?"border-lime-300 bg-lime-200 shadow-[0_0_28px_rgba(190,242,100,.28)]":"border-white/10 bg-[#3b2a1d]"}`}>
+                  <div className={`relative mx-auto mt-[9%] h-[58%] w-[78%] overflow-hidden rounded-t-[48%] rounded-b-[35%] ${["bg-[#e7b58c]","bg-[#9d6547]","bg-[#f0c9a3]","bg-[#bd805d]"][i%4]}`}>
+                    <div className={`absolute -top-[5%] left-[-8%] h-[34%] w-[116%] rounded-t-full ${["bg-[#32251f]","bg-[#d6a34b]","bg-[#57382b]","bg-[#29211e]"][i%4]}`}/>
+                    <div className="absolute left-[23%] top-[48%] size-[13%] rounded-full bg-[#2b211c]"/><div className="absolute right-[23%] top-[48%] size-[13%] rounded-full bg-[#2b211c]"/>
+                    <div className="absolute bottom-[18%] left-1/2 h-[5%] w-[25%] -translate-x-1/2 rounded-full bg-[#9c4d3b]"/>
+                    <div className={`absolute bottom-[-30%] left-1/2 h-[48%] w-[130%] -translate-x-1/2 rounded-t-[50%] ${["bg-[#d97736]","bg-[#557a3d]","bg-[#a44f37]","bg-[#b28a42]"][i%4]}`}/>
+                  </div>
+                  <div className="mx-auto mt-1 h-1 w-1/2 rounded-full bg-white/20"/>
+                  {i===7&&<span className="absolute inset-0 grid place-items-center bg-lime-300/15 text-3xl font-black text-white">?</span>}
+                  {i===12&&<span className="absolute inset-0 bg-black/55"/ >}
+                </div>)}
+              </div>
+              <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3"><span className="text-xs font-bold text-white/65">{ar ? "الشخصية السرية اتحددت!" : "Secret character selected!"}</span><span className="inline-flex items-center gap-1.5 text-xs font-black text-lime-200"><Check size={14}/>{ar ? "جاهز للتحدي" : "READY TO PLAY"}</span></div>
             </div>
+            <div className="absolute -start-4 top-[17%] grid size-16 -rotate-12 place-items-center rounded-2xl border border-orange-200/30 bg-orange-400 text-[#2b170b] shadow-2xl sm:-start-8 sm:size-20"><Brain size={34}/></div>
+            <div className="absolute -end-2 bottom-[9%] grid size-[4.5rem] rotate-12 place-items-center rounded-2xl border border-lime-200/30 bg-lime-300 text-[#24330e] shadow-2xl sm:-end-7 sm:size-24"><Trophy size={38}/></div>
+          </div>
+        </div>
+        <div className="relative h-14 overflow-hidden"><svg viewBox="0 0 1440 56" preserveAspectRatio="none" className="h-full w-full"><path d="M0 0H1440V20C1200 58 1020 58 760 27C510 -3 260 2 0 28Z" fill="#fff9ed"/></svg></div>
+      </section>
+
+      {/* 02 — Choose your mode */}
+      <section className="relative px-5 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div className="max-w-2xl"><p className="text-xs font-black tracking-[.25em] text-orange-600">{ar ? "اختار منافسك" : "PICK YOUR OPPONENT"}</p><h2 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">{ar ? "الساحة على مزاجك" : "Your arena. Your rules."}</h2><p className="mt-4 max-w-xl leading-7 text-[#78685a]">{ar ? "عايز تنافس صاحبك ولا تختبر ذكاءك ضد الكمبيوتر؟ اختار طريقتك وابدأ." : "Challenge a friend or test your skills against the computer. Pick your mode and jump in."}</p></div>
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#eadbc5] bg-white/70 px-4 py-2 text-xs font-black text-[#78685a]"><Gamepad2 size={15}/>{ar ? "طريقتان للعب" : "2 WAYS TO PLAY"}</span>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {modes.map(({icon:Icon,tag,title,body,href,tone,number})=><article key={number} className={`group relative isolate overflow-hidden rounded-[2.25rem] border p-7 shadow-[0_20px_60px_rgba(75,48,22,.07)] transition duration-300 hover:-translate-y-2 sm:p-9 ${tone==="orange"?"border-orange-200 bg-gradient-to-br from-[#fff0dc] via-white to-[#fff9ed]":"border-lime-200 bg-gradient-to-br from-[#eff8d9] via-white to-[#fff9ed]"}`}>
+              <span className="absolute end-5 top-1 text-8xl font-black text-[#4a321e]/[.045]">{number}</span><div className={`grid size-16 place-items-center rounded-2xl shadow-lg ${tone==="orange"?"bg-orange-500 text-white":"bg-lime-400 text-[#24330e]"}`}><Icon size={30}/></div>
+              <p className={`mt-7 text-[10px] font-black tracking-[.22em] ${tone==="orange"?"text-orange-700":"text-lime-800"}`}>{tag}</p><h3 className="mt-2 text-2xl font-black sm:text-3xl">{title}</h3><p className="mt-3 max-w-lg text-sm leading-7 text-[#78685a]">{body}</p>
+              <Link href={href} className={`mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl px-5 font-black text-white transition hover:gap-4 ${tone==="orange"?"bg-[#c84e16] hover:bg-[#a93c10]":"bg-[#4e7024] hover:bg-[#3d5a19]"}`}>{ar ? "ابدأ التحدي" : "Start challenge"}{ar?<ArrowLeft size={17}/>:<ArrowRight size={17}/>}</Link>
+              <div className="pointer-events-none absolute -bottom-16 -end-10 size-48 rounded-full border-[26px] border-current opacity-[.035]"/>
+            </article>)}
           </div>
         </div>
       </section>
-      <section className="relative px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl"><div className="mx-auto max-w-2xl text-center"><p className="text-xs font-black tracking-[.25em] text-lime-300">THE ARENA EXPERIENCE</p><h2 className="mt-4 text-3xl font-black sm:text-5xl">{ar ? "ثلاث خطوات… وتبدأ المنافسة" : "Three steps. One epic duel."}</h2><p className="mt-4 leading-7 text-white/55">{ar ? "قواعد بسيطة، لكن الفوز محتاج تركيز وذكاء." : "Simple rules, but winning takes focus and clever thinking."}</p></div>
-          <div className="mt-12 grid gap-5 md:grid-cols-3">{cards.map(({icon:Icon,number,title,body,color})=><article key={number} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.045] p-7 transition duration-300 hover:-translate-y-2 hover:border-white/20 hover:bg-white/[.08]"><span className="absolute end-5 top-2 text-6xl font-black text-white/[.045]">{number}</span><span className={`grid size-14 place-items-center rounded-2xl bg-gradient-to-br ${color} text-[#10152b] shadow-xl`}><Icon size={26}/></span><h3 className="mt-7 text-xl font-black">{title}</h3><p className="mt-3 text-sm leading-7 text-white/55">{body}</p></article>)}</div>
+
+      {/* 03 — How the game works */}
+      <section className="relative overflow-hidden bg-[#f1e8d8] px-5 py-20 sm:px-8 sm:py-24">
+        <div className="pointer-events-none absolute -end-24 top-0 size-80 rounded-full bg-orange-300/30 blur-[90px]"/>
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-black tracking-[.25em] text-orange-700">{ar ? "اللعبة سهلة… الفوز مش سهل" : "EASY TO LEARN. HARD TO MASTER."}</p><h2 className="mt-4 text-3xl font-black sm:text-5xl">{ar ? "أربع خطوات تفصلك عن الفوز" : "Four moves to victory"}</h2><p className="mt-4 leading-7 text-[#78685a]">{ar ? "كل سؤال بيقرّبك من الإجابة. بس خليك أذكى من منافسك." : "Every question gets you closer. Just stay one step ahead of your rival."}</p></div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map(({icon:Icon,n,title,body},i)=><article key={n} className="relative rounded-[1.8rem] border border-[#e2d3bd] bg-[#fffaf1] p-6 shadow-[0_12px_35px_rgba(75,48,22,.05)]">
+              <div className="flex items-center justify-between"><span className="text-xs font-black tracking-widest text-orange-700">{n}</span><Icon size={23} className="text-[#7b8e36]"/></div><h3 className="mt-8 text-lg font-black">{title}</h3><p className="mt-2 text-sm leading-7 text-[#78685a]">{body}</p>
+              {i!==3&&<span className="absolute -end-3 top-1/2 z-10 hidden size-7 -translate-y-1/2 place-items-center rounded-full border border-[#e2d3bd] bg-[#fffaf1] text-orange-600 lg:grid"><ArrowRight size={14}/></span>}
+            </article>)}
+          </div>
+          <div className="mt-10 flex justify-center"><Link href="/how-to-play" className="inline-flex items-center gap-2 rounded-xl border border-[#d9c8af] bg-white/60 px-5 py-3 text-sm font-black text-[#5c4632] transition hover:bg-white"><Lightbulb size={17}/>{ar ? "شوف القواعد بالتفصيل" : "Explore the full rules"}{ar?<ArrowLeft size={16}/>:<ArrowRight size={16}/>}</Link></div>
         </div>
       </section>
-      <section className="px-5 pb-24 sm:px-8"><div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] border border-lime-200/20 bg-gradient-to-r from-violet-700/70 via-indigo-700/60 to-teal-700/60 p-8 text-center shadow-[0_30px_90px_rgba(0,0,0,.3)] sm:p-14"><div className="absolute -start-16 -top-20 size-64 rounded-full bg-fuchsia-400/20 blur-3xl"/><div className="absolute -end-16 -bottom-20 size-64 rounded-full bg-lime-300/20 blur-3xl"/><div className="relative"><Handshake size={38} className="mx-auto text-lime-200"/><h2 className="mt-5 text-3xl font-black sm:text-4xl">{ar ? "هات صاحبك… وابدأوا التحدي!" : "Bring a friend. Start the showdown!"}</h2><p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/65">{ar ? "أنشئ غرفة خاصة وشارك كودها. أول واحد يكشف الشخصية السرية هو بطل الساحة." : "Create a private room and share its code. The first to uncover the secret character wins the arena."}</p><Link href="/play" className="arena-play-cta mt-7 inline-flex min-h-13 items-center gap-2 rounded-2xl px-7 py-3 font-black text-[#102018]"><Gamepad2 size={19}/>{ar ? "يلا نلعب" : "Let's play"}</Link></div></div></section>
+
+      {/* 04 — Final challenge */}
+      <section className="relative overflow-hidden px-5 py-20 sm:px-8 sm:py-28">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-[#21140d] px-7 py-14 text-center text-[#fff9ed] shadow-[0_30px_80px_rgba(75,48,22,.18)] sm:px-14 sm:py-20">
+          <div className="pointer-events-none absolute -start-20 -top-24 size-72 rounded-full bg-orange-500/25 blur-[80px]"/><div className="pointer-events-none absolute -end-16 -bottom-24 size-72 rounded-full bg-lime-400/20 blur-[80px]"/>
+          <div className="relative mx-auto max-w-3xl"><div className="mx-auto grid size-16 place-items-center rounded-2xl border border-lime-200/25 bg-lime-300/10 text-lime-200"><Trophy size={31}/></div><p className="mt-6 text-xs font-black tracking-[.25em] text-orange-200">{ar ? "مكانك مستنيك" : "THE ARENA IS CALLING"}</p><h2 className="mt-4 text-3xl font-black sm:text-5xl">{ar ? "جاهز تثبت إنك أذكى؟" : "Ready to outsmart everyone?"}</h2><p className="mx-auto mt-4 max-w-xl leading-8 text-white/60">{ar ? "اختار منافسك، ركّز في كل إجابة، وخلي آخر بطاقة تكون هي الإجابة الصح." : "Choose your opponent, read every answer, and make that final card count."}</p><Link href="/play" className="arena-home-primary mt-8 inline-flex min-h-14 items-center gap-3 rounded-2xl px-8 py-3 font-black text-[#21140d] transition hover:-translate-y-1"><Swords size={20}/>{ar ? "ابدأ اللعب دلوقتي" : "Play the game now"}{ar?<ArrowUpLeft size={18}/>:<ArrowUpRight size={18}/>}</Link></div>
+        </div>
+      </section>
     </main>
   );
 }
