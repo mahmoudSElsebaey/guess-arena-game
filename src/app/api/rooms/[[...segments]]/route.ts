@@ -299,7 +299,7 @@ export async function POST(request:Request,{params}:Ctx){
       await tx.roomMember.update({where:{id:member.id},data:{leftAt:closedAt,isConnected:false,isReady:false,secretCharacterId:null}});
       const closed=await tx.room.update({where:{id:roomId},data:{status:"COMPLETED",winnerId:other?.userId??null,currentTurnUserId:null,turnExpiresAt:null,finishedAt:closedAt,expiresAt:null,version:{increment:1}}});
       await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_LEFT",payload:{destination:"HOME",duringRematchSetup:true}});
-      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"PLAYER_LEFT",winnerId:other?.userId??null}});
+      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_CANCELLED_LEFT",winnerId:other?.userId??null}});
       return {...closed,deleted:false};
      }
      await tx.room.delete({where:{id:roomId}});
