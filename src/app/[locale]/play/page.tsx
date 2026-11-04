@@ -8,7 +8,7 @@ export default async function PlayPage({ params }: { params: Promise<{ locale: "
   const choices = [
     { href: "/play/create" as const, icon: PlusCircle, title: ar ? "إنشاء غرفة" : "Create a room", body: ar ? "ابدأ غرفة جديدة وشارك كود الدعوة مع صديقك." : "Start a new room and share the invite code with a friend.", tone: "from-lime-300 to-emerald-500" },
     { href: "/play/join" as const, icon: DoorOpen, title: ar ? "الانضمام لغرفة" : "Join a room", body: ar ? "معاك كود دعوة؟ اكتبه وانضم للمباراة." : "Have an invite code? Enter it and join the match.", tone: "from-cyan-300 to-blue-500" },
-    { href: "/practice" as const, icon: Bot, title: ar ? "اللعب ضد البوت" : "Play against bot", body: ar ? "واجه خصمًا ذكيًا بثلاثة مستويات صعوبة، والعب في أي وقت دون انتظار صديق." : "Challenge a smart opponent across three difficulty levels. Play anytime without waiting for a friend.", tone: "from-violet-300 to-fuchsia-500" }
+    { href: "/practice" as const, icon: Bot, title: ar ? "اللعب ضد البوت" : "Play against bot", body: ar ? "هتلعب ضد الكمبيوتر بدل لاعب حقيقي. اختار سهل أو متوسط أو صعب، والبوت هيسألك ويخمّن شخصيتك تلقائيًا. ابدأ فورًا من غير غرفة أو كود دعوة أو انتظار صديق." : "Play against the computer instead of a real person. Choose Easy, Medium, or Hard, and the bot will ask questions and guess your character automatically. Start instantly—no room, invite code, or friend needed.", tone: "from-violet-300 to-fuchsia-500" }
   ];
   return <main id="main-content" dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-[#0c1028] text-white">
     <SiteHeader locale={locale}/>
