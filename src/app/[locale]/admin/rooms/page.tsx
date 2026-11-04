@@ -1,3 +1,6 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) { const { locale } = await params; return localizedPageMetadata({ locale, path: "/admin/rooms", titleAr: "إدارة الغرف", titleEn: "Room Management", descriptionAr: "متابعة وإدارة غرف ومباريات Guess Arena.", descriptionEn: "Monitor and manage Guess Arena rooms and matches.", indexable: false }); }
+
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SiteHeader } from "@/components/layout/site-header";
