@@ -47,6 +47,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const lastFeedbackAction=useRef("");
  const lastGuessSoundAction=useRef("");
  const lastTimeoutAction=useRef("");
+ const timeoutInitialized=useRef(false);
  const timeoutRequestKey=useRef("");
  const countdownStarted=useRef(false);
  const countdownTimer=useRef<number|null>(null);
@@ -173,19 +174,6 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  },[state?.status,state?.turnExpiresAt,remainingTurnSeconds,roomId,refresh]);
 
  useEffect(()=>{
-  if(!state)return;
-  const latest=state.actions.filter(action=>action.type==="TURN_CONFIRMED"&&action.reason==="TIMEOUT").slice(-1)[0];
-  if(!latest)return;
-  if(!lastTimeoutAction.current){lastTimeoutAction.current=latest.id;return;}
-  if(lastTimeoutAction.current===latest.id)return;
-  lastTimeoutAction.current=latest.id;
-  notify(latest.actorId===myId
-   ?(ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time's up. Your turn ended automatically.")
-   :(ar?"انتهى وقت الخصم، حان دورك الآن.":"Your opponent ran out of time. It's your turn now."),
-   "warning");
- },[state,myId,ar,notify]);
-
- useEffect(()=>{
   const update=()=>setIsFullscreen(Boolean(document.fullscreenElement));
   document.addEventListener("fullscreenchange",update);
   return()=>document.removeEventListener("fullscreenchange",update);
@@ -193,6 +181,21 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
  const eliminated=useMemo(()=>new Set(optimisticEliminated),[optimisticEliminated]);
  const myId=state?.members.find(m=>m.isMe)?.userId;
+ useEffect(()=>{
+  if(!state)return;
+  const latest=state.actions.filter(action=>action.type==="TURN_CONFIRMED"&&action.reason==="TIMEOUT").slice(-1)[0];
+  if(!timeoutInitialized.current){
+   timeoutInitialized.current=true;
+   lastTimeoutAction.current=latest?.id??"";
+   return;
+  }
+  if(!latest||lastTimeoutAction.current===latest.id)return;
+  lastTimeoutAction.current=latest.id;
+  notify(latest.actorId===myId
+   ?(ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time's up. Your turn ended automatically.")
+   :(ar?"انتهى وقت الخصم، حان دورك الآن.":"Your opponent ran out of time. It's your turn now."),
+   "warning");
+ },[state,myId,ar,notify]);
  const myTurn=Boolean(myId&&state?.currentTurnUserId===myId);
  const asked=new Set((state?.actions??[]).filter(a=>a.type==="QUESTION_ASKED"&&a.actorId===myId).map(a=>a.questionId));
  const questionGroups=[
