@@ -1,3 +1,16 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
+  const { locale } = await params;
+  return localizedPageMetadata({
+    locale, path: "/how-to-play",
+    titleAr: "كيف تلعب Guess Arena؟ | شرح القواعد والخطوات",
+    titleEn: "How to Play Guess Arena | Rules and Game Guide",
+    descriptionAr: "تعلم قواعد Guess Arena خطوة بخطوة: اختيار الشخصية السرية، طرح أسئلة نعم أو لا، استبعاد البطاقات، وتخمين شخصية منافسك.",
+    descriptionEn: "Learn Guess Arena step by step: choose a secret character, ask yes-or-no questions, eliminate cards, and guess your opponent's character.",
+    keywords: locale === "ar" ? ["شرح لعبة تخمين الشخصيات", "قواعد Guess Arena", "كيف تلعب لعبة تخمين"] : ["how to play guessing game", "Guess Arena rules", "character guessing game guide"]
+  });
+}
+
 import { ArrowDown, CheckCircle2, CircleHelp, Hand, MousePointer2, Users, Trophy } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
