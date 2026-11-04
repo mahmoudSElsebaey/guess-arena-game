@@ -14,7 +14,7 @@ async function cleanupExpiredWaitingRooms(){
 }
 async function runRoomTransaction<T>(work:(tx:Prisma.TransactionClient)=>Promise<T>):Promise<T>{
  let lastError:unknown;
- for(let attempt=0;attempt<4;attempt++){
+ for(let attempt=0;attempt<6;attempt++){
   try{return await prisma.$transaction(work,{isolationLevel:Prisma.TransactionIsolationLevel.ReadCommitted});}
   catch(error){
    lastError=error;
