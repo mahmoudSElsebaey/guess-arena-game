@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpLeft, ArrowUpRight, Bot, Brain, Check, CircleHelp, Crown, Flame, Gamepad2, Lightbulb, LockKeyhole, Sparkles, Swords, Target, Trophy, Users, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpLeft, ArrowUpRight, Bot, Brain, Check, CircleHelp, Crown, Flame, Gamepad2, Lightbulb, LockKeyhole, Sparkles, Swords, Target, Trophy, Users, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
 
@@ -54,7 +54,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
                   </div>
                   <div className="mx-auto mt-1 h-1 w-1/2 rounded-full bg-white/20"/>
                   {i===7&&<span className="absolute inset-0 grid place-items-center bg-lime-300/15 text-3xl font-black text-white">?</span>}
-                  {i===12&&<span className="absolute inset-0 bg-black/55"/ >}
+                  {i===12&&<span className="absolute inset-0 bg-black/55"/>}
                 </div>)}
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3"><span className="text-xs font-bold text-white/65">{ar ? "الشخصية السرية اتحددت!" : "Secret character selected!"}</span><span className="inline-flex items-center gap-1.5 text-xs font-black text-lime-200"><Check size={14}/>{ar ? "جاهز للتحدي" : "READY TO PLAY"}</span></div>
