@@ -119,10 +119,10 @@ export async function POST(request:Request,{params}:Ctx){
   }
   if(action==="ready"){
    const parsed=readySchema.safeParse(body);if(!parsed.success||(parsed.data.isReady&&!(await getActiveCharacterById(parsed.data.secretCharacterId??""))))return NextResponse.json({error:"INVALID_READY_STATE"},{status:400});
-   const room=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt||member.room.status!=="WAITING")throw new Error("ROOM_NOT_AVAILABLE");await tx.roomMember.update({where:{id:member.id},data:{isReady:parsed.data.isReady,secretCharacterId:parsed.data.isReady?parsed.data.secretCharacterId:null,lastSeenAt:new Date()}});const updated=await tx.room.update({where:{id:roomId},data:{version:{increment:1}}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_READY",payload:{isReady:parsed.data.isReady}});return updated;});await publishRoomEvent(roomId,"room.updated",{roomId,version:room.version,status:room.status});return NextResponse.json({ok:true});
+   const room=await runRoomTransaction(async tx=>{const member=await tx.roomMember.findUnique({where:{roomId_userId:{roomId,userId}},include:{room:true}});if(!member||member.leftAt||member.room.status!=="WAITING")throw new Error("ROOM_NOT_AVAILABLE");const changed=await tx.room.updateMany({where:{id:roomId,version:member.room.version,status:"WAITING"},data:{version:{increment:1}}});if(changed.count!==1)throw new Error("STATE_CONFLICT");await tx.roomMember.update({where:{id:member.id},data:{isReady:parsed.data.isReady,secretCharacterId:parsed.data.isReady?parsed.data.secretCharacterId:null,lastSeenAt:new Date()}});await appendRoomAction(tx,{roomId,actorId:userId,type:"PLAYER_READY",payload:{isReady:parsed.data.isReady}});return {version:member.room.version+1,status:"WAITING"};});await publishRoomEvent(roomId,"room.updated",{roomId,version:room.version,status:room.status});return NextResponse.json({ok:true});
   }
   if(action==="start"){
-   const room=await runRoomTransaction(async tx=>{const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});if(!current)throw new Error("NOT_FOUND");if(current.hostId!==userId)throw new Error("FORBIDDEN");if(current.status!=="WAITING"||current.members.length!==2||current.members.some(m=>!m.isReady||!m.secretCharacterId))throw new Error("NOT_READY");const started=await tx.room.update({where:{id:roomId},data:{status:"IN_PROGRESS",startedAt:new Date(),currentTurnUserId:current.members[0].userId,turnNumber:1,turnExpiresAt:new Date(Date.now()+65000),version:{increment:1},expiresAt:null}});await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_STARTED",payload:{startedAt:started.startedAt?.toISOString()}});return started;});await publishRoomEvent(roomId,"game.started",{roomId,version:room.version,status:room.status,currentTurnUserId:room.currentTurnUserId});return NextResponse.json({ok:true,status:room.status});
+   const room=await runRoomTransaction(async tx=>{const current=await tx.room.findUnique({where:{id:roomId},include:{members:{where:{leftAt:null},orderBy:{seat:"asc"}}}});if(!current)throw new Error("NOT_FOUND");if(current.hostId!==userId)throw new Error("FORBIDDEN");if(current.status!=="WAITING"||current.members.length!==2||current.members.some(m=>!m.isReady||!m.secretCharacterId))throw new Error("NOT_READY");const startedAt=new Date();const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,status:"WAITING",hostId:userId},data:{status:"IN_PROGRESS",startedAt,currentTurnUserId:current.members[0].userId,turnNumber:1,turnExpiresAt:new Date(Date.now()+65000),version:{increment:1},expiresAt:null}});if(changed.count!==1)throw new Error("STATE_CONFLICT");await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_STARTED",payload:{startedAt:startedAt.toISOString()}});return {version:current.version+1,status:"IN_PROGRESS",currentTurnUserId:current.members[0].userId};});await publishRoomEvent(roomId,"game.started",{roomId,version:room.version,status:room.status,currentTurnUserId:room.currentTurnUserId});return NextResponse.json({ok:true,status:room.status});
   }
   if(action==="ask"){
    const parsed=z.object({questionId:z.string().min(1).max(40)}).safeParse(body);
@@ -261,6 +261,8 @@ export async function POST(request:Request,{params}:Ctx){
     if(payload.reason==="PLAYER_LEFT"||payload.reason==="REMATCH_CANCELLED_LEFT")throw new Error("REMATCH_NOT_AVAILABLE_AFTER_LEAVE");
     if(payload.reason==="REMATCH_REQUESTED")throw new Error("REMATCH_ALREADY_REQUESTED");
     if(typeof payload.newRoomId==="string")throw new Error("REMATCH_ALREADY_RESOLVED");
+    const changed=await tx.room.updateMany({where:{id:roomId,version:room.version,status:"COMPLETED"},data:{version:{increment:1}}});
+    if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_REQUESTED",requesterId:userId}});
     return {version:room.version+1};
    });
@@ -280,10 +282,13 @@ export async function POST(request:Request,{params}:Ctx){
     if(payload.requesterId===userId)throw new Error("CANNOT_RESPOND_TO_OWN_REQUEST");
     if(parsed.data.accept){
      await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isReady:false,isConnected:true,secretCharacterId:null,eliminatedCharacterIds:[],lastSeenAt:new Date()}});
-     const updated=await tx.room.update({where:{id:roomId},data:{status:"WAITING",winnerId:null,currentTurnUserId:null,turnNumber:0,startedAt:null,finishedAt:null,expiresAt:new Date(Date.now()+1800000),turnExpiresAt:null,version:{increment:1}}});
+     const changed=await tx.room.updateMany({where:{id:roomId,version:room.version,status:"COMPLETED"},data:{status:"WAITING",winnerId:null,currentTurnUserId:null,turnNumber:0,startedAt:null,finishedAt:null,expiresAt:new Date(Date.now()+1800000),turnExpiresAt:null,version:{increment:1}}});
+     if(changed.count!==1)throw new Error("STATE_CONFLICT");
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_ACCEPTED"}});
-     return {accepted:true,newRoomId:null,roomId:updated.id,version:updated.version};
+     return {accepted:true,newRoomId:null,roomId,version:room.version+1};
     }
+    const changed=await tx.room.updateMany({where:{id:roomId,version:room.version,status:"COMPLETED"},data:{version:{increment:1}}});
+    if(changed.count!==1)throw new Error("STATE_CONFLICT");
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"REMATCH_DECLINED"}});
     return {accepted:false,newRoomId:null,version:room.version+1};
    });
