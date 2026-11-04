@@ -204,95 +204,124 @@ export function BotGame({ locale }: { locale: Locale }) {
   if (loadError || characters.length === 0 || questions.length === 0) return <main dir={ar ? "rtl" : "ltr"} className="grid min-h-[70vh] place-items-center bg-[#0b1028] p-6 text-white"><div className="max-w-md text-center"><p className="font-bold">{t.loadError}</p><button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl bg-lime-300 px-5 py-3 font-black text-slate-950">{ar ? "إعادة المحاولة" : "Retry"}</button></div></main>;
 
   return (
-    <section dir={ar ? "rtl" : "ltr"} className="mx-auto w-full max-w-[1500px] px-3 py-5 text-white sm:px-6 sm:py-8">
-      <header className="relative mb-6 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#20234d] via-[#171b3c] to-[#102d35] p-5 shadow-2xl sm:p-8">
-        <div className="pointer-events-none absolute -end-16 -top-24 size-72 rounded-full bg-lime-300/10 blur-3xl"/>
-        <div className="relative flex flex-wrap items-center justify-between gap-5">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-lime-200/20 bg-lime-200/10 px-3 py-1.5 text-[10px] font-black tracking-[.2em] text-lime-200"><Bot size={14}/>{t.eyebrow}</span>
-            <h1 className="mt-4 text-3xl font-black sm:text-5xl">{t.title}</h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-white/60 sm:text-base">{t.subtitle}</p>
+    <section dir={ar ? "rtl" : "ltr"} aria-label={ar ? "ساحة اللعب ضد البوت" : "Bot duel arena"} className="arena-game-stage relative isolate mx-auto mt-5 min-h-[calc(100dvh-90px)] w-full max-w-[1600px] overflow-hidden rounded-[1.8rem] bg-[#0b1028] p-2 text-white sm:p-4 lg:p-5">
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40" style={{backgroundImage:"radial-gradient(circle at 15% 12%,rgba(139,92,246,.32),transparent 30%),radial-gradient(circle at 90% 80%,rgba(20,184,166,.22),transparent 28%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px)",backgroundSize:"auto,auto,32px 32px,32px 32px"}} />
+      <div className="relative z-10 space-y-4">
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 shadow-xl sm:p-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-lime-300 to-emerald-400 text-[#10172c]"><Bot size={21}/></span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · BOT DUEL</p>
+              <h2 className="truncate text-lg font-black sm:text-xl">{phase==="won"?(ar?"أنت الفائز!":"You won!") : phase==="lost"?(ar?"البوت فاز":"Bot wins") : turn==="player"?(ar?"دورك الآن!":"Your turn!"):(ar?"البوت يسألك...":"Bot is asking...")}</h2>
+            </div>
           </div>
-          <button type="button" onClick={() => router.push("/play")} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-bold text-white/80 transition hover:bg-white/10">{ar ? <ArrowRight size={17}/> : <ArrowLeft size={17}/>} {t.back}</button>
-        </div>
-      </header>
-
-      {phase === "setup" ? (
-        <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[.045] p-5 sm:p-6">
-            <div className="flex items-center gap-2 text-lime-200"><Zap size={19}/><h2 className="font-black">{t.chooseLevel}</h2></div>
-            <div className="mt-4 grid gap-3">
-              {levels.map(level => <button key={level} type="button" onClick={() => setDifficulty(level)} className={`rounded-2xl border p-4 text-start transition ${difficulty === level ? "border-lime-300/60 bg-lime-300/10 shadow-lg shadow-lime-950/20" : "border-white/10 bg-black/10 hover:bg-white/[.06]"}`}>
-                <span className="flex items-center justify-between gap-2 font-black"><span>{t[level]}</span>{difficulty === level && <Check size={17} className="text-lime-200"/>}</span>
-                <span className="mt-1 block text-xs leading-5 text-white/50">{t[`${level}Desc` as "easyDesc" | "mediumDesc" | "hardDesc"]}</span>
-              </button>)}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div><span className="block text-[9px] font-black text-white/40">{ar?"المستوى":"LEVEL"}</span><strong className="text-sm font-black text-amber-200">{t[difficulty]}</strong></div>
+              <span className="h-8 w-px bg-white/10"/>
+              <div><span className="block text-[9px] font-black text-white/40">{ar?"المتبقي":"LEFT"}</span><strong className="text-xl font-black text-white">{remaining}</strong></div>
             </div>
-            <div className="mt-5 rounded-2xl border border-cyan-200/10 bg-cyan-200/[.05] p-4">
-              <div className="flex items-center gap-2 text-cyan-100"><CircleHelp size={17}/><span className="text-sm font-black">{t.yourSecret}</span></div>
-              {mySecret ? <div className="mt-3 flex items-center gap-3"><div className="size-16 overflow-hidden rounded-xl bg-white/10"><CharacterPortrait name={mySecret.name} attributes={mySecret.attributes}/></div><div><p className="font-black">{mySecret.name}</p><p className="mt-1 text-xs text-lime-200">{t.locked}</p></div></div> : <p className="mt-2 text-xs leading-6 text-white/45">{t.chooseSecretHint}</p>}
-            </div>
-            <button type="button" disabled={!mySecretId} onClick={startGame} className="mt-5 inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-5 py-3 font-black text-[#102018] shadow-lg shadow-lime-950/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"><Swords size={18}/>{t.start}</button>
-          </aside>
-          <section className="rounded-[2rem] border border-white/10 bg-white/[.035] p-4 sm:p-6">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.2em] text-lime-200">01 · SECRET PICK</p><h2 className="mt-2 text-xl font-black sm:text-2xl">{t.chooseSecret}</h2><p className="mt-1 text-xs leading-6 text-white/50">{t.chooseSecretHint}</p></div><span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/60">{characters.length} {t.characters}</span></div>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-6 2xl:grid-cols-8">
-              {characters.map(character => <button key={character.id} type="button" onClick={() => setMySecretId(character.id)} className={`group min-w-0 overflow-hidden rounded-2xl border p-1.5 text-start transition sm:p-2 ${mySecretId === character.id ? "border-lime-300 bg-lime-300/10 ring-2 ring-lime-300/30" : "border-white/10 bg-white/[.04] hover:border-white/25 hover:bg-white/[.08]"}`}>
-                <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#22284a]"><CharacterPortrait name={character.name} attributes={character.attributes}/>{mySecretId === character.id && <span className="absolute inset-0 grid place-items-center bg-lime-300/15"><span className="grid size-9 place-items-center rounded-full bg-lime-300 text-slate-950"><Check size={21}/></span></span>}</div>
-                <span className="mt-1.5 block truncate text-center text-[10px] font-extrabold text-white/85 sm:text-xs">{character.name}</span>
-              </button>)}
-            </div>
-          </section>
-        </div>
-      ) : (
-        <>
-          <div className="mb-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-lime-200/20 bg-lime-200/[.07] p-4"><div className="flex items-center gap-2 text-lime-100"><UserRound size={18}/><span className="text-sm font-black">{t.player}</span></div><p className="mt-2 text-2xl font-black tabular-nums">{remaining}<span className="ms-2 text-xs font-bold text-white/45">{t.remaining}</span></p></div>
-            <div className="rounded-2xl border border-cyan-200/20 bg-cyan-200/[.06] p-4"><div className="flex items-center gap-2 text-cyan-100"><Bot size={18}/><span className="text-sm font-black">{t.botCandidates}</span></div><p className="mt-2 text-2xl font-black tabular-nums">{botRemaining}<span className="ms-2 text-xs font-bold text-white/45">{t.remaining}</span></p></div>
-            <div className="rounded-2xl border border-white/10 bg-white/[.04] p-4"><div className="flex items-center gap-2 text-amber-100"><Sparkles size={18}/><span className="text-sm font-black">{t.level}</span></div><p className="mt-2 text-2xl font-black">{t[difficulty]}</p></div>
+            <button type="button" onClick={() => router.push("/play")} className="inline-flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 transition hover:bg-white/10" aria-label={t.back}>{ar?<ArrowRight size={18}/>:<ArrowLeft size={18}/>}</button>
           </div>
+        </header>
 
-          {phase === "playing" && turn === "bot" && pendingBotQuestion && <div className="mb-5 rounded-[1.7rem] border border-cyan-200/30 bg-gradient-to-r from-cyan-400/10 to-violet-400/10 p-5 shadow-lg shadow-cyan-950/20">
-            <div className="flex items-center gap-2 text-cyan-100"><Bot size={20}/><span className="text-xs font-black tracking-wider">{t.botThinking}</span></div>
-            <h2 className="mt-3 text-xl font-black">{t.botQuestionIntro} {ar ? pendingBotQuestion.labelAr : pendingBotQuestion.labelEn}</h2>
-            <p className="mt-2 text-xs text-white/45">{t.secretHint}</p>
-            <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => answerBotQuestion(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-300 px-5 font-black text-[#102018] disabled:opacity-50"><Check size={17}/>{t.answerYes}</button><button type="button" disabled={busy} onClick={() => answerBotQuestion(false)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-rose-400 px-5 font-black text-[#281018] disabled:opacity-50"><X size={17}/>{t.answerNo}</button></div>
-          </div>}
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-lime-300/40 bg-lime-300/10 px-4 py-2.5">
+            <div className="flex min-w-0 items-center gap-2.5"><span className="grid size-8 place-items-center rounded-lg bg-lime-300/15 text-lime-100"><UserRound size={17}/></span><p className="truncate text-sm font-extrabold text-white">{t.player} <span className="text-white/45">({ar?"أنت":"You"})</span></p></div>
+            <span className="rounded-full bg-lime-300 px-2.5 py-1 text-[10px] font-black text-[#11182d]">{turn==="player"&&phase==="playing"?(ar?"يلعب الآن":"Playing"):(ar?"ينتظر":"Waiting")}</span>
+          </div>
+          <div className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 ${turn==="bot"&&phase==="playing"?"border-cyan-300/40 bg-cyan-300/10":"border-white/10 bg-[#171b3c]/80"}`}>
+            <div className="flex min-w-0 items-center gap-2.5"><span className="grid size-8 place-items-center rounded-lg bg-cyan-300/15 text-cyan-100"><Bot size={17}/></span><p className="truncate text-sm font-extrabold text-white">{t.bot}</p></div>
+            <span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${turn==="bot"&&phase==="playing"?"bg-cyan-200 text-[#11182d]":"bg-white/10 text-white/60"}`}>{turn==="bot"&&phase==="playing"?(ar?"يلعب الآن":"Playing"):(ar?"ينتظر":"Waiting")}</span>
+          </div>
+        </div>
 
-          <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
-            <section className="min-w-0 rounded-[2rem] border border-white/10 bg-white/[.035] p-3 sm:p-5">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1"><div><p className="text-[10px] font-black tracking-[.2em] text-lime-200">GUESS ARENA · BOT DUEL</p><h2 className="mt-1 text-xl font-black">{t.yourBoard}</h2></div><span className={`rounded-full px-3 py-1.5 text-xs font-black ${turn === "player" ? "bg-lime-200/15 text-lime-100" : "bg-cyan-200/15 text-cyan-100"}`}>{turn === "player" ? t.turnPlayer : t.turnBot}</span></div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
-                {characters.map(character => {
-                  const out = playerEliminated.has(character.id);
-                  return <button key={character.id} type="button" disabled={phase !== "playing" || turn !== "player" || out} onClick={() => guessCharacter(character)} className={`group relative min-w-0 overflow-hidden rounded-2xl border p-1.5 text-center transition sm:p-2 ${out ? "border-white/5 bg-black/20 opacity-25 grayscale" : "border-white/10 bg-white/[.055] hover:-translate-y-0.5 hover:border-lime-200/40 hover:bg-white/10"} disabled:cursor-not-allowed`}>
-                    <div className="aspect-[4/5] overflow-hidden rounded-xl bg-[#22284a]"><CharacterPortrait name={character.name} attributes={character.attributes}/></div>
-                    <span className="mt-1.5 block truncate text-[10px] font-extrabold text-white/85 sm:text-xs">{character.name}</span>
-                    {out && <span className="absolute inset-0 grid place-items-center"><span className="grid size-8 place-items-center rounded-full bg-rose-500/90 text-white"><X size={18}/></span></span>}
-                  </button>;
-                })}
+        {phase==="setup" ? (
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 sm:p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><p className="text-[10px] font-black tracking-[.2em] text-cyan-200">{ar?"اختيار الشخصية السرية":"SECRET CHARACTER"}</p><h3 className="mt-1 text-lg font-black text-white">{t.chooseSecret}</h3><p className="mt-1 text-xs leading-6 text-white/50">{t.chooseSecretHint}</p></div><span className="rounded-full bg-white/5 px-3 py-1.5 text-[10px] font-bold text-white/55">{characters.length} {t.characters}</span></div>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 2xl:grid-cols-9">
+                {characters.map(character=><button key={character.id} type="button" onClick={()=>setMySecretId(character.id)} aria-pressed={mySecretId===character.id} className={`min-w-0 overflow-hidden rounded-xl border p-1.5 text-center transition sm:rounded-2xl sm:p-2 ${mySecretId===character.id?"border-lime-300 bg-lime-300/15 shadow-[0_0_25px_rgba(190,242,100,.18)]":"border-white/10 bg-[#22264a] hover:border-lime-300/40"}`}>
+                  <span className="relative block aspect-[4/4.8] overflow-hidden rounded-lg bg-gradient-to-br from-violet-200 to-cyan-100"><CharacterPortrait name={character.name} attributes={character.attributes} className="h-full w-full"/>{mySecretId===character.id&&<span className="absolute inset-0 grid place-items-center bg-lime-300/15"><span className="grid size-9 place-items-center rounded-full bg-lime-300 text-slate-950"><Check size={21}/></span></span>}</span>
+                  <span className="mt-1 block truncate text-[10px] font-black text-white sm:text-xs">{character.name}</span>
+                  {mySecretId===character.id&&<span className="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-lime-200"><Check size={12}/>{t.selected}</span>}
+                </button>)}
               </div>
-              {phase === "playing" && turn === "player" && <div className="mt-5 rounded-2xl border border-white/10 bg-black/15 p-4">
-                <div className="flex items-center gap-2"><CircleHelp size={18} className="text-lime-200"/><h3 className="font-black">{t.ask}</h3></div><p className="mt-1 text-xs leading-6 text-white/45">{t.askHint}</p>
-                <div className="mt-3 flex flex-wrap gap-2">{availablePlayerQuestions.map(question => <button key={question.id} type="button" onClick={() => askBot(question)} className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-xs font-bold text-white/80 transition hover:border-lime-200/30 hover:bg-lime-200/10">{ar ? question.labelAr : question.labelEn}</button>)}</div>
-                {availablePlayerQuestions.length === 0 && <p className="mt-3 text-xs font-bold text-amber-200">{t.allQuestions}</p>}
-              </div>}
-              {notice && <div role="status" aria-live="polite" className="mt-4 rounded-2xl border border-lime-200/15 bg-lime-200/[.07] p-4 text-sm font-bold text-lime-100">{notice}</div>}
             </section>
-
-            <aside className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
-              <section className="rounded-3xl border border-white/10 bg-white/[.045] p-5">
-                <div className="flex items-center gap-2"><Crown size={18} className="text-amber-200"/><h2 className="font-black">{t.yourSecret}</h2></div>
-                {mySecret && <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white/[.05] p-3"><div className="size-16 overflow-hidden rounded-xl"><CharacterPortrait name={mySecret.name} attributes={mySecret.attributes}/></div><div><p className="font-black">{mySecret.name}</p><p className="mt-1 text-xs text-lime-200">{t.locked}</p></div></div>}
-                <p className="mt-3 text-xs leading-6 text-white/45">{t.secretHint}</p>
-                <div className="mt-4 flex items-center justify-between text-xs font-bold text-white/50"><span>{t.progress}</span><span>{characters.length ? Math.round(((characters.length - botRemaining) / characters.length) * 100) : 0}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 transition-all" style={{ width: `${characters.length ? ((characters.length - botRemaining) / characters.length) * 100 : 0}%` }}/></div>
+            <aside className="space-y-3">
+              <section className="rounded-2xl border border-lime-300/25 bg-gradient-to-br from-[#202448] via-[#171b3c] to-[#102a32] p-4 sm:p-5">
+                <div className="flex items-center gap-2"><Zap size={18} className="text-lime-200"/><h3 className="font-black text-white">{t.chooseLevel}</h3></div>
+                <div className="mt-3 grid gap-2">
+                  {levels.map(level=><button key={level} type="button" onClick={()=>setDifficulty(level)} className={`rounded-xl border p-3 text-start transition ${difficulty===level?"border-lime-300/50 bg-lime-300/10":"border-white/10 bg-black/15 hover:bg-white/5"}`}>
+                    <span className="flex items-center justify-between gap-2 text-sm font-black text-white"><span>{t[level]}</span>{difficulty===level&&<Check size={16} className="text-lime-200"/>}</span>
+                    <span className="mt-1 block text-[10px] leading-5 text-white/50">{t[`${level}Desc` as "easyDesc"|"mediumDesc"|"hardDesc"]}</span>
+                  </button>)}
+                </div>
+                {mySecret&&<div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3"><div className="size-14 overflow-hidden rounded-lg"><CharacterPortrait name={mySecret.name} attributes={mySecret.attributes}/></div><div className="min-w-0"><p className="text-[9px] font-black text-white/40">{t.yourSecret}</p><p className="truncate text-sm font-black text-white">{mySecret.name}</p><p className="mt-1 text-[10px] text-lime-200">{t.locked}</p></div></div>}
+                <button type="button" disabled={!mySecretId} onClick={startGame} className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-5 font-black text-[#102018] shadow-lg shadow-lime-950/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"><Swords size={17}/>{t.start}</button>
               </section>
-              <section className="rounded-3xl border border-white/10 bg-white/[.045] p-5"><div className="flex items-center gap-2"><Sparkles size={18} className="text-cyan-200"/><h2 className="font-black">{t.history}</h2></div>{history.length === 0 ? <p className="mt-4 text-xs text-white/40">{t.noHistory}</p> : <ol className="mt-4 space-y-3">{history.map(item => <li key={item.id} className="rounded-xl bg-black/15 p-3"><div className="flex items-center justify-between gap-2"><span className="text-[10px] font-black text-white/45">{item.speaker === "player" ? t.player : t.bot}</span>{item.answer !== undefined && <span className={`text-[10px] font-black ${item.answer ? "text-emerald-300" : "text-rose-300"}`}>{item.detail}</span>}</div><p className="mt-1 text-xs font-bold leading-5 text-white/80">{item.text}</p></li>)}</ol>}</section>
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#171b3c]/80 p-3 text-[10px] font-semibold leading-5 text-white/45"><Eye size={15} className="shrink-0 text-lime-200"/>{t.secretHint}</div>
             </aside>
           </div>
+        ) : (
+          <>
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <section className="min-w-0 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 sm:p-5">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · CHARACTER BOARD</p><h3 className="mt-1 text-lg font-black text-white">{t.yourBoard}</h3></div>
+                  <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#0b1028] px-3 py-2"><span className={`size-2 rounded-full ${turn==="player"?"animate-pulse bg-lime-300":"bg-cyan-300"}`}/><span className="text-xs font-bold text-white/80">{turn==="player"?t.turnPlayer:t.turnBot}</span></div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-9">
+                  {characters.map((character,index)=>{
+                    const out=playerEliminated.has(character.id);
+                    return <button key={character.id} type="button" disabled={phase!=="playing"||turn!=="player"||out} onClick={()=>guessCharacter(character)} className={`group relative min-w-0 overflow-hidden rounded-xl border p-1.5 text-center transition-all duration-100 sm:rounded-2xl sm:p-2 ${out?"border-white/10 bg-[#090d21] opacity-45 grayscale":"border-white/10 bg-[#22264a] hover:-translate-y-1 hover:border-lime-300/45 hover:bg-[#2a3158]"} disabled:cursor-not-allowed`} style={{animationDelay:`${Math.min(index,30)*10}ms`}>
+                      <span className="relative block aspect-[4/4.8] overflow-hidden rounded-lg bg-gradient-to-br from-violet-200 to-cyan-100"><CharacterPortrait name={character.name} attributes={character.attributes} className="h-full w-full"/>{out&&<span className="absolute inset-0 grid place-items-center bg-slate-950/55"><span className="grid size-10 place-items-center rounded-full border-2 border-white/20 bg-slate-600/80 text-white"><X size={24}/></span></span>}</span>
+                      <span className="mt-1.5 block truncate text-[10px] font-black text-white sm:text-xs">{character.name}</span>
+                      <span className={`mt-1 block text-[9px] font-black ${out?"text-white/35":"text-white/45"}`}>{out?(ar?"مستبعدة":"Eliminated"):(ar?"اضغط للتخمين":"Tap to guess")}</span>
+                    </button>;
+                  })}
+                </div>
+                {phase==="playing"&&turn==="player"&&<div className="mt-5 rounded-2xl border border-white/10 bg-[#0e1431] p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><CircleHelp size={18} className="text-lime-200"/><h3 className="font-black text-white">{t.ask}</h3></div><span className="rounded-full bg-lime-300/10 px-3 py-1 text-[9px] font-black text-lime-200">{availablePlayerQuestions.length} {ar?"متاح":"AVAILABLE"}</span></div>
+                  <p className="mt-1 text-xs leading-6 text-white/45">{t.askHint}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">{categorizedQuestions.map(group=><button key={group.slug} type="button" onClick={()=>setSelectedCategory(group.slug)} className={`rounded-lg border px-3 py-2 text-[10px] font-black transition ${(activeCategory?.slug??categorizedQuestions[0]?.slug)===group.slug?"border-lime-300/40 bg-lime-300/10 text-lime-100":"border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}>{ar?group.nameAr:group.nameEn}</button>)}</div>
+                  <div className="mt-3 flex flex-wrap gap-2">{visibleQuestions.filter(question=>!askedByPlayer.has(question.id)).map(question=><button key={question.id} type="button" onClick={()=>askBot(question)} className="rounded-xl border border-white/10 bg-white/[.06] px-3 py-2.5 text-xs font-bold text-white/80 transition hover:border-lime-200/30 hover:bg-lime-200/10">{ar?question.labelAr:question.labelEn}</button>)}</div>
+                  {availablePlayerQuestions.length===0&&<p className="mt-3 text-xs font-bold text-amber-200">{t.allQuestions}</p>}
+                </div>}
+                {phase==="playing"&&turn==="bot"&&pendingBotQuestion&&<div className="mt-5 rounded-2xl border border-cyan-300/30 bg-gradient-to-br from-[#102d3a] to-[#171b3c] p-4 sm:p-5">
+                  <div className="flex items-center gap-2 text-cyan-100"><Bot size={19}/><span className="text-[10px] font-black tracking-[.2em]">{t.botThinking}</span></div>
+                  <h3 className="mt-3 text-lg font-black text-white">{t.botQuestionIntro} {ar?pendingBotQuestion.labelAr:pendingBotQuestion.labelEn}</h3>
+                  <p className="mt-2 text-xs leading-6 text-white/45">{t.secretHint}</p>
+                  <div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={()=>answerBotQuestion(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-300 to-lime-300 px-5 text-sm font-black text-[#102018] disabled:opacity-50"><Check size={17}/>{t.answerYes}</button><button type="button" disabled={busy} onClick={()=>answerBotQuestion(false)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300/30 bg-rose-400/10 px-5 text-sm font-black text-rose-100 disabled:opacity-50"><X size={17}/>{t.answerNo}</button></div>
+                </div>}
+                {notice&&<div role="status" aria-live="polite" className="mt-4 rounded-xl border border-lime-200/15 bg-lime-200/[.07] p-4 text-sm font-bold text-lime-100">{notice}</div>}
+              </section>
 
-          {phase === "won" || phase === "lost" ? <div className="fixed inset-0 z-[99999] grid place-items-center bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`w-full max-w-lg rounded-[2rem] border p-7 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)] ${phase === "won" ? "border-lime-200/30 bg-gradient-to-br from-[#183c32] to-[#171b3c]" : "border-rose-200/30 bg-gradient-to-br from-[#451f36] to-[#171b3c]"}`}><div className="mx-auto grid size-20 place-items-center rounded-3xl bg-white/10">{phase === "won" ? <Trophy size={42} className="text-lime-200"/> : <Bot size={42} className="text-rose-200"/>}</div><h2 className="mt-5 text-3xl font-black">{phase === "won" ? t.win : t.lose}</h2><p className="mt-3 text-sm leading-7 text-white/60">{phase === "won" ? t.botSecret : t.botGuessedRight}</p><div className="mx-auto mt-5 flex max-w-xs items-center gap-3 rounded-2xl bg-white/10 p-3 text-start"><div className="size-16 overflow-hidden rounded-xl"><CharacterPortrait name={botSecret?.name ?? ""} attributes={botSecret?.attributes ?? {}}/></div><div><p className="text-xs text-white/50">{t.bot} · {t.yourBoard}</p><p className="font-black">{botSecret?.name}</p></div></div><div className="mt-7 grid gap-3 sm:grid-cols-2"><button type="button" onClick={resetToSetup} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-4 font-black text-[#102018]"><RotateCcw size={17}/>{t.playAgain}</button><button type="button" onClick={() => router.push("/play")} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 font-bold">{t.back}</button></div></div></div> : null}
-        </>
-      )}
+              <aside className="space-y-3">
+                <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4">
+                  <div className="flex items-center gap-2"><Users size={17} className="text-cyan-200"/><h3 className="font-black text-white">{t.botCandidates}</h3></div>
+                  <div className="mt-3 grid grid-cols-2 gap-2"><div className="rounded-xl bg-[#0b1028] p-3"><span className="text-[9px] font-black text-white/40">{ar?"احتمالات البوت":"BOT CANDIDATES"}</span><strong className="mt-1 block text-2xl font-black text-white">{botRemaining}</strong></div><div className="rounded-xl bg-[#0b1028] p-3"><span className="text-[9px] font-black text-white/40">{ar?"المستبعد":"ELIMINATED"}</span><strong className="mt-1 block text-2xl font-black text-white">{characters.length-botRemaining}</strong></div></div>
+                  <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-white/45"><span>{t.progress}</span><span>{characters.length?Math.round(((characters.length-botRemaining)/characters.length)*100):0}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 transition-all" style={{width:`${characters.length?((characters.length-botRemaining)/characters.length)*100:0}%`}}/></div>
+                </section>
+                <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4">
+                  <div className="flex items-center gap-2"><Crown size={17} className="text-amber-200"/><h3 className="font-black text-white">{t.yourSecret}</h3></div>
+                  {mySecret&&<div className="mt-3 flex items-center gap-3 rounded-xl bg-[#0b1028] p-3"><div className="size-14 shrink-0 overflow-hidden rounded-lg"><CharacterPortrait name={mySecret.name} attributes={mySecret.attributes}/></div><div className="min-w-0"><p className="truncate text-sm font-black text-white">{mySecret.name}</p><p className="mt-1 text-[10px] text-lime-200">{t.locked}</p></div></div>}
+                  <p className="mt-3 text-[10px] leading-5 text-white/45">{t.secretHint}</p>
+                </section>
+                <section className="rounded-2xl border border-white/10 bg-[#171b3c]/95 p-4">
+                  <div className="flex items-center gap-2"><History size={17} className="text-violet-200"/><h3 className="font-black text-white">{t.history}</h3></div>
+                  <div className="mt-3 space-y-2">{history.map(item=><div key={item.id} className="rounded-xl border border-white/5 bg-[#0e1431] p-3"><div className="flex items-center justify-between gap-2"><span className="text-[9px] font-black text-white/40">{item.speaker==="player"?t.player:t.bot}</span>{item.answer!==undefined&&<span className={`text-[9px] font-black ${item.answer?"text-emerald-300":"text-rose-300"}`}>{item.detail}</span>}</div><p className="mt-1 text-xs font-bold leading-5 text-white/85">{item.text}</p></div>)}{history.length===0&&<p className="rounded-xl bg-[#0e1431] p-3 text-xs text-white/40">{t.noHistory}</p>}</div>
+                </section>
+                <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3">
+                  <button type="button" onClick={resetToSetup} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-lime-300/25 bg-lime-300/10 px-3 text-xs font-black text-lime-100 transition hover:bg-lime-300/15"><RotateCcw size={16}/>{t.changeLevel}</button>
+                  <button type="button" onClick={()=>router.push("/play")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-black text-white/80 transition hover:bg-white/10"><Home size={16}/>{t.back}</button>
+                </section>
+              </aside>
+            </div>
+          </>
+        )}
+      </div>
+
+      {(phase==="won"||phase==="lost")&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)] sm:p-9 ${phase==="won"?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-20 place-items-center rounded-[1.7rem] ${phase==="won"?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}>{phase==="won"?<Trophy size={42}/>:<Bot size={42}/>}</div><p className="mt-5 text-[10px] font-black tracking-[.3em] text-lime-300">GUESS ARENA · RESULT</p><h2 className="mt-3 text-2xl font-black text-white">{phase==="won"?t.win:t.lose}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/70">{phase==="won"?t.botSecret:t.botGuessedRight}</p><div className="mx-auto mt-5 flex max-w-xs items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3 text-start"><div className="size-16 shrink-0 overflow-hidden rounded-lg"><CharacterPortrait name={botSecret?.name??""} attributes={botSecret?.attributes??{}}/></div><div><p className="text-[9px] font-black text-white/45">{t.bot} · {t.yourBoard}</p><p className="font-black text-white">{botSecret?.name}</p></div></div><div className="mt-7 grid gap-3 sm:grid-cols-2"><button type="button" onClick={resetToSetup} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-4 font-black text-[#102018]"><RotateCcw size={17}/>{t.playAgain}</button><button type="button" onClick={()=>router.push("/play")} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 font-bold text-white">{t.back}</button></div></div></div>}
     </section>
-  );
-}
+  );}
