@@ -10,10 +10,7 @@ import "../globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://guess-arena-game.vercel.app"),
   applicationName: "Guess Arena",
-  title: {
-    default: "Guess Arena | لعبة تخمين الشخصيات أونلاين",
-    template: "%s | Guess Arena"
-  },
+  title: "Guess Arena | لعبة تخمين الشخصيات أونلاين",
   description: "العب Guess Arena، لعبة تخمين الشخصيات أونلاين. تحدى أصدقاءك في مباراة مباشرة أو اختبر ذكاءك ضد البوت.",
   category: "games",
   manifest: "/site.webmanifest",
