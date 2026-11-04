@@ -571,3 +571,55 @@ body { background: var(--arena-cream); color: #24170f; }
   background:#2b211c !important;
   border-color:rgb(231 181 140 / .25) !important;
 }
+
+
+/* Admin control center — consistent warm arcade admin workspace */
+.admin-arena {
+  color:#24170f !important;
+  background:
+    radial-gradient(circle at 6% 8%,rgb(217 119 54 / .13),transparent 26rem),
+    radial-gradient(circle at 94% 14%,rgb(190 242 100 / .13),transparent 24rem),
+    linear-gradient(180deg,#fffaf0,#f8f5ed 46%,#f1e8d8) !important;
+}
+.admin-arena .arena-panel,.admin-arena .arena-panel-strong,
+.admin-arena article[class*="border-stone"],
+.admin-arena div[class*="border-stone"][class*="bg-white"] {
+  border-color:#e2d3bd !important;
+  background:rgb(255 250 241 / .96) !important;
+  box-shadow:0 14px 38px rgb(87 52 20 / .07);
+}
+.admin-arena h1,.admin-arena h2,.admin-arena h3 { color:#24170f !important; }
+.admin-arena p[class*="text-stone-500"],.admin-arena p[class*="text-stone-400"] { color:#78685a !important; }
+.admin-arena [class*="text-violet-"] { color:#c84e16 !important; }
+.admin-arena [class*="bg-violet-"] { background-color:#fff1d6 !important; }
+.admin-arena [class*="border-violet-"] { border-color:#e7b58c !important; }
+.admin-arena [class*="text-indigo-"] { color:#4a321e !important; }
+.admin-arena [class*="bg-indigo-"] { background-color:#fff7e8 !important; }
+.admin-arena [class*="bg-stone-50"] { background-color:#fff7e8 !important; }
+.admin-arena [class*="border-stone-100"],.admin-arena [class*="border-stone-200"] { border-color:#eadbc5 !important; }
+.admin-arena button[class*="bg-orange-600"],.admin-arena a[class*="bg-orange-600"] {
+  background:linear-gradient(115deg,#c84e16,#d97736 58%,#b28a42) !important;
+  color:#fff9ed !important;
+  box-shadow:0 9px 22px rgb(200 78 22 / .18);
+}
+.admin-arena button[class*="bg-emerald-700"],.admin-arena a[class*="bg-emerald-700"] {
+  background:linear-gradient(115deg,#4e7024,#557a3d) !important;
+  color:#fff9ed !important;
+}
+.admin-arena button[class*="bg-rose-600"] { background:#a44f37 !important;color:#fff9ed !important; }
+.admin-arena input,.admin-arena select,.admin-arena textarea {
+  color:#24170f !important;
+  background:#fffdf8 !important;
+  border-color:#e2d3bd !important;
+}
+.admin-arena input:focus,.admin-arena select:focus,.admin-arena textarea:focus {
+  border-color:#c84e16 !important;
+  box-shadow:0 0 0 4px rgb(200 78 22 / .11) !important;
+}
+.admin-arena table thead { background:#f1e8d8 !important;color:#78685a !important; }
+.admin-arena table tbody tr { border-color:#eadbc5 !important; }
+.admin-arena .admin-kicker { color:#c84e16 !important; }
+.admin-arena .admin-kicker::before { background:#bef264;box-shadow:0 0 0 5px rgb(190 242 100 / .2); }
+.admin-arena [role="tablist"] { border-color:#e2d3bd !important;background:#fffaf1 !important; }
+.admin-arena [role="tab"][aria-selected="true"] { background:#21140d !important;color:#bef264 !important; }
+.admin-arena [role="tab"]:not([aria-selected="true"]) { color:#78685a !important; }
