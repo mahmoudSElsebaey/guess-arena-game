@@ -43,15 +43,15 @@ export function SiteHeader({ locale, homeHero = false }: { locale: "ar" | "en"; 
   return (
     <header className={`arena-header sticky top-0 z-50 ${homeHero ? "border-0 shadow-none" : ""}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[70] focus:rounded-xl focus:bg-white focus:px-4 focus:py-3 focus:font-bold focus:text-violet-700">Skip to content</a>
-      <div className={`relative ${homeHero ? "border-0 bg-[#21140d] shadow-none" : "bg-[#11102b] shadow-[0_12px_35px_rgba(17,16,43,.2)]"} text-white`}>
+      <div className={`relative ${homeHero ? "border-0 bg-[#21140d] shadow-none" : "bg-[#21140d] shadow-none"} text-white`}>
         <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-7">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Guess Arena">
-            <span className="grid size-9 sm:size-11 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-lime-300 via-emerald-400 to-teal-500 text-[#10152d] shadow-[0_0_24px_rgba(163,230,53,.28)] transition group-hover:rotate-[-8deg]"><Gamepad2 size={24}/></span>
+            <span className="grid size-9 sm:size-11 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-lime-300 via-emerald-400 to-teal-500 text-[#21140d] shadow-[0_0_24px_rgba(163,230,53,.28)] transition group-hover:rotate-[-8deg]"><Gamepad2 size={24}/></span>
             <span className="text-sm font-black tracking-tight sm:text-xl">GUESS <span className="text-lime-300">ARENA</span></span>
           </Link>
 
           <button type="button" className="inline-flex size-10 items-center justify-center rounded-xl border border-white/15 bg-white/8 text-white transition hover:border-lime-300/50 hover:bg-white/12 md:hidden" aria-label={menuOpen ? (ar ? "إغلاق القائمة" : "Close menu") : (ar ? "فتح القائمة" : "Open menu")} aria-expanded={menuOpen} aria-controls="primary-navigation" onClick={() => setMenuOpen(value => !value)}>{menuOpen ? <X size={21}/> : <Menu size={21}/>}</button>
-          <nav id="primary-navigation" aria-label={ar ? "القائمة الرئيسية" : "Main navigation"} className={`${menuOpen ? "absolute start-3 end-3 top-[calc(100%-1px)] flex flex-col rounded-2xl border border-white/10 bg-[#19183a] p-3 shadow-2xl md:static md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none" : "hidden md:flex"} items-stretch gap-1.5 md:items-center md:gap-1`}>
+          <nav id="primary-navigation" aria-label={ar ? "القائمة الرئيسية" : "Main navigation"} className={`${menuOpen ? "absolute start-3 end-3 top-[calc(100%-1px)] flex flex-col rounded-2xl border border-white/10 bg-[#2b170b] p-3 shadow-2xl md:static md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none" : "hidden md:flex"} items-stretch gap-1.5 md:items-center md:gap-1`}>
             {links.map(({href,label,icon:Icon,play}) => {
               const active = pathname === href || (href !== "/" && pathname.startsWith(href));
               return <Link key={href} href={href} onClick={() => setMenuOpen(false)} aria-current={active ? "page" : undefined} className={play
@@ -62,7 +62,7 @@ export function SiteHeader({ locale, homeHero = false }: { locale: "ar" | "en"; 
             })}
             {user && <Link href="/history" onClick={() => setMenuOpen(false)} aria-current={pathname === "/history" ? "page" : undefined} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold transition ${pathname === "/history" ? "bg-white/12 text-lime-300" : "text-white/75 hover:bg-white/8"}`}><History size={16}/>{ar ? "السجل" : "History"}</Link>}
             {isAdmin && <Link href="/admin" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold text-amber-200 hover:bg-white/8"><ShieldCheck size={16}/>{ar ? "الإدارة" : "Admin"}</Link>}
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3 md:hidden"><Link href={pathname} locale={nextLocale} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-xs font-black text-white">{ar ? "English" : "العربية"}</Link>{user ? <Link href="/profile" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{ar ? "حسابي" : "My account"}</Link> : <><Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{t("login")}</Link><Link href="/register" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-lime-300 text-xs font-black text-[#171632]">{t("register")}</Link></>}</div>
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3 md:hidden"><Link href={pathname} locale={nextLocale} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-xs font-black text-white">{ar ? "English" : "العربية"}</Link>{user ? <Link href="/profile" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{ar ? "حسابي" : "My account"}</Link> : <><Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white">{t("login")}</Link><Link href="/register" onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-lime-300 text-xs font-black text-[#21140d]">{t("register")}</Link></>}</div>
           </nav>
 
           <div className="hidden shrink-0 items-center gap-2 md:flex">
@@ -70,7 +70,7 @@ export function SiteHeader({ locale, homeHero = false }: { locale: "ar" | "en"; 
             {status === "authenticated" && user ? (
               <div className="relative" ref={profileRef}>
                 <button type="button" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu" className="inline-flex min-h-10 max-w-[190px] items-center gap-2 rounded-xl border border-white/15 bg-white/7 px-2.5 py-1.5 text-sm font-bold text-white transition hover:border-lime-300/50 hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-lime-300">
-                  <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-400 to-fuchsia-500 text-white">{user.name?.trim().charAt(0).toUpperCase() || <UserRound size={17}/>} </span>
+                  <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-orange-400 to-amber-300 text-white">{user.name?.trim().charAt(0).toUpperCase() || <UserRound size={17}/>} </span>
                   <span className="hidden max-w-24 truncate sm:block">{user.name || user.email || t("account")}</span><ChevronDown size={15} className={profileOpen ? "rotate-180 transition" : "transition"}/>
                 </button>
                 {profileOpen && <div role="menu" className="absolute end-0 top-[calc(100%+12px)] z-[60] w-64 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1b3c] p-2 text-white shadow-[0_20px_70px_rgba(0,0,0,.4)]">
@@ -84,7 +84,7 @@ export function SiteHeader({ locale, homeHero = false }: { locale: "ar" | "en"; 
           </div>
         </div>
       </div>
-      <div className={`arena-wave-bottom ${homeHero ? "border-0 shadow-none" : ""}`} aria-hidden="true"><svg viewBox="0 0 1440 48" preserveAspectRatio="none"><path d="M0 0H1440V17C1280 43 1110 45 960 29C790 11 650 11 480 29C310 47 150 43 0 17Z" fill={homeHero ? "#21140d" : "#11102b"}/></svg></div>
+      <div className={`arena-wave-bottom ${homeHero ? "border-0 shadow-none" : ""}`} aria-hidden="true"><svg viewBox="0 0 1440 48" preserveAspectRatio="none"><path d="M0 0H1440V17C1280 43 1110 45 960 29C790 11 650 11 480 29C310 47 150 43 0 17Z" fill="#21140d"/></svg></div>
     </header>
   );
 }
