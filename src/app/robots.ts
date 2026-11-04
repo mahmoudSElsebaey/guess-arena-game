@@ -3,11 +3,12 @@ import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{
+    rules: {
       userAgent: "*",
-      allow: ["/ar", "/en", "/ar/about", "/en/about", "/ar/how-to-play", "/en/how-to-play", "/ar/play", "/en/play"],
-      disallow: ["/api/", "/*/admin", "/*/admin/", "/*/profile", "/*/history", "/*/login", "/*/register", "/*/practice", "/*/play/create", "/*/play/join", "/*/play/room/"]
-    }],
+      // Let crawlers read page-level noindex directives. Only private API endpoints are blocked.
+      allow: "/",
+      disallow: ["/api/"]
+    },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL
   };
