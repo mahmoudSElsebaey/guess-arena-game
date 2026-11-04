@@ -33,6 +33,44 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 
   return (
     <main id="main-content" tabIndex={-1} className="arena-home min-h-screen overflow-x-clip bg-[#fff9ed] text-[#24170f]">
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "@id": `https://guess-arena-game.vercel.app/${locale}#website`,
+              "name": "Guess Arena",
+              "url": `https://guess-arena-game.vercel.app/${locale}`,
+              "inLanguage": locale,
+              "description": ar
+                ? "لعبة تخمين شخصيات أونلاين. العب مع أصدقائك أو تحدى البوت."
+                : "An online character guessing game. Play with friends or challenge the bot."
+            },
+            {
+              "@type": "VideoGame",
+              "@id": `https://guess-arena-game.vercel.app/${locale}#game`,
+              "name": "Guess Arena",
+              "alternateName": ar ? "لعبة تخمين الشخصيات" : "Online Character Guessing Game",
+              "url": `https://guess-arena-game.vercel.app/${locale}`,
+              "description": ar
+                ? "اختار شخصية سرية، اسأل أسئلة بنعم أو لا، واستبعد البطاقات حتى تكشف شخصية منافسك."
+                : "Choose a secret character, ask yes-or-no questions, and eliminate cards to uncover your opponent's character.",
+              "genre": ["Puzzle", "Guessing game", "Party game"],
+              "gamePlatform": "Web browser",
+              "applicationCategory": "GameApplication",
+              "operatingSystem": "Any",
+              "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+              "playMode": ["SinglePlayer", "MultiPlayer"],
+              "isAccessibleForFree": true,
+              "inLanguage": ["ar", "en"]
+            }
+          ]
+        }).replace(/</g, "\\u003c")
+      }}
+    />
       <SiteHeader locale={locale} homeHero />
 
       {/* 01 — Hero */}
