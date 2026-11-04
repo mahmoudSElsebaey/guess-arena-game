@@ -194,7 +194,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    ?(ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time's up. Your turn ended automatically.")
    :(ar?"انتهى وقت الخصم، حان دورك الآن.":"Your opponent ran out of time. It's your turn now."),
    "warning");
- },[latestTimeoutAction?.id,latestTimeoutAction?.actorId,myId,ar,notify]);
+ },[latestTimeoutAction,myId,ar,notify]);
  const myTurn=Boolean(myId&&state?.currentTurnUserId===myId);
  const asked=new Set((state?.actions??[]).filter(a=>a.type==="QUESTION_ASKED"&&a.actorId===myId).map(a=>a.questionId));
  const questionGroups=[
