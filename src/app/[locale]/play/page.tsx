@@ -10,17 +10,17 @@ export default async function PlayPage({ params }: { params: Promise<{ locale: "
     { href: "/play/join" as const, icon: DoorOpen, title: ar ? "الانضمام لغرفة" : "Join a room", body: ar ? "معاك كود دعوة؟ اكتبه وانضم للمباراة." : "Have an invite code? Enter it and join the match.", tone: "from-cyan-300 to-blue-500" },
     { href: "/practice" as const, icon: Bot, title: ar ? "اللعب ضد البوت" : "Play against bot", body: ar ? "هتلعب ضد الكمبيوتر بدل لاعب حقيقي. اختار سهل أو متوسط أو صعب، والبوت هيسألك ويخمّن شخصيتك تلقائيًا. ابدأ فورًا من غير غرفة أو كود دعوة أو انتظار صديق." : "Play against the computer instead of a real person. Choose Easy, Medium, or Hard, and the bot will ask questions and guess your character automatically. Start instantly—no room, invite code, or friend needed.", tone: "from-violet-300 to-fuchsia-500" }
   ];
-  return <main id="main-content" dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-[#0c1028] text-white">
+  return <main id="main-content" dir={ar ? "rtl" : "ltr"} className="game-entry-page min-h-screen">
     <SiteHeader locale={locale}/>
     <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
       <div className="text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-lime-200/20 bg-lime-200/10 px-4 py-2 text-xs font-black text-lime-200"><Sparkles size={15}/> GUESS ARENA · PLAY</span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#e2d3bd] bg-[#eff8d9] px-4 py-2 text-xs font-black text-[#557a3d]"><Sparkles size={15}/> GUESS ARENA · PLAY</span>
         <h1 className="mt-6 text-4xl font-black sm:text-6xl">{ar ? "اختار طريقة التحدي" : "Choose your challenge"}</h1>
-        <p className="mx-auto mt-4 max-w-2xl leading-8 text-white/55">{ar ? "العب ضد صديقك أونلاين أو اختبر مهاراتك أمام البوت. اختار التحدي اللي يناسبك!" : "Play online with a friend or test your skills against the bot. Choose your challenge!"}</p>
+        <p className="mx-auto mt-4 max-w-2xl leading-8 text-[#78685a]">{ar ? "العب ضد صديقك أونلاين أو اختبر مهاراتك أمام البوت. اختار التحدي اللي يناسبك!" : "Play online with a friend or test your skills against the bot. Choose your challenge!"}</p>
       </div>
       <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {choices.map(({ href, icon: Icon, title, body, tone }) => <Link href={href} key={href} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.05] p-7 transition duration-300 hover:-translate-y-2 hover:border-lime-200/30 hover:bg-white/[.08] sm:p-8">
-          <span className={`grid size-16 place-items-center rounded-2xl bg-gradient-to-br ${tone} text-[#11162a] shadow-xl transition group-hover:rotate-[-8deg]`}><Icon size={30}/></span>
+        {choices.map(({ href, icon: Icon, title, body, tone }) => <Link href={href} key={href} className="group relative overflow-hidden rounded-[2rem] border border-[#e2d3bd] bg-[#fffaf1] p-7 transition duration-300 hover:-translate-y-2 hover:border-[#bef264] hover:bg-[#fff7e8] sm:p-8">
+          <span className={`grid size-16 place-items-center rounded-2xl bg-gradient-to-br ${tone} text-[#21140d] shadow-xl transition group-hover:rotate-[-8deg]`}><Icon size={30}/></span>
           <h2 className="mt-7 text-2xl font-black">{title}</h2><p className="mt-3 min-h-14 text-sm leading-7 text-white/55">{body}</p>
           <span className="mt-7 inline-flex items-center gap-2 text-sm font-black text-lime-200"><Swords size={17}/>{ar ? "متابعة" : "Continue"}</span>
         </Link>)}
