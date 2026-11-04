@@ -18,10 +18,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 
   return (
     <main id="main-content" tabIndex={-1} className="arena-home min-h-screen overflow-x-clip bg-[#fff9ed] text-[#24170f]">
-      <SiteHeader locale={locale} />
+      <SiteHeader locale={locale} homeHero />
 
       {/* 01 — Hero */}
-      <section className="relative isolate overflow-hidden bg-[#21140d] text-[#fff9ed]">
+      <section className="relative isolate -mt-[124px] overflow-hidden bg-[#21140d] pt-[124px] text-[#fff9ed]">
         <div className="pointer-events-none absolute -start-32 -top-28 size-[34rem] rounded-full bg-orange-500/25 blur-[110px]" />
         <div className="pointer-events-none absolute -end-32 bottom-[-10rem] size-[38rem] rounded-full bg-lime-400/20 blur-[120px]" />
         <div className="pointer-events-none absolute inset-0 opacity-[.12]" style={{ backgroundImage: "radial-gradient(#fff1d6 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
@@ -63,7 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             <div className="absolute -end-2 bottom-[9%] grid size-[4.5rem] rotate-12 place-items-center rounded-2xl border border-lime-200/30 bg-lime-300 text-[#24330e] shadow-2xl sm:-end-7 sm:size-24"><Trophy size={38}/></div>
           </div>
         </div>
-        <div className="relative h-14 overflow-hidden"><svg viewBox="0 0 1440 56" preserveAspectRatio="none" className="h-full w-full"><path d="M0 0H1440V20C1200 58 1020 58 760 27C510 -3 260 2 0 28Z" fill="#fff9ed"/></svg></div>
+        <div className="relative h-14 overflow-hidden"><svg viewBox="0 0 1440 56" preserveAspectRatio="none" className="h-full w-full"><path d="M0 0H1440V20C1200 58 1020 58 760 27C510 -3 260 2 0 28Z" fill="#fff9ed" transform="rotate(180 720 28)"/></svg></div>
       </section>
 
       {/* 02 — Choose your mode */}
