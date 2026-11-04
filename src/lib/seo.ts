@@ -18,7 +18,8 @@ export function localizedPageMetadata({
   locale, path, titleAr, titleEn, descriptionAr, descriptionEn, indexable = true, keywords = []
 }: LocalizedSeoInput): Metadata {
   const isArabic = locale === "ar";
-  const title = isArabic ? titleAr : titleEn;
+  const rawTitle = isArabic ? titleAr : titleEn;
+  const title = rawTitle.toLowerCase().includes("guess arena") ? rawTitle : `${rawTitle} | Guess Arena`;
   const description = isArabic ? descriptionAr : descriptionEn;
   const canonical = `/${locale}${path}`;
   const image = `/${locale}/opengraph-image`;
