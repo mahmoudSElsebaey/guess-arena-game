@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { ArrowLeft, ArrowRight, Bot, Check, CircleHelp, Crown, RotateCcw, Sparkles, Swords, Trophy, UserRound, X, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, Check, CircleHelp, Crown, Eye, History, Home, RotateCcw, Sparkles, Swords, Trophy, UserRound, Users, X, Zap } from "lucide-react";
 import { CharacterPortrait } from "@/components/game/character-portrait";
 
 type Locale = "ar" | "en";
