@@ -18,12 +18,19 @@ async function runRoomTransaction<T>(work:(tx:Prisma.TransactionClient)=>Promise
   try{return await prisma.$transaction(work,{isolationLevel:Prisma.TransactionIsolationLevel.ReadCommitted});}
   catch(error){
    lastError=error;
-   const retryable=error instanceof Prisma.PrismaClientKnownRequestError&&error.code==="P2034";
-   if(!retryable||attempt===3)throw error;
-   await new Promise(resolve=>setTimeout(resolve,40*(attempt+1)));
+   const retryable=(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==="P2034")||(error instanceof Error&&error.message==="STATE_CONFLICT");
+   if(!retryable||attempt===5)throw error;
+   await new Promise(resolve=>setTimeout(resolve,35*(attempt+1)));
   }
  }
  throw lastError;
+}
+async function throwRoomActionConflict(tx:Prisma.TransactionClient,roomId:string,userId:string):Promise<never>{
+ const latest=await tx.room.findUnique({where:{id:roomId},select:{status:true,currentTurnUserId:true,turnExpiresAt:true}});
+ if(!latest||latest.status!=="IN_PROGRESS")throw new Error("GAME_NOT_ACTIVE");
+ if(latest.currentTurnUserId!==userId)throw new Error("NOT_YOUR_TURN");
+ if(!latest.turnExpiresAt||latest.turnExpiresAt<=new Date())throw new Error("TURN_TIME_EXPIRED");
+ throw new Error("STATE_CONFLICT");
 }
 async function expireTurnIfNeeded(roomId:string):Promise<boolean>{
  const now=new Date();
@@ -136,8 +143,8 @@ export async function POST(request:Request,{params}:Ctx){
     if(previous.some(a=>typeof a.payload==="object"&&a.payload!==null&&!Array.isArray(a.payload)&&a.payload.questionId===parsed.data.questionId))throw new Error("QUESTION_ALREADY_ASKED");
     const secret=(await getActiveCharacters()).find(character=>character.id===opponent.secretCharacterId);if(!secret)throw new Error("OPPONENT_REQUIRED");
     const answer=evaluateQuestion(secret,question);
-    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{version:{increment:1}}});
-    if(changed.count!==1)throw new Error("STATE_CONFLICT");
+    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS",turnExpiresAt:{gt:new Date()}},data:{version:{increment:1}}});
+    if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
     await appendRoomAction(tx,{roomId,actorId:userId,type:"QUESTION_ASKED",payload:{questionId:parsed.data.questionId,answer}});
     return {answer,version:current.version+1};
    });
@@ -160,8 +167,8 @@ export async function POST(request:Request,{params}:Ctx){
     if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
     const ids=new Set(me.eliminatedCharacterIds);
     if(parsed.data.eliminated){ids.add(parsed.data.characterId);const active=await getActiveCharacters();if(active.length-ids.size<1)throw new Error("LAST_CHARACTER_REQUIRED");}else ids.delete(parsed.data.characterId);
-    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,status:"IN_PROGRESS"},data:{version:{increment:1}}});
-    if(changed.count!==1)throw new Error("STATE_CONFLICT");
+    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,status:"IN_PROGRESS",currentTurnUserId:userId,turnExpiresAt:{gt:new Date()}},data:{version:{increment:1}}});
+    if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
     await tx.roomMember.update({where:{id:me.id},data:{eliminatedCharacterIds:[...ids]}});
     return {version:current.version+1,eliminatedCharacterIds:[...ids]};
    });
@@ -179,8 +186,8 @@ export async function POST(request:Request,{params}:Ctx){
     const lastConfirmed=await tx.gameAction.findFirst({where:{roomId,actorId:userId,type:"TURN_CONFIRMED",sequence:{gt:roundSequence}},orderBy:{sequence:"desc"}});
     if(!lastQuestion||(lastConfirmed&&lastConfirmed.sequence>lastQuestion.sequence))throw new Error("ASK_BEFORE_FLIP");
     const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
-    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},turnExpiresAt:new Date(Date.now()+60000),version:{increment:1}}});
-    if(changed.count!==1)throw new Error("STATE_CONFLICT");
+    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS",turnExpiresAt:{gt:new Date()}},data:{currentTurnUserId:next.userId,turnNumber:{increment:1},turnExpiresAt:new Date(Date.now()+60000),version:{increment:1}}});
+    if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
     await appendRoomAction(tx,{roomId,actorId:userId,type:"TURN_CONFIRMED",payload:{questionActionId:lastQuestion.id}});
     return {version:current.version+1,currentTurnUserId:next.userId};
    });
@@ -202,8 +209,8 @@ export async function POST(request:Request,{params}:Ctx){
     if(previousGuess)throw new Error("GUESS_ALREADY_USED");
     const correct=opponent.secretCharacterId===parsed.data.characterId;
     const nextWinner=correct?userId:opponent.userId;
-    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{status:"COMPLETED",winnerId:nextWinner,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
-    if(changed.count!==1)throw new Error("STATE_CONFLICT");
+    const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS",turnExpiresAt:{gt:new Date()}},data:{status:"COMPLETED",winnerId:nextWinner,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
+    if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
     await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isConnected:false,isReady:false}});
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct,mode:"WILD"}});
     await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:correct?{winnerId:userId}:{reason:"WRONG_GUESS",winnerId:opponent.userId}});
@@ -226,15 +233,15 @@ export async function POST(request:Request,{params}:Ctx){
     if(activeCharacters.length-me.eliminatedCharacterIds.length!==1)throw new Error("ONE_CHARACTER_REQUIRED");
     const correct=opponent.secretCharacterId===parsed.data.characterId;
     if(correct){
-     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{status:"COMPLETED",winnerId:userId,currentTurnUserId:null,finishedAt:new Date(),version:{increment:1}}});
-     if(changed.count!==1)throw new Error("STATE_CONFLICT");
+     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS",turnExpiresAt:{gt:new Date()}},data:{status:"COMPLETED",winnerId:userId,currentTurnUserId:null,finishedAt:new Date(),version:{increment:1}}});
+     if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
      await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isConnected:false,isReady:false}});
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct:true}});
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{winnerId:userId}});
     }else{
      const next=current.members.find(m=>m.userId!==userId);if(!next)throw new Error("OPPONENT_REQUIRED");
-     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS"},data:{status:"COMPLETED",winnerId:next.userId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
-     if(changed.count!==1)throw new Error("STATE_CONFLICT");
+     const changed=await tx.room.updateMany({where:{id:roomId,version:current.version,currentTurnUserId:userId,status:"IN_PROGRESS",turnExpiresAt:{gt:new Date()}},data:{status:"COMPLETED",winnerId:next.userId,currentTurnUserId:null,finishedAt:new Date(),expiresAt:null,version:{increment:1}}});
+     if(changed.count!==1)await throwRoomActionConflict(tx,roomId,userId);
      await tx.roomMember.updateMany({where:{roomId,leftAt:null},data:{isConnected:false,isReady:false}});
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GUESS_MADE",payload:{characterId:parsed.data.characterId,correct:false}});
      await appendRoomAction(tx,{roomId,actorId:userId,type:"GAME_FINISHED",payload:{reason:"WRONG_GUESS",winnerId:next.userId}});
