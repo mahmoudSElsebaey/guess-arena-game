@@ -1,3 +1,6 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) { const { locale } = await params; return localizedPageMetadata({ locale, path: "/play/join", titleAr: "الانضمام إلى غرفة", titleEn: "Join a Game Room", descriptionAr: "انضم إلى مباراة Guess Arena باستخدام كود الدعوة.", descriptionEn: "Join a Guess Arena match using an invite code.", indexable: false }); }
+
 import { SiteHeader } from "@/components/layout/site-header";
 import { RoomLobby } from "@/components/game/room-lobby";
 import { Link } from "@/i18n/navigation";
