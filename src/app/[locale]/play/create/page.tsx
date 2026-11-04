@@ -1,3 +1,6 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) { const { locale } = await params; return localizedPageMetadata({ locale, path: "/play/create", titleAr: "إنشاء غرفة لعب", titleEn: "Create a Game Room", descriptionAr: "أنشئ غرفة خاصة وشارك كود الدعوة مع صديقك.", descriptionEn: "Create a private room and share the invite code with a friend.", indexable: false }); }
+
 import { SiteHeader } from "@/components/layout/site-header";
 import { RoomLobby } from "@/components/game/room-lobby";
 import { Link } from "@/i18n/navigation";
