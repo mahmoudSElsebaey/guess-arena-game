@@ -1,3 +1,16 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
+  const { locale } = await params;
+  return localizedPageMetadata({
+    locale, path: "/play",
+    titleAr: "العب Guess Arena | تحدى صديقك أو العب ضد البوت",
+    titleEn: "Play Guess Arena | Challenge a Friend or the Bot",
+    descriptionAr: "اختار طريقة اللعب في Guess Arena: أنشئ غرفة خاصة، انضم بكود دعوة، أو ابدأ تحديًا فوريًا ضد البوت بثلاثة مستويات صعوبة.",
+    descriptionEn: "Choose your Guess Arena mode: create a private room, join with an invite code, or start an instant bot challenge with three difficulty levels.",
+    keywords: locale === "ar" ? ["العب Guess Arena", "لعبة أونلاين مع صديق", "لعبة ضد الكمبيوتر"] : ["play Guess Arena", "online game with friend", "guessing game against bot"]
+  });
+}
+
 import { Bot, DoorOpen, PlusCircle, Sparkles, Swords } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
