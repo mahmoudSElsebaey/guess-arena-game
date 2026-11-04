@@ -1,3 +1,16 @@
+import { localizedPageMetadata } from "@/lib/seo";
+export async function generateMetadata({ params }: { params: Promise<{ locale: "ar" | "en" }> }) {
+  const { locale } = await params;
+  return localizedPageMetadata({
+    locale, path: "/about",
+    titleAr: "عن Guess Arena | لعبة تخمين الشخصيات",
+    titleEn: "About Guess Arena | Character Guessing Game",
+    descriptionAr: "تعرف على Guess Arena، لعبة تخمين الشخصيات التي تجمع الأصدقاء في منافسة مباشرة أو تتيح لك تحدي البوت.",
+    descriptionEn: "Discover Guess Arena, the character guessing game that brings friends together for live duels or lets you challenge the bot.",
+    keywords: locale === "ar" ? ["عن Guess Arena", "لعبة تخمين شخصيات"] : ["about Guess Arena", "character guessing game"]
+  });
+}
+
 import { Gamepad2, HeartHandshake, Sparkles, Users, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Link } from "@/i18n/navigation";
