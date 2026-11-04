@@ -9,7 +9,7 @@ import { useRouter } from "@/i18n/navigation";
 
 type Action = { id:string; actorId:string; type:string; questionId:string|null; answer:boolean|null; characterId:string|null; correct:boolean|null; reason?:string|null; winnerId?:string|null; newRoomId?:string|null; createdAt:string };
 type RoundResult = {id:string;round:number;actorId:string;winnerId:string|null;reason:string|null;createdAt:string};
-type Snapshot = { id:string; code:string; status:string; version:number; hostId:string; isHost:boolean; startedAt:string|null; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; mySecretCharacterId:string|null; members:{userId:string;name:string;isMe:boolean;seat:number;isReady:boolean;isConnected:boolean;hasSecretCharacter:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[]; roundHistory:RoundResult[] };
+type Snapshot = { id:string; code:string; status:string; version:number; hostId:string; isHost:boolean; startedAt:string|null; turnExpiresAt:string|null; currentTurnUserId:string|null; turnNumber:number; winnerId:string|null; mySecretCharacterId:string|null; members:{userId:string;name:string;isMe:boolean;seat:number;isReady:boolean;isConnected:boolean;hasSecretCharacter:boolean}[]; myEliminatedCharacterIds:string[]; actions:Action[]; roundHistory:RoundResult[] };
 type CharacterOption = { id:string; name:string; avatar:string; attributes:Record<string,string|boolean> };
 type QuestionOption = { id:string; labelAr:string; labelEn:string; attributeKey:string; expectedValue:string|boolean; category:{slug:string;nameAr:string;nameEn:string}; sortOrder:number };
 type Feedback = { answer:boolean; id:string } | null;
@@ -40,11 +40,14 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const [showWildGuessConfirm,setShowWildGuessConfirm]=useState(false);
  const [feedback,setFeedback]=useState<Feedback>(null);
  const [countdown,setCountdown]=useState<number|string|null>(null);
+ const [clockNow,setClockNow]=useState(()=>Date.now());
  const [isFullscreen,setIsFullscreen]=useState(false);
  const {soundEnabled,toggleSound,playSound}=useGameSounds();
  const previousVersion=useRef<number|null>(null);
  const lastFeedbackAction=useRef("");
  const lastGuessSoundAction=useRef("");
+ const lastTimeoutAction=useRef("");
+ const timeoutRequestKey=useRef("");
  const countdownStarted=useRef(false);
  const countdownTimer=useRef<number|null>(null);
  const soundRef=useRef(playSound);
@@ -146,6 +149,43 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  },[state?.status,state?.startedAt,roomId,ar]);
 
  useEffect(()=>{
+  if(state?.status!=="IN_PROGRESS"||!state.turnExpiresAt)return;
+  const tick=()=>setClockNow(Date.now());
+  tick();
+  const timer=window.setInterval(tick,250);
+  return()=>window.clearInterval(timer);
+ },[state?.status,state?.turnExpiresAt]);
+
+ const remainingTurnSeconds=state?.status==="IN_PROGRESS"&&state.turnExpiresAt
+  ?Math.max(0,Math.ceil((Date.parse(state.turnExpiresAt)-clockNow)/1000))
+  :null;
+
+ useEffect(()=>{
+  if(state?.status!=="IN_PROGRESS"||!state.turnExpiresAt||remainingTurnSeconds!==0)return;
+  const key=roomId+":"+state.turnExpiresAt;
+  if(timeoutRequestKey.current===key)return;
+  timeoutRequestKey.current=key;
+  void fetch(`/api/rooms/${roomId}/timeout`,{method:"POST"}).then(async response=>{
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||"TIMEOUT_FAILED");
+   await refresh();
+  }).catch(()=>{timeoutRequestKey.current="";});
+ },[state?.status,state?.turnExpiresAt,remainingTurnSeconds,roomId,refresh]);
+
+ useEffect(()=>{
+  if(!state)return;
+  const latest=state.actions.filter(action=>action.type==="TURN_CONFIRMED"&&action.reason==="TIMEOUT").slice(-1)[0];
+  if(!latest)return;
+  if(!lastTimeoutAction.current){lastTimeoutAction.current=latest.id;return;}
+  if(lastTimeoutAction.current===latest.id)return;
+  lastTimeoutAction.current=latest.id;
+  notify(latest.actorId===myId
+   ?(ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time's up. Your turn ended automatically.")
+   :(ar?"انتهى وقت الخصم، حان دورك الآن.":"Your opponent ran out of time. It's your turn now."),
+   "warning");
+ },[state,myId,ar,notify]);
+
+ useEffect(()=>{
   const update=()=>setIsFullscreen(Boolean(document.fullscreenElement));
   document.addEventListener("fullscreenchange",update);
   return()=>document.removeEventListener("fullscreenchange",update);
@@ -180,13 +220,25 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
  const winner=state?.members.find(member=>member.userId===state.winnerId);
  const myMember=state?.members.find(member=>member.isMe);
  const bothReady=Boolean(state?.members.length===2&&state.members.every(member=>member.isReady&&member.hasSecretCharacter));
- const opponentLeft=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="PLAYER_LEFT")??false;
+ const opponentLeft=state?.actions.some(action=>(action.type==="PLAYER_LEFT"&&action.actorId!==myId)||(action.type==="GAME_FINISHED"&&action.reason==="PLAYER_LEFT"))??false;
  const wrongGuess=state?.actions.some(action=>action.type==="GAME_FINISHED"&&action.reason==="WRONG_GUESS")??false;
  const rematchEvents=state?.actions.filter(action=>action.type==="GAME_FINISHED"&&action.reason?.startsWith("REMATCH_"))??[];
  const rematchRequest=rematchEvents.find(action=>action.reason==="REMATCH_REQUESTED");
  const rematchResolved=rematchEvents.slice(-1)[0];
  const rematchPending=Boolean(rematchRequest&&(!rematchResolved||rematchResolved.id===rematchRequest.id));
  const requestedByMe=rematchRequest?.actorId===myId;
+
+ async function exitCompletedToHome(){
+  if(leaving)return;
+  setLeaving(true);
+  try{
+   const response=await fetch(`/api/rooms/${roomId}/leave`,{method:"POST"});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||"LEAVE_FAILED");
+   router.replace("/");
+  }catch(e){notify(e instanceof Error?e.message:(ar?"تعذر الخروج من المباراة. حاول مرة أخرى.":"Could not leave the match. Try again."),"error");}
+  finally{setLeaving(false);}
+ }
 
  async function confirmLeave(){
   if(!leaveDestination||leaving)return;
@@ -270,7 +322,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    const response=await fetch(`/api/rooms/${roomId}/${action}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
    const data=await response.json();
    if(!response.ok){
-    const messages:Record<string,string>={NOT_YOUR_TURN:ar?"انتظر دورك، لا يمكنك تنفيذ هذه الحركة الآن.":"Please wait for your turn.",ASK_BEFORE_FLIP:ar?"يجب أن تسأل سؤالًا أولًا قبل قلب البطاقات.":"Ask a question before flipping cards.",LAST_CHARACTER_REQUIRED:ar?"لا يمكنك قلب آخر شخصية متبقية.":"You cannot flip the last remaining character.",QUESTION_ALREADY_PENDING:ar?"لديك سؤال بانتظار إنهاء الدور.":"You already have a pending question.",QUESTION_ALREADY_ASKED:ar?"استخدمت هذا السؤال من قبل.":"You already asked this question.",INVALID_QUESTION:ar?"السؤال غير صالح.":"Invalid question.",CHARACTER_ELIMINATED:ar?"هذه الشخصية مستبعدة بالفعل.":"Character already eliminated.",GAME_NOT_ACTIVE:ar?"المباراة ليست نشطة.":"Match is not active.",ONE_CHARACTER_REQUIRED:ar?"لازم يتبقى كارت واحد فقط قبل التخمين.":"Only one remaining card can be guessed.",GUESS_ALREADY_USED:ar?"استخدمت فرصة التخمين المباشر بالفعل في هذه الجولة.":"You already used your wild guess this round.",INVALID_CHARACTER:ar?"الشخصية غير متاحة.":"Character is unavailable."};
+    const messages:Record<string,string>={NOT_YOUR_TURN:ar?"انتظر دورك، لا يمكنك تنفيذ هذه الحركة الآن.":"Please wait for your turn.",ASK_BEFORE_FLIP:ar?"يجب أن تسأل سؤالًا أولًا قبل قلب البطاقات.":"Ask a question before flipping cards.",LAST_CHARACTER_REQUIRED:ar?"لا يمكنك قلب آخر شخصية متبقية.":"You cannot flip the last remaining character.",QUESTION_ALREADY_PENDING:ar?"لديك سؤال بانتظار إنهاء الدور.":"You already have a pending question.",QUESTION_ALREADY_ASKED:ar?"استخدمت هذا السؤال من قبل.":"You already asked this question.",INVALID_QUESTION:ar?"السؤال غير صالح.":"Invalid question.",CHARACTER_ELIMINATED:ar?"هذه الشخصية مستبعدة بالفعل.":"Character already eliminated.",GAME_NOT_ACTIVE:ar?"المباراة ليست نشطة.":"Match is not active.",TURN_TIME_EXPIRED:ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time is up. Your turn ended automatically.",ONE_CHARACTER_REQUIRED:ar?"لازم يتبقى كارت واحد فقط قبل التخمين.":"Only one remaining card can be guessed.",GUESS_ALREADY_USED:ar?"استخدمت فرصة التخمين المباشر بالفعل في هذه الجولة.":"You already used your wild guess this round.",INVALID_CHARACTER:ar?"الشخصية غير متاحة.":"Character is unavailable."};
     throw new Error(messages[data.error]??(ar?"تعذر تنفيذ الحركة. حاول مرة أخرى.":"Could not submit the move. Try again."));
    }
    if(action==="ask"){
@@ -306,7 +358,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#171b3c]/95 p-3 shadow-xl sm:p-4">
     <div className="flex min-w-0 items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-lime-300 to-emerald-400 text-[#10172c]"><Sparkles size={21}/></span><div className="min-w-0"><p className="text-[10px] font-black tracking-[.2em] text-lime-300">GUESS ARENA · LIVE DUEL</p><h2 className="truncate text-lg font-black sm:text-xl">{state.status==="WAITING"?(ar?"تجهيز المباراة":"Match setup"):state.status==="COMPLETED"?(ar?"انتهت المباراة":"Match complete"):myTurn?(ar?"دورك الآن!":"Your turn!"):(ar?"الخصم يفكر...":"Opponent's turn...")}</h2></div></div>
     <div className="flex flex-wrap items-center gap-2">
-     <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"><span className="block text-[9px] font-black text-white/40">{ar?"رقم الدور":"TURN"}</span><strong className="text-xl font-black text-white">{state.turnNumber}</strong></div>
+     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center"><div><span className="block text-[9px] font-black text-white/40">{ar?"رقم الدور":"TURN"}</span><strong className="text-xl font-black text-white">{state.turnNumber}</strong></div>{remainingTurnSeconds!==null&&<><span className="h-8 w-px bg-white/10"/><div className="min-w-[3.4rem]"><span className="block text-[9px] font-black text-white/40">{ar?"الوقت":"TIME"}</span><strong className={`font-mono text-lg font-black tabular-nums ${remainingTurnSeconds<=10?"text-rose-300 animate-pulse":"text-lime-200"}`}>{String(Math.floor(remainingTurnSeconds/60)).padStart(2,"0")}:{String(remainingTurnSeconds%60).padStart(2,"0")}</strong></div></>}</div>
      <div className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 sm:flex"><span className={`size-2 rounded-full ${myTurn?"animate-pulse bg-lime-300":"bg-amber-300"}`}/><span className="text-xs font-bold text-white/80">{myTurn?(ar?"دورك":"Your turn"):(ar?"انتظار الخصم":"Waiting")}</span></div>
      <button type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled?(ar?"إيقاف الصوت":"Mute sounds"):(ar?"تشغيل الصوت":"Enable sounds")} className="grid size-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">{soundEnabled?<Volume2 size={18}/>:<VolumeX size={18}/>}</button>
      <button type="button" onClick={()=>void toggleFullscreen()} aria-label={isFullscreen?(ar?"الخروج من ملء الشاشة":"Exit fullscreen"):(ar?"ملء الشاشة":"Enter fullscreen")} className="grid size-10 place-items-center rounded-xl border border-lime-300/25 bg-lime-300/10 text-lime-200 hover:bg-lime-300/20">{isFullscreen?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>
@@ -401,7 +453,7 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
    {error&&<div role="alert" aria-live="assertive" className="sr-only">{error}</div>}
   </div>
-  {state.status==="COMPLETED"&&!rematchPending&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`arena-feedback-pop my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.65)] sm:p-9 ${winner?.isMe?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-24 place-items-center rounded-[2rem] ${winner?.isMe?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}><Trophy size={54}/></div><p className={`mt-5 text-xs font-black tracking-[.3em] ${winner?.isMe?"text-emerald-200":"text-rose-200"}`}>GUESS ARENA · RESULT</p><h2 className="mt-3 text-3xl font-black text-white">{opponentLeft?(ar?"صديقك انسحب من المباراة":"Your opponent left the match"):winner?.isMe?(ar?"مبروك! أنت الفائز 🎉":"Congratulations! You won 🎉"):(ar?"حظ أوفر في المرة القادمة":"Better luck next time")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/75">{opponentLeft?(ar?"انتهت المباراة لأن اللاعب الآخر غادر الغرفة أو ضغط على مغادرة المباراة. تم احتساب الفوز لك.":"The match ended because your opponent left the room or chose to leave the match. The win has been awarded to you."):wrongGuess?(winner?.isMe?(ar?"خصمك أخطأ في تخمين شخصيتك، ولذلك فزت بالمباراة!":"Your opponent guessed incorrectly, so you win!"): (ar?"لقد أخطأت في تخمين الشخصية الأخيرة، ولذلك فاز خصمك.":"Your final guess was incorrect, so your opponent wins.")):winner?.isMe?(ar?"أحسنت! لقد استطعت اكتشاف شخصية صديقك قبل أن يتوقع شخصيتك.":"Great job! You guessed your friend character before they could guess yours."):(ar?`صديقك ${winner?.name??""} استطاع توقع شخصيتك قبلك. لا تستسلم، الجولة القادمة فرصتك!`:`Your friend ${winner?.name??""} guessed your character before you could guess theirs. The next round is yours!`)}</p><div className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-black ${winner?.isMe?"bg-emerald-300/15 text-emerald-100":"bg-rose-300/15 text-rose-100"}`}><Sparkles size={16}/>{winner?.isMe?(ar?"انتصار مستحق":"Well played"):(ar?"المنافسة لم تنته بعد":"The rivalry continues")}</div><div className={`mt-8 grid gap-3 ${opponentLeft?"":"sm:grid-cols-2"}`}>{!opponentLeft&&<button type="button" disabled={busy} onClick={()=>void requestRematch()} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] disabled:opacity-50">{ar?"إعادة المباراة":"Rematch"}</button>}<a href={`/${locale}`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/15">{ar?"العودة للصفحة الرئيسية":"Back to home"}</a></div></div></div>}
+  {state.status==="COMPLETED"&&!rematchPending&&<div className="fixed inset-0 z-[99999] grid place-items-center overflow-y-auto bg-[#070a1c]/90 p-4 backdrop-blur-xl"><div className={`arena-feedback-pop my-auto w-full max-w-lg rounded-[2rem] border p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.65)] sm:p-9 ${winner?.isMe?"border-emerald-300/40 bg-gradient-to-br from-[#103c32] via-[#123b36] to-[#102a32]":"border-rose-300/40 bg-gradient-to-br from-[#451f36] via-[#351d36] to-[#211d3b]"}`}><div className={`mx-auto grid size-24 place-items-center rounded-[2rem] ${winner?.isMe?"bg-emerald-300/15 text-emerald-200":"bg-rose-300/15 text-rose-200"}`}><Trophy size={54}/></div><p className={`mt-5 text-xs font-black tracking-[.3em] ${winner?.isMe?"text-emerald-200":"text-rose-200"}`}>GUESS ARENA · RESULT</p><h2 className="mt-3 text-3xl font-black text-white">{opponentLeft?(ar?"صديقك انسحب من المباراة":"Your opponent left the match"):winner?.isMe?(ar?"مبروك! أنت الفائز 🎉":"Congratulations! You won 🎉"):(ar?"حظ أوفر في المرة القادمة":"Better luck next time")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/75">{opponentLeft?(ar?"انتهت المباراة لأن اللاعب الآخر غادر الغرفة أو ضغط على مغادرة المباراة. تم احتساب الفوز لك.":"The match ended because your opponent left the room or chose to leave the match. The win has been awarded to you."):wrongGuess?(winner?.isMe?(ar?"خصمك أخطأ في تخمين شخصيتك، ولذلك فزت بالمباراة!":"Your opponent guessed incorrectly, so you win!"): (ar?"لقد أخطأت في تخمين الشخصية الأخيرة، ولذلك فاز خصمك.":"Your final guess was incorrect, so your opponent wins.")):winner?.isMe?(ar?"أحسنت! لقد استطعت اكتشاف شخصية صديقك قبل أن يتوقع شخصيتك.":"Great job! You guessed your friend character before they could guess yours."):(ar?`صديقك ${winner?.name??""} استطاع توقع شخصيتك قبلك. لا تستسلم، الجولة القادمة فرصتك!`:`Your friend ${winner?.name??""} guessed your character before you could guess theirs. The next round is yours!`)}</p><div className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-black ${winner?.isMe?"bg-emerald-300/15 text-emerald-100":"bg-rose-300/15 text-rose-100"}`}><Sparkles size={16}/>{winner?.isMe?(ar?"انتصار مستحق":"Well played"):(ar?"المنافسة لم تنته بعد":"The rivalry continues")}</div><div className={`mt-8 grid gap-3 ${opponentLeft?"":"sm:grid-cols-2"}`}>{!opponentLeft&&<button type="button" disabled={busy} onClick={()=>void requestRematch()} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 px-4 text-sm font-black text-[#241509] disabled:opacity-50">{ar?"إعادة المباراة":"Rematch"}</button>}<button type="button" disabled={leaving} onClick={()=>void exitCompletedToHome()} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/15 disabled:opacity-50">{leaving?(ar?"جارٍ الخروج...":"Leaving..."):(ar?"العودة للصفحة الرئيسية":"Back to home")}</button></div></div></div>}
   {rematchPending&&state.status==="COMPLETED"&&createPortal(<div className="fixed inset-0 z-[99999] grid place-items-center bg-[#070a1c]/90 p-4 backdrop-blur-xl" dir={ar?"rtl":"ltr"}><div role="alertdialog" aria-modal="true" className="arena-feedback-pop w-full max-w-md rounded-[2rem] border border-lime-300/30 bg-gradient-to-br from-[#242044] via-[#171b3c] to-[#102a32] p-7 text-center shadow-[0_30px_120px_rgba(0,0,0,.7)]"><div className="mx-auto grid size-20 place-items-center rounded-[1.7rem] border border-lime-200/25 bg-lime-300/10 text-lime-200"><Trophy size={38}/></div><p className="mt-5 text-[10px] font-black tracking-[.3em] text-lime-300">GUESS ARENA · REMATCH</p><h2 className="mt-3 text-2xl font-black text-white">{requestedByMe?(ar?"تم إرسال طلب إعادة المباراة":"Rematch request sent"):(ar?"خصمك يطلب إعادة المباراة":"Your opponent wants a rematch")}</h2><p className="mt-3 text-sm font-bold leading-7 text-white/65">{requestedByMe?(ar?"في انتظار موافقة اللاعب الآخر.":"Waiting for the other player to respond."):(ar?"هل توافق على بدء جولة جديدة؟ سيتم اختيار الشخصيات السرية من البداية.":"Accept to start a fresh round. Both players will choose new secret characters.")}</p>{!requestedByMe&&<div className="mt-7 grid gap-3 sm:grid-cols-2"><button type="button" disabled={busy} onClick={()=>void respondRematch(true)} className="min-h-12 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-4 text-sm font-black text-[#102018] disabled:opacity-50">{ar?"موافق، نعيد المباراة":"Accept rematch"}</button><button type="button" disabled={busy} onClick={()=>void respondRematch(false)} className="min-h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-black text-white disabled:opacity-50">{ar?"رفض والعودة للعب":"Decline"}</button></div>}</div></div>,document.body)}
   {showWildGuessConfirm&&selectedWildGuessCharacter&&createPortal(<div className="fixed inset-0 z-[99999] grid place-items-center bg-[#070a1c]/90 p-4 backdrop-blur-xl" dir={ar?"rtl":"ltr"}>
    <div role="alertdialog" aria-modal="true" aria-labelledby="wild-guess-title" aria-describedby="wild-guess-description" className="arena-feedback-pop w-full max-w-md rounded-[2rem] border border-amber-200/35 bg-gradient-to-br from-[#3b2a19] via-[#242044] to-[#171b3c] p-6 text-center shadow-[0_30px_120px_rgba(0,0,0,.75)] sm:p-8">
