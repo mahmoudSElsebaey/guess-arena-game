@@ -7,7 +7,7 @@ export const contentType = "image/png";
 
 export default async function OpenGraphImage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const isArabic = locale === "ar";
+  void locale;
 
   return new ImageResponse(
     (
@@ -18,8 +18,8 @@ export default async function OpenGraphImage({ params }: { params: Promise<{ loc
         </div>
         <div style={{ display: "flex", flexDirection: "column", maxWidth: 980 }}>
           <div style={{ color: "#bef264", fontSize: 24, fontWeight: 800, letterSpacing: 5 }}>THE CHARACTER GUESSING GAME</div>
-          <div style={{ marginTop: 20, fontSize: 76, lineHeight: 1.08, fontWeight: 900 }}>{isArabic ? "خمن الشخصية قبل منافسك!" : "Outguess your opponent."}</div>
-          <div style={{ marginTop: 24, color: "#f0c9a3", fontSize: 30 }}>{isArabic ? "العب أونلاين مع أصحابك أو تحدى البوت" : "Play online with friends or challenge the bot"}</div>
+          <div style={{ marginTop: 20, fontSize: 76, lineHeight: 1.08, fontWeight: 900 }}>{"Outguess your opponent."}</div>
+          <div style={{ marginTop: 24, color: "#f0c9a3", fontSize: 30 }}>{"Play online with friends or challenge the bot"}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#eadbc5", fontSize: 22 }}>
           <span>guess-arena-game.vercel.app</span><span style={{ color: "#bef264", fontWeight: 800 }}>45 CHARACTERS · 2 PLAYERS</span>
