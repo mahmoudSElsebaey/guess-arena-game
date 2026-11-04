@@ -509,3 +509,65 @@ body { background: var(--arena-cream); color: #24170f; }
 .history-arena .history-match details ol { background:#fff7e8 !important;border-color:#eadbc5 !important; }
 .history-arena .history-match details ol p { color:#3b2a1d; }
 .history-arena .text-violet-700 { color:#c84e16 !important; }
+
+
+/* Game entry pages — cream cards, dark-brown ink, citrus action colors */
+.game-entry-page {
+  min-height:100vh;
+  color:#24170f !important;
+  background:
+    radial-gradient(circle at 8% 7%,rgb(217 119 54 / .14),transparent 25rem),
+    radial-gradient(circle at 92% 16%,rgb(190 242 100 / .18),transparent 27rem),
+    linear-gradient(180deg,#fffaf1 0%,#f1e8d8 100%) !important;
+}
+.game-entry-page h1,.game-entry-page h2 { color:#24170f; }
+.game-entry-page .text-white { color:#24170f !important; }
+.game-entry-page .text-white\/55,.game-entry-page .text-white\/45 { color:#78685a !important; }
+.game-entry-page .text-lime-200,.game-entry-page .text-lime-300 { color:#557a3d !important; }
+.game-entry-page .border-white\/10 { border-color:#e2d3bd !important; }
+.game-entry-page .bg-white\/\[\.05\] { background:#fffaf1 !important; }
+.game-entry-page .bg-white\/\[\.08\] { background:#fff7e8 !important; }
+.game-entry-page .bg-lime-200\/10 { background:#eff8d9 !important; }
+.game-entry-page a.group { box-shadow:0 18px 45px rgb(87 52 20 / .08); }
+.game-entry-page a.group:hover { box-shadow:0 24px 55px rgb(87 52 20 / .14); }
+.game-entry-page .from-violet-300 { --tw-gradient-from:#bef264 var(--tw-gradient-from-position);--tw-gradient-to:rgb(190 242 100 / 0%) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to); }
+.game-entry-page .to-fuchsia-500 { --tw-gradient-to:#d97736 var(--tw-gradient-to-position); }
+
+/* Shared game stage: retain arcade contrast while replacing the old blue/purple system */
+.arena-game-stage {
+  color:#fff9ed !important;
+  border:1px solid rgb(217 181 140 / .2);
+  background:
+    radial-gradient(circle at 8% 0%,rgb(217 119 54 / .18),transparent 25rem),
+    radial-gradient(circle at 92% 90%,rgb(132 204 22 / .12),transparent 28rem),
+    linear-gradient(145deg,#21140d 0%,#2b211c 58%,#24330e 140%) !important;
+  box-shadow:0 26px 75px rgb(33 20 13 / .24);
+}
+.arena-game-stage [class*="bg-[#171b3c]"],
+.arena-game-stage [class*="bg-[#171b3c]/"],
+.arena-game-stage [class*="bg-[#0e1431]"],
+.arena-game-stage [class*="bg-[#10172c]"] {
+  background-color:#3b2a1d !important;
+  border-color:rgb(231 181 140 / .2) !important;
+}
+.arena-game-stage [class*="border-white/10"],
+.arena-game-stage [class*="border-white/5"] { border-color:rgb(231 181 140 / .2) !important; }
+.arena-game-stage [class*="text-violet-"] { color:#f0c9a3 !important; }
+.arena-game-stage [class*="bg-violet-"] { background-color:rgb(200 78 22 / .2) !important; }
+.arena-game-stage [class*="text-teal-"] { color:#bef264 !important; }
+.arena-game-stage [class*="bg-teal-"] { background-color:#557a3d !important; }
+.arena-game-stage [class*="text-slate-"] { color:#eadbc5 !important; }
+.arena-game-stage [class*="bg-slate-"] { background-color:#4a321e !important; }
+.arena-game-stage button:disabled { opacity:.48; }
+.arena-game-stage button:not(:disabled) { transition:filter .18s ease,transform .18s ease,border-color .18s ease; }
+.arena-game-stage button:not(:disabled):hover { filter:brightness(1.1) saturate(1.08); }
+.arena-game-stage .arena-panel,.arena-game-stage .arena-panel-strong {
+  border-color:rgb(231 181 140 / .2) !important;
+  background:rgb(59 42 29 / .94) !important;
+  box-shadow:0 12px 32px rgb(0 0 0 / .18);
+}
+.arena-game-stage input,.arena-game-stage select {
+  color:#fff9ed !important;
+  background:#2b211c !important;
+  border-color:rgb(231 181 140 / .25) !important;
+}
