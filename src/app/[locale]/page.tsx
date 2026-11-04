@@ -8,7 +8,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const modes = [
     { icon: Users, tag: ar ? "مع أصحابك" : "WITH FRIENDS", title: ar ? "مواجهة حقيقية" : "The real showdown", body: ar ? "افتح غرفة خاصة وشارك الكود مع صاحبك. كل واحد يختار شخصية سرية، والباقي ذكاء وتركيز." : "Create a private room and share the code. Pick secret characters, then let the mind games begin.", href: "/play", tone: "orange", number: "01" },
     { icon: Bot, tag: ar ? "في أي وقت" : "ANYTIME", title: ar ? "تحدي البوت" : "Challenge the bot", body: ar ? "ابدأ فورًا من غير انتظار. اختار مستوى سهل أو متوسط أو صعب وشوف هتقدر تكسب الكمبيوتر؟" : "Jump straight in. Choose Easy, Medium, or Hard and see if you can outsmart the computer.", href: "/practice", tone: "lime", number: "02" }
-  ];
+  ] as const;
   const steps = [
     { icon: Users, n: "01", title: ar ? "اختار طريقة اللعب" : "Choose your arena", body: ar ? "العب مع صاحبك أونلاين أو واجه البوت." : "Play online with a friend or face the bot." },
     { icon: Target, n: "02", title: ar ? "اسأل وركّز" : "Ask & focus", body: ar ? "اسأل أسئلة إجابتها نعم أو لا لتضييق الاحتمالات." : "Ask yes-or-no questions to narrow the possibilities." },
