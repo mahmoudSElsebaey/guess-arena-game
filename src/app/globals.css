@@ -473,3 +473,39 @@ body { background: var(--arena-cream); color: #24170f; }
 .auth-arena .w-full.rounded-3xl { border-color:#eadbc5; }
 .auth-arena button[type="submit"] { color:#fff9ed !important; background:linear-gradient(120deg,#c84e16,#d97736 55%,#b28a42) !important; }
 .auth-arena button[type="submit"]:hover { background:linear-gradient(120deg,#a93c10,#c84e16 55%,#9c6c2b) !important; }
+
+
+/* Profile and history pages */
+.profile-arena {
+  color:#24170f !important;
+  background:
+    radial-gradient(circle at 8% 8%,rgb(217 119 54 / .13),transparent 25rem),
+    radial-gradient(circle at 92% 20%,rgb(190 242 100 / .16),transparent 27rem),
+    linear-gradient(180deg,#fffaf1 0%,#f1e8d8 100%) !important;
+}
+.profile-arena aside {
+  border:1px solid rgb(120 72 35 / .16) !important;
+  background:radial-gradient(circle at 90% 0%,rgb(190 242 100 / .2),transparent 14rem),linear-gradient(145deg,#21140d,#3b2a1d 72%,#4a321e) !important;
+  color:#fff9ed;
+  box-shadow:0 22px 55px rgb(87 52 20 / .16);
+}
+.profile-arena aside h1,.profile-arena aside p,.profile-arena aside .text-white\/75 { color:#fff9ed !important; }
+.profile-arena > section > div > section {
+  border:1px solid #e2d3bd !important;
+  background:rgb(255 250 241 / .96) !important;
+  color:#24170f !important;
+  box-shadow:0 16px 44px rgb(87 52 20 / .08);
+}
+.profile-arena > section > div > section h2,.profile-arena > section > div > section h3 { color:#24170f !important; }
+.profile-arena > section > div > section p,.profile-arena label { color:#78685a !important; }
+.profile-arena input { border-color:#e2d3bd !important;background:#fffdf8 !important;color:#24170f !important; }
+.profile-arena input:focus { border-color:#c84e16 !important;box-shadow:0 0 0 4px rgb(200 78 22 / .12) !important; }
+.profile-arena .text-lime-200,.profile-arena .text-lime-300 { color:#557a3d !important; }
+.profile-arena .bg-lime-300\/15 { background:#eff8d9 !important; }
+.profile-arena .bg-gradient-to-r.from-lime-300 { background:linear-gradient(115deg,#bef264,#d9f99d) !important;color:#21140d !important; }
+.history-arena .history-match { border-color:#e2d3bd !important;background:#fffaf1 !important; }
+.history-arena .history-match > div:first-child { border-color:#eadbc5 !important; }
+.history-arena .history-match summary { color:#c84e16 !important; }
+.history-arena .history-match details ol { background:#fff7e8 !important;border-color:#eadbc5 !important; }
+.history-arena .history-match details ol p { color:#3b2a1d; }
+.history-arena .text-violet-700 { color:#c84e16 !important; }
