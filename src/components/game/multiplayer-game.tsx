@@ -181,21 +181,20 @@ export function MultiplayerGame({roomId,locale,characters,questions}:{roomId:str
 
  const eliminated=useMemo(()=>new Set(optimisticEliminated),[optimisticEliminated]);
  const myId=state?.members.find(m=>m.isMe)?.userId;
+ const latestTimeoutAction=state?.actions.filter(action=>action.type==="TURN_CONFIRMED"&&action.reason==="TIMEOUT").slice(-1)[0];
  useEffect(()=>{
-  if(!state)return;
-  const latest=state.actions.filter(action=>action.type==="TURN_CONFIRMED"&&action.reason==="TIMEOUT").slice(-1)[0];
   if(!timeoutInitialized.current){
    timeoutInitialized.current=true;
-   lastTimeoutAction.current=latest?.id??"";
+   lastTimeoutAction.current=latestTimeoutAction?.id??"";
    return;
   }
-  if(!latest||lastTimeoutAction.current===latest.id)return;
-  lastTimeoutAction.current=latest.id;
-  notify(latest.actorId===myId
+  if(!latestTimeoutAction||lastTimeoutAction.current===latestTimeoutAction.id)return;
+  lastTimeoutAction.current=latestTimeoutAction.id;
+  notify(latestTimeoutAction.actorId===myId
    ?(ar?"نفذ وقتك، انتهى دورك تلقائيًا.":"Time's up. Your turn ended automatically.")
    :(ar?"انتهى وقت الخصم، حان دورك الآن.":"Your opponent ran out of time. It's your turn now."),
    "warning");
- },[state,myId,ar,notify]);
+ },[latestTimeoutAction?.id,latestTimeoutAction?.actorId,myId,ar,notify]);
  const myTurn=Boolean(myId&&state?.currentTurnUserId===myId);
  const asked=new Set((state?.actions??[]).filter(a=>a.type==="QUESTION_ASKED"&&a.actorId===myId).map(a=>a.questionId));
  const questionGroups=[
