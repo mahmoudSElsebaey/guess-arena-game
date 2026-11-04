@@ -61,6 +61,7 @@ export function BotGame({ locale }: { locale: Locale }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [mySecretId, setMySecretId] = useState("");
   const [botSecretId, setBotSecretId] = useState("");
   const [phase, setPhase] = useState<"setup" | "playing" | "won" | "lost">("setup");
